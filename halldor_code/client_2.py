@@ -122,6 +122,9 @@ async def main_function(data_opcua):
                               mobile_manipulator_7,mobile_manipulator_8,mobile_manipulator_9,
                               mobile_manipulator_10]
 
+        for k in range(len(mobile_manipulator)):
+            await mobile_manipulator[k].write_value("")
+
         ###########################################################
         ###########################################################
         ###########################################################
@@ -180,6 +183,17 @@ async def main_function(data_opcua):
 
 
 
+            # print("create part ")
+            await create_new_part.write_value(data_opcua["create_part"])
+
+
+            mobile_manipulator_thread = data_opcua["mobile_manipulator"]
+            for k in range(len(mobile_manipulator_thread)):
+                mission = mobile_manipulator_thread[k]
+                if (mission != ""):
+                    await mobile_manipulator[k].write_value(mission)
+                else:
+                    await mobile_manipulator[k].write_value("")
 
             #print("rob_positions",rob_positions)
             #print("machine_positions", machine_positions)
@@ -194,21 +208,7 @@ async def main_function(data_opcua):
         ###########################################################
 
 
-        #print("create part ")
-        await create_new_part.write_value(data_opcua["create_part"])
 
-
-        missions_all = data_opcua["mission"]
-        for k in range(len(missions_all)):
-            mission = missions_all[k]
-            if(mission != ""):
-                mobile_manipulator[k].write_value(mission)
-
-        print("Mobile manipultors transports part from")
-        message = str(11)+","+str(2)
-        await mobile_manipulator[2].write_value(message)
-        time.sleep(0.7)
-        await mobile_manipulator[2].write_value("")
 
 
 def start_opcua(data_opcua):
@@ -230,6 +230,23 @@ if __name__ == "__main__":
     x.start()
 
 
+    time.sleep(2)
+
+    #data_opcua["create_part"] = 9
+    #time.sleep(0.7)
+    #data_opcua["create_part"] = 0
+
+
+    #data_opcua["mobile_manipulator"] = ['4,7','','']
+    #data_opcua["mobile_manipulator"] = ['m,0,-5000,0', '', '']
+    data_opcua["mobile_manipulator"] = ['', 's,7', '']
+    time.sleep(0.7)
+    data_opcua["mobile_manipulator"] = ['', '', '']
+
+
+
+    print("all done!@!!!")
+
 
     """
     while(True):
@@ -240,8 +257,6 @@ if __name__ == "__main__":
         print("####################################")
     """
     # new code under:
-
-
 
 
 

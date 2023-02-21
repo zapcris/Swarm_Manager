@@ -135,7 +135,7 @@ async def main_function():
         #-----------------------------------------------
         # -----------------------------------------------
         # -----------------------------------------------
-        """
+
         print("create part ")
         await create_new_part.write_value(5)
         time.sleep(0.7)
@@ -146,7 +146,7 @@ async def main_function():
         await mobile_manipulator[2].write_value(message)
         time.sleep(0.7)
         await mobile_manipulator[2].write_value("")
-        """
+
         # -----------------------------------------------
         # -----------------------------------------------
         # -----------------------------------------------
