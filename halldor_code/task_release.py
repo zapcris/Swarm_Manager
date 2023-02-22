@@ -40,13 +40,14 @@ class MyWindow:
         self.b1=Button(win, text='Create Part', command=self.create)
         self.b3 = Button(win, text='QueueTask', command=self.queue)
         self.b4 = Button(win, text='ReleaseTask', command=self.release)
-
+        self.b5 = Button(win, text='List Queue', command=self.enlist_q)
         self.b1.place(x=300, y=50)
 
 
 
         self.b3.place(x=150, y=250)
         self.b4.place(x=250, y=250)
+        self.b5.place(x=350, y=250)
 
     def create(self):
         #self.t3.delete(0, 'end')
@@ -66,23 +67,34 @@ class MyWindow:
     #     self.t3.insert(END, str(self.t3))
 
     def queue(self):
+        task_list = ["" for _ in range(2)]
         task = str(self.t3.get()) + "," + str(self.t4.get())
-        q1.put_nowait(task)
+        task_list.insert((int(self.t2.get()) - 1), task)
+        q1.put_nowait(task_list)
+
+    def enlist_q(self):
+        print(list(q1.queue))
 
     def release(self):
         global tqueue
-        task_list = ["" for _ in range(2)]
+        #task_list = ["" for _ in range(2)]
         print(list(q1.queue))
 
+        try:
+            tqueue = q1.get(False)
+            # Opt 1: Handle task here and call q.task_done()
+        except queue.Empty:
+            # Handle empty queue here
+            pass
 
 
+        # #while not q1.empty():
+        #     tqueue = q1.get()
+        #     q1.task_done()
 
-        #while not q1.empty():
-        tqueue = q1.get()
 
-
-        task_list.insert((int(self.t2.get())-1),tqueue)
-        self.data_opcua["mobile_manipulator"] = task_list
+        #task_list.insert((int(self.t2.get())-1),tqueue)
+        self.data_opcua["mobile_manipulator"] = tqueue
         time.sleep(0.7)
         self.data_opcua["mobile_manipulator"] = ['', '', '']
 
@@ -91,7 +103,7 @@ class MyWindow:
         # # data_opcua["mobile_manipulator"] = ['', 's,7', '']
         # time.sleep(0.7)
         # data_opcua["mobile_manipulator"] = ['', '', '']
-        print(f"Task relased!!!, {task_list}")
+        print(f"Task relased!!!, {tqueue}")
 
 
         #asyncio.run(opcua_client.main(tqueue))
