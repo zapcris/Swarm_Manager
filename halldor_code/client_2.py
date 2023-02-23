@@ -232,14 +232,15 @@ if __name__ == "__main__":
 
     time.sleep(2)
 
-    #data_opcua["create_part"] = 9
-    #time.sleep(0.7)
-    #data_opcua["create_part"] = 0
+    data_opcua["create_part"] = 9
+    time.sleep(0.7)
+    data_opcua["create_part"] = 0
 
+    time.sleep(2)
 
-    #data_opcua["mobile_manipulator"] = ['4,7','','']
+    data_opcua["mobile_manipulator"] = ['4,7','','']
     #data_opcua["mobile_manipulator"] = ['m,0,-5000,0', '', '']
-    data_opcua["mobile_manipulator"] = ['', 's,7', '']
+    #data_opcua["mobile_manipulator"] = ['', 's,7', '']
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 

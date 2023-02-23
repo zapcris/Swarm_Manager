@@ -41,6 +41,7 @@ class MyWindow:
         self.b3 = Button(win, text='QueueTask', command=self.queue)
         self.b4 = Button(win, text='ReleaseTask', command=self.release)
         self.b5 = Button(win, text='List Queue', command=self.enlist_q)
+        self.b6 = Button(win, text='Get positions', command=self.get_pos)
         self.b1.place(x=300, y=50)
 
 
@@ -48,6 +49,7 @@ class MyWindow:
         self.b3.place(x=150, y=250)
         self.b4.place(x=250, y=250)
         self.b5.place(x=350, y=250)
+        self.b6.place(x=430, y=250)
 
     def create(self):
         #self.t3.delete(0, 'end')
@@ -75,6 +77,10 @@ class MyWindow:
     def enlist_q(self):
         print(list(q1.queue))
 
+    def get_pos(self):
+        print(data_opcua["machine_pos"])
+        print(data_opcua["robot_pos"])
+
     def release(self):
         global tqueue
         #task_list = ["" for _ in range(2)]
@@ -88,10 +94,6 @@ class MyWindow:
             pass
 
 
-        # #while not q1.empty():
-        #     tqueue = q1.get()
-        #     q1.task_done()
-
 
         #task_list.insert((int(self.t2.get())-1),tqueue)
         self.data_opcua["mobile_manipulator"] = tqueue
@@ -104,6 +106,8 @@ class MyWindow:
         # time.sleep(0.7)
         # data_opcua["mobile_manipulator"] = ['', '', '']
         print(f"Task relased!!!, {tqueue}")
+
+
 
 
         #asyncio.run(opcua_client.main(tqueue))
