@@ -1,5 +1,9 @@
 import sys
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, replace
+from halldor_code.Robot_agent import robots
+from halldor_code.client_2 import start_opcua
+from halldor_code.task_allocation import broadcast_bid
 
 ### sink placement 12###
 ## Source = 0 , Cell type = 1 , Server type =2 , Sink = 3######
@@ -25,14 +29,33 @@ order = {
 }
 
 #print(order["sequence"])
-## status : Pending / Executing / Performed
-@dataclass
+## status : Pending / running / Performed
+## Allocation : 0 (not alloted)
+@dataclass(frozen=True)
 class task:
     id : int
     type: int
     command: []
     product: int
-    Status: str
+    allocation: bool
+    status: str
+    robot: str
+
+    def __getitem__(self,id):
+        return getattr(self,id)
+
+    def assign(self, robot):
+        object.__setattr__(self, 'allocation', True)
+        object.__setattr__(self, 'robot', robot)
+
+    def deassign(self, robot):
+        object.__setattr__(self, 'allocation', False)
+        object.__setattr__(self, 'robot', robot)
+
+    def cstatus(self, status):
+        object.__setattr__(self, 'status', status)
+
+
 
 class Task_PG:
 
@@ -66,7 +89,7 @@ class Task_PG:
                     type = 4
                 else:
                     type = 2
-                task_node = task(n, type, t2, t1[0]+1, "Pending")
+                task_node = task(n, type, t2, t1[0]+1,False, "Pending","NoRobot")
                 task_dict_list.append(task_node)
 
         return task_dict_list
@@ -74,11 +97,46 @@ class Task_PG:
     #def graph(self):
 
 
-### instantiate order
+### instantiate order and generation of task list to that order
 test_order = Task_PG(order)
 task_list = test_order.task_list()
 
 print(task_list)
+
+#### initialize OPCUA client
+
+data_opcua = {
+            "brand": "Ford",
+            "mobile_manipulator": ["", "", ""],
+            "rob_busy": [False, False, False],
+            "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
+            "robot_pos": [[0, 0], [0, 0], [0, 0]],
+            "create_part": 0,
+            "mission": ["", "", "", "", "", "", "", "", "", ""]
+    }
+# x = threading.Thread(target=start_opcua, args=(data_opcua,))
+# x.start()
+
+
+#### instantiate robots
+
+Robot1 = robots("robot1", task_list, data_opcua)
+Robot2 = robots("robot2", task_list, data_opcua)
+Robot3 = robots("robot2", task_list, data_opcua)
+
+#broadcast_bid(task_list)
+
+# for t in task_list:
+#     if t["id"] == 1 or t["id"] == 2 :
+#         t.assign(robot="one")
+#         t.cstatus(status="Executing")
+#         print(t)
+#     else:
+#         t.deassign(robot="None")
+#         print(t)
+
+
+
 
 
 
