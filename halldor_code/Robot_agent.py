@@ -1,13 +1,10 @@
 import math
-from dataclasses import dataclass
 
 
 
 
-@dataclass
-class config:
-    x: float
-    y: float
+
+#################################### Robot agent code ################################################
 
 class Transfer_robot:
 
@@ -48,14 +45,8 @@ class Transfer_robot:
         return bid_value
 
 
-    # def build_STN(self, success_bid):
-    #
-    #
-    #
-    #
-    #
-    # def update_STN(self, success_bid):
-
+    def execute_command(self, fromscheduler):
+        self.data_opcua["mobile_manipulator"] = fromscheduler
 
 class Workstation_robot:
 

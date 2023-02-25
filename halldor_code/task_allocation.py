@@ -1,12 +1,10 @@
 from dataclasses import dataclass
+import queue
 
+task_queue = queue.Queue()
 
 ### Task Allocation to robot bidders
 
-@dataclass
-class config:
-    x: float
-    y: float
 ### GREEDY TASK ALLOCATION #####
 class Task_Allocation:
 
@@ -25,7 +23,7 @@ class Task_Allocation:
                 self.broadcast_bid(i, task, T_robot)
 
             self.Allocate_bid()
-            break
+            #break
 
         return None
 
@@ -40,6 +38,8 @@ class Task_Allocation:
 
     def Allocate_bid(self):
         print("Minimal bid ", min(self.bid_data))
+
+        send to scheduler queue
 
 
 
