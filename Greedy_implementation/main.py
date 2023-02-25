@@ -1,3 +1,4 @@
+from Greedy_implementation.Scheduler import Joint_Scheduler, Product
 from Greedy_implementation.Task_Planner import Task_PG, order
 from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot
 from Greedy_implementation.Task_allocation import Task_Allocation
@@ -49,15 +50,16 @@ for i , R in enumerate(data_opcua["rob_busy"]):
 ###################### perform task allocation####################################
 
 ## Initialize Task Allocator
-Greedy_Allocator = Task_Allocation(task_list, data_opcua)
+#Greedy_Allocator = Task_Allocation(task_list, data_opcua)
 
 ### Trigger bids to transfer robots
-Greedy_Allocator.bid_counter(T_robot)
+#Greedy_Allocator.bid_counter(T_robot)
 
 
 ### Initialize Reactive Scheduler
 
-
+GreedyScheduler = Joint_Scheduler(order, task_list, data_opcua, T_robot)
+GreedyScheduler.greedy_allocator()
 
 
 

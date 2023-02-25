@@ -16,6 +16,11 @@ class Task_Allocation:
         self.bid_data = []
 
 
+    def tasks_for_allocation(self, Productlist):
+
+        return None
+
+
     def bid_counter(self, T_robot):
         for i, task in enumerate(self.global_task):
             self.bid_data =[] #### reset received bid data list for every new task ##############
@@ -30,7 +35,7 @@ class Task_Allocation:
 
         return None
 
-    def broadcast_bid(self,i,task,T_robot):
+    def broadcast_bid(self, i, task, T_robot):
 
         bid = T_robot[i].bid(task)
 
