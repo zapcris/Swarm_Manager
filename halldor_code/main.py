@@ -40,7 +40,7 @@ class task:
     product: int
     allocation: bool
     status: str
-    robot: str
+    robot: int
 
     def __getitem__(self,id):
         return getattr(self,id)
@@ -90,7 +90,7 @@ class Task_PG:
                     type = 4
                 else:
                     type = 2
-                task_node = task(n, type, t2, t1[0]+1,False, "Pending","NoRobot")
+                task_node = task(n, type, t2, t1[0]+1,False, "Pending",999)
                 task_dict_list.append(task_node)
 
         return task_dict_list
