@@ -8,8 +8,8 @@ import math
 
 class Transfer_robot:
 
-    def __init__(self, num, global_task, data_opcua):
-        self.num = num
+    def __init__(self, id, global_task, data_opcua):
+        self.id = id
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
@@ -34,19 +34,31 @@ class Transfer_robot:
             end_pos = [500, 500]
         else:
             end_pos = self.data_opcua["machine_pos"][end_loc-1]
-
+        ### Euclidean distance for cost calculation##########
         task_cost = math.sqrt(math.pow(end_pos[0] - start_pos[0], 2) + math.pow(
                     end_pos[1] - start_pos[1], 2) * 1.0)
 
-        marginal_cost = math.sqrt(math.pow(start_pos[0] - self.data_opcua["robot_pos"][self.num-1][0], 2) + math.pow(
-                    start_pos[1] - self.data_opcua["robot_pos"][self.num-1][1], 2) * 1.0)
+        if self.data_opcua["rob_busy"][self.id-1] == False :
+            marginal_cost = math.sqrt(math.pow(start_pos[0] - self.data_opcua["robot_pos"][self.id - 1][0], 2) + math.pow(
+                    start_pos[1] - self.data_opcua["robot_pos"][self.id - 1][1], 2) * 1.0)
+        else:
+            marginal_cost = 999999999
         bid_value = task_cost + marginal_cost
         #print(bid_value)
         return bid_value
 
 
-    def execute_command(self, fromscheduler):
+    def execute_typ1cmd(self, fromscheduler):
         self.data_opcua["mobile_manipulator"] = fromscheduler
+
+    def execute_typ2cmd(self, fromscheduler):
+        self.data_opcua["mobile_manipulator"] = fromscheduler
+
+    def execute_typ4cmd(self, fromscheduler):
+        self.data_opcua["mobile_manipulator"] = fromscheduler
+
+
+
 
 class Workstation_robot:
 

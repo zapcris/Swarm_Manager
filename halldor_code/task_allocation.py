@@ -23,18 +23,17 @@ class Task_Allocation:
                 #print(i,j)
                 self.broadcast_bid(j, task, T_robot)
 
-            self.Allocate_bid(task)
+            self.assign_bid(task)
             #print(self.bid_data)
-            if i == 1:
+            if i == 2:
                 break
 
         return None
 
     def broadcast_bid(self,i,task,T_robot):
-        if self.data_opcua["rob_busy"][i] == False:
-            bid = T_robot[i].bid(task)
-        else:
-            bid = 99999999 ## inifite bid value if robot is busy ######
+
+        bid = T_robot[i].bid(task)
+
         print(f"{bid} Bid Received from Robot {i+1} for task {task}")
         self.bid_data.append(bid)
 
@@ -42,7 +41,7 @@ class Task_Allocation:
 
 
 
-    def Allocate_bid(self,task):
+    def assign_bid(self, task):
         print(self.bid_data)
         min_val = min(self.bid_data)
         min_index = self.bid_data.index(min_val)
