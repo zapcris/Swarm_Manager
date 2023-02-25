@@ -51,10 +51,15 @@ class Task_Allocation:
         print("New task status", task)
 
 
-        #send to scheduler queue
+
+    def deassign_task(self):
+        ### for future implementation
+
+        return None
 
 
+    def override_task(self):
+
+        return None
 
 
-
-### PROACTIVE TASK ALLOCATION#####

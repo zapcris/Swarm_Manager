@@ -14,7 +14,7 @@ def worker():
 threading.Thread(target=worker, daemon=True).start()
 
 # Send thirty task requests to the worker.
-for item in range(30):
+for item in range(300):
     q.put(item)
 
 # Block until all tasks are done.
