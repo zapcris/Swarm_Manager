@@ -1,25 +1,45 @@
-
+from dataclasses import dataclass
 
 
 ### Task Allocation to robot bidders
 
-
+@dataclass
+class config:
+    x: float
+    y: float
 ### GREEDY TASK ALLOCATION #####
-def broadcast_bid(task_list, T_robot):
+class Task_Allocation:
 
-    # for i, task in enumerate(task_list):
-    #  #print("Task Broadcasted", task)
-    #  for j, tr in enumerate(T_robot):
-    #     print(i, j)
-    #     break
-    #     print(T_robot[j].bid("test task"))
+    def __init__(self, global_task, data_opcua):
 
-    for i, tr in enumerate(T_robot):
-        for j, task in enumerate(task_list):
-            print(i,j)
-            (T_robot[i].bid(task))
+        self.global_task = global_task
+        #self.auctioned_task = auctioned_task
+        self.data_opcua = data_opcua
+        self.bid_data = []
+
+
+    def bid_counter(self, T_robot):
+        for i, tr in enumerate(T_robot):
+            for j, task in enumerate(self.global_task):
+                #print(i,j)
+                self.broadcast_bid(i, task, T_robot)
+
+            self.Allocate_bid()
             break
 
+        return None
+
+    def broadcast_bid(self,i,task,T_robot):
+        bid = T_robot[i].bid(task)
+        #print(bid)
+        self.bid_data.append(bid)
+        #print(self.bid_data)
+        return self.bid_data
+
+
+
+    def Allocate_bid(self):
+        print("Minimal bid ", min(self.bid_data))
 
 
 

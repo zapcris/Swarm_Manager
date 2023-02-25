@@ -3,7 +3,7 @@ import threading
 from dataclasses import dataclass, replace
 from halldor_code.Robot_agent import Transfer_robot, Workstation_robot
 from halldor_code.client_2 import start_opcua
-from halldor_code.task_allocation import broadcast_bid
+from halldor_code.task_allocation import Task_Allocation
 
 ### sink placement 12###
 ## Source = 0 , Cell type = 1 , Server type =2 , Sink = 3######
@@ -127,7 +127,6 @@ for i, (type,pt) in enumerate(zip(order["Wk_type"], order["Process_times"])):
         W_robot.append(wr)
 
 
-
 #### Initializate Carrier robots
 T_robot = []
 for i , R in enumerate(data_opcua["rob_busy"]):
@@ -136,8 +135,14 @@ for i , R in enumerate(data_opcua["rob_busy"]):
     T_robot.append(robot)
 
 ### perform task allocation#####
+## Initialize Task Allocator
+Greedy_Allocator = Task_Allocation(task_list, data_opcua)
 
-broadcast_bid(task_list, T_robot)
+### Trigger bids to transfer robots
+Greedy_Allocator.bid_counter(T_robot)
+
+
+### Initialize Reactive Scheduler
 
 
 
