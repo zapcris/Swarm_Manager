@@ -1,6 +1,6 @@
-from halldor_code.Task_Planner import Task_PG, order
-from halldor_code.Robot_agent import Transfer_robot, Workstation_robot
-from halldor_code.task_allocation import Task_Allocation
+from Greedy_implementation.Task_Planner import Task_PG, order
+from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot
+from Greedy_implementation.Task_allocation import Task_Allocation
 
 
 

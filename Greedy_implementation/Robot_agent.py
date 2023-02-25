@@ -34,7 +34,7 @@ class Transfer_robot:
             end_pos = [500, 500]
         else:
             end_pos = self.data_opcua["machine_pos"][end_loc-1]
-        ### Euclidean distance for cost calculation##########
+        ### Euclidean distance for cost calculation ##########
         task_cost = math.sqrt(math.pow(end_pos[0] - start_pos[0], 2) + math.pow(
                     end_pos[1] - start_pos[1], 2) * 1.0)
 

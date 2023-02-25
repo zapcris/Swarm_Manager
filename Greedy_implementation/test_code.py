@@ -1,10 +1,9 @@
-
-
-
 import threading
+import queue
 
+q = queue.Queue()
 
-def worker(q):
+def worker():
     while True:
         item = q.get()
         print(f'Working on {item}')

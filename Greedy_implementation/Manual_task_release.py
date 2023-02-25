@@ -5,7 +5,7 @@ import time
 from tkinter import *
 import queue
 import opcua_client
-from halldor_code.client_2 import start_opcua
+from Greedy_implementation.client_2 import start_opcua
 
 q1 = queue.Queue(maxsize=100)
 

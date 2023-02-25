@@ -25,6 +25,8 @@ order = {
 }
 
 #print(order["sequence"])
+
+
 ## status : Pending / running / Performed
 ## Allocation : 0 (not alloted)
 @dataclass(frozen=True)
@@ -90,4 +92,3 @@ class Task_PG:
 
         return task_dict_list
 
-    #def graph(self):
