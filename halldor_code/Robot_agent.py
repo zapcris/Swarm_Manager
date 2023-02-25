@@ -9,7 +9,7 @@ class config:
     x: float
     y: float
 
-class robots:
+class Transfer_robot:
 
     def __init__(self, name, global_task, data_opcua):
         self.name: name
@@ -24,10 +24,11 @@ class robots:
     def bid(self, auctioned_task):
         total_ws = len(self.data_opcua["machine_pos"])
         dist = 0.0
-        for i in range(total_ws - 1):
-            dist += math.sqrt(math.pow(auctioned_task[i + 1].x - auctioned_task[i].x, 2) + math.pow(
-                auctioned_task[i + 1].y - auctioned_task[i].y, 2) * 1.0)
-        return None
+        # for i in range(total_ws - 1):
+        #     dist += math.sqrt(math.pow(auctioned_task[i + 1].x - auctioned_task[i].x, 2) + math.pow(
+        #         auctioned_task[i + 1].y - auctioned_task[i].y, 2) * 1.0)
+        print(auctioned_task)
+        return auctioned_task
 
 
     # def build_STN(self, success_bid):
@@ -37,4 +38,19 @@ class robots:
     #
     #
     # def update_STN(self, success_bid):
+
+
+class Workstation_robot:
+
+    def __init__(self, name, process_times, data_opcua):
+        self.name: name
+        self.processtime = process_times
+        #self.auctioned_task = auctioned_task
+        self.data_opcua = data_opcua
+
+
+
+
+
+
 

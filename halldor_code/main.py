@@ -1,7 +1,7 @@
 import sys
 import threading
 from dataclasses import dataclass, replace
-from halldor_code.Robot_agent import robots
+from halldor_code.Robot_agent import Transfer_robot, Workstation_robot
 from halldor_code.client_2 import start_opcua
 from halldor_code.task_allocation import broadcast_bid
 
@@ -24,7 +24,8 @@ order = {
                       ],
 
         "PI"    : [1,1,1,1,1,1,1,1,1,1],
-        "Wk_type" : [0,1,1,1,1,1,1,1,1,1,1,3]
+        "Wk_type" : [0,1,1,1,1,1,1,1,1,1,1,3],
+        "Process_times": [0, 20, 30, 40, 50, 20, 40, 80, 70, 30, 60, 0]
 
 }
 
@@ -117,13 +118,30 @@ data_opcua = {
 # x = threading.Thread(target=start_opcua, args=(data_opcua,))
 # x.start()
 
+########Initializar Workstation robots
+W_robot = []
+for i, (type,pt) in enumerate(zip(order["Wk_type"], order["Process_times"])):
+    if type==1 or type==2:
+        #print("create wk", i, pt, type)
+        wr = Workstation_robot(i, pt, data_opcua)
+        W_robot.append(wr)
 
-#### instantiate robots
 
-Robot1 = robots("robot1", task_list, data_opcua)
-Robot2 = robots("robot2", task_list, data_opcua)
-Robot3 = robots("robot2", task_list, data_opcua)
 
+#### Initializate Carrier robots
+T_robot = []
+for i , R in enumerate(data_opcua["rob_busy"]):
+    #print(i+1, R)
+    robot = Transfer_robot(i+1, task_list, data_opcua)
+    T_robot.append(robot)
+
+### perform task allocation#####
+
+broadcast_bid(task_list, T_robot)
+
+
+
+### Test function######
 #broadcast_bid(task_list)
 
 # for t in task_list:
