@@ -1,8 +1,5 @@
-import sys
-import threading
-from Task_Planner import Task_PG, order
+from halldor_code.Task_Planner import Task_PG, order
 from halldor_code.Robot_agent import Transfer_robot, Workstation_robot
-from halldor_code.client_2 import start_opcua
 from halldor_code.task_allocation import Task_Allocation
 
 
