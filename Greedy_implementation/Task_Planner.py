@@ -61,10 +61,10 @@ class Task_PG:
         self.order = order
 
     def task_list(self):
-        task_list = []
+        product_task = []
         tl = []
         n = 0
-        task_dict_list = []
+        global_task = []
         task_enum = 0
         t2 = []
         seq = self.order["sequence"]
@@ -75,9 +75,14 @@ class Task_PG:
                 # print(graph[i][j], graph[i][j+1])
                 tasks = [seq[i][j], seq[i][j + 1]]
                 tl.append(tasks)
-            task_list.append(tl)
 
-        for t1 in enumerate(task_list):
+            product_task.append(tl)
+
+        # for t in product_task:
+        #     print(t)
+
+########### Generate a global list of task objects ##############################
+        for t1 in enumerate(product_task):
             for t2 in t1[1]:
                 n = n + 1
                 # print(n,t1[0],t2[0], t2[1])
@@ -88,6 +93,6 @@ class Task_PG:
                 else:
                     type = 2
                 task_node = task(n, type, t2, t1[0] + 1, False, "Pending", 999)
-                task_dict_list.append(task_node)
+                global_task.append(task_node)
 
-        return task_dict_list
+        return product_task,global_task

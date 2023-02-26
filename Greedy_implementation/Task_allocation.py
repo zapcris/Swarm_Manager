@@ -8,12 +8,13 @@ task_queue = queue.Queue()
 ### GREEDY TASK ALLOCATION #####
 class Task_Allocation:
 
-    def __init__(self, global_task, data_opcua):
+    def __init__(self, global_task, data_opcua, T_robot):
 
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
         self.bid_data = []
+        self.t_robot = T_robot
 
 
     def tasks_for_allocation(self, Productlist):
@@ -21,12 +22,12 @@ class Task_Allocation:
         return None
 
 
-    def bid_counter(self, T_robot):
+    def bid_counter(self):
         for i, task in enumerate(self.global_task):
             self.bid_data =[] #### reset received bid data list for every new task ##############
-            for j, tr in enumerate(T_robot):
+            for j, tr in enumerate(self.t_robot):
                 #print(i,j)
-                self.broadcast_bid(j, task, T_robot)
+                self.broadcast_bid(j, task)
 
             self.assign_bid(task)
             #print(self.bid_data)
@@ -35,9 +36,9 @@ class Task_Allocation:
 
         return None
 
-    def broadcast_bid(self, i, task, T_robot):
+    def broadcast_bid(self, i, task):
 
-        bid = T_robot[i].bid(task)
+        bid = self.t_robot[i].bid(task)
 
         print(f"{bid} Bid Received from Robot {i+1} for task {task}")
         self.bid_data.append(bid)
