@@ -17,12 +17,22 @@ class Task_Allocation:
         self.t_robot = T_robot
 
 
-    def tasks_for_allocation(self, Productlist):
+    def step_allocation(self, task_for_allocation):
+        for i, task in enumerate(task_for_allocation):
+            self.bid_data =[] #### reset received bid data list for every new task ##############
+
+            for j, tr in enumerate(self.t_robot):
+                #print(i,j)
+
+                self.broadcast_bid(j, task)
+
+            self.assign_bid(task, i)
+            #print(self.bid_data)
 
         return None
 
 
-    def bid_counter(self):
+    def bulk_allocation(self):
         for i, task in enumerate(self.global_task):
             self.bid_data =[] #### reset received bid data list for every new task ##############
             for j, tr in enumerate(self.t_robot):
@@ -47,12 +57,13 @@ class Task_Allocation:
 
 
 
-    def assign_bid(self, task):
+    def assign_bid(self, task, i):
         print(self.bid_data)
         min_val = min(self.bid_data)
         min_index = self.bid_data.index(min_val)
         print(f"Minimum bid value found at Robot {min_index+1}")
         task.assign(robot=min_index+1)
+        self.t_robot[i].task_assigned()
         print(f"Task allocated to robot {min_index+1}")
         print("New task status", task)
 

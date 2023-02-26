@@ -15,6 +15,7 @@ class Transfer_robot:
         self.data_opcua = data_opcua
         self.success_bid = None
         self.STN = None
+        self.assigned_task = False
 
 
 
@@ -38,7 +39,8 @@ class Transfer_robot:
         task_cost = math.sqrt(math.pow(end_pos[0] - start_pos[0], 2) + math.pow(
                     end_pos[1] - start_pos[1], 2) * 1.0)
 
-        if self.data_opcua["rob_busy"][self.id-1] == False :
+        #if self.data_opcua["rob_busy"][self.id-1] == False :
+        if self.assigned_task == False:
             marginal_cost = math.sqrt(math.pow(start_pos[0] - self.data_opcua["robot_pos"][self.id - 1][0], 2) + math.pow(
                     start_pos[1] - self.data_opcua["robot_pos"][self.id - 1][1], 2) * 1.0)
         else:
@@ -46,6 +48,14 @@ class Transfer_robot:
         bid_value = task_cost + marginal_cost
         #print(bid_value)
         return bid_value
+
+    def task_assigned(self):
+        self.assigned_task = True
+        return self
+
+    def task_deassigned(self):
+        self.assigned_task = False
+        return self
 
 
     def execute_typ1cmd(self, fromscheduler):

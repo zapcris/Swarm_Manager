@@ -2,9 +2,11 @@ from dataclasses import dataclass
 import threading
 import queue
 from datetime import time
+from Task_Planner import Task, Task_PG
 
 
-@dataclass
+
+
 class Product:
     # num = int
     # PV = int
@@ -14,48 +16,74 @@ class Product:
     # finish_time = time
     # finished = False
 
-    def __init__(self, pi_id, pv_id, product_flow, inProduction, finished):
-        self.pv = pi_id
+    def __init__(self, pi_id, pv_id, task_list, inProduction, finished):
+        self.pi = pi_id
         self.pv = pv_id
         self.inProduction = inProduction
         self.finished = finished
-        self.product_flow = product_flow
+        self.task_list = task_list
+
+
+    # def __str__(self):
+    #     return f'The product instance is {self.pi}'
+    #
+    # def __repr__(self):
+    #     return self
+
+    def __getitem__(self, pi):
+        return getattr(self, pi)
+
+    # def get_task(self):
+    #
+    #     try:
+    #        self.tqueue = self.task_queue.get(False)
+    #        # Opt 1: Handle task here and call q.task_done()
+    #     except queue.Empty:
+    #        # Handle empty queue here
+    #         pass
+    #
+    #     return getattr(self)
 
 class Joint_Scheduler:
 
-    def __init__(self, order, global_task, product_flow, data_opcua, T_robot):
+    def __init__(self, order, global_task, product_task, data_opcua, T_robot):
 
         self.global_task = global_task
         self.data_opcua = data_opcua
         self.order = order
         self.robots = T_robot
         self.initiated_products = []
-        self.product_flow = product_flow
+        self.product_task = product_task
 
-    def product_generator(self):
 
-        #### Initialization of Products ######
+    def initialize_production(self):
+
+        #### Initialization of Products based on total available robots ######
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
-                p = Product(i+1, 1,self.product_flow, True, False)
+         ########### encapsulated task sequence object for every product instance #######
+                p = Product(i + 1, 1, self.product_task[i], True, False)
+
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.initiated_products.append(p)
         else: ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = Product(i+1, 1, self.product_flow, True, False)
+                p = Product(i + 1, 1, self.product_task[i], True, False)
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.initiated_products.append(p)
 
-        self.task_sequencer()
+        task_for_allocation = self.task_dispatcher()
 
-        return None
+        return task_for_allocation
+######## Dispatch Task to Task Allocator for broadcasting ###################
+    def task_dispatcher(self):
+        task_for_allocation = []
 
-    def task_sequencer(self):
-        task_for_allocation = None
-
+######### Initial Release ########################
         for i, product in enumerate(self.initiated_products):
-            product
-
+            cmd = product["task_list"][0]
+            TA = Task(i+1, 1, cmd, i+1, 1, False, "Pending", 999)
+            task_for_allocation.append(TA)
 
         return task_for_allocation
 

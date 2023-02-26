@@ -10,12 +10,15 @@ from Greedy_implementation.Task_allocation import Task_Allocation
 
 ### instantiate order and generation of task list to that order
 test_order = Task_PG(order)
-Product_task = test_order.task_list()[0]
-Global_task = test_order.task_list()[1]
+generate_task = test_order.task_list()
+Product_task = generate_task[0]
+Global_task = generate_task[1]
+Task_Queue = generate_task[2]
 
-
+# for i in Task_Queue:
+#     print(i)
 # print(Product_task)
-# print(Global_task)
+#print(Global_task)
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
@@ -53,20 +56,26 @@ for i , R in enumerate(data_opcua["rob_busy"]):
 
 #sys.exit()
 
+### Initialize Reactive Scheduler
+#
+GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
+
+### Initialize the products and initial task for production
+initial_task = GreedyScheduler.initialize_production()
+
 
 ###################### perform task allocation####################################
 
 ## Initialize Task Allocator
-#Greedy_Allocator = Task_Allocation(task_list, data_opcua, T_robot)
+Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
+
+Greedy_Allocator.step_allocation(initial_task)
 
 ### Trigger bids to transfer robots
 #Greedy_Allocator.bid_counter()
 
 
-### Initialize Reactive Scheduler
-#
-GreedyScheduler = Joint_Scheduler(order, Global_task,Product_task, data_opcua, T_robot)
-GreedyScheduler.product_generator()
+
 
 
 
