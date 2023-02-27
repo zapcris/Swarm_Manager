@@ -1,10 +1,12 @@
 import sys
+from queue import Queue, Empty
+from threading import Thread
 
 from Greedy_implementation.Scheduler import Joint_Scheduler, Product
 from Greedy_implementation.Task_Planner import Task_PG, order
 from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot
 from Greedy_implementation.Task_allocation import Task_Allocation
-
+import multiprocessing as mp
 
 
 
@@ -48,9 +50,19 @@ for i, (type,pt) in enumerate(zip(order["Wk_type"], order["Process_times"])):
 
 ########## Initialization of Carrier robots######################################################
 T_robot = []
+r1, r2, r3 = [], [], []
+robots = [r1,r2,r3]
+q_robot = []
+
+for r in robots:
+    q = mp.Queue()
+    q_robot.append(q)
+
+
 for i , R in enumerate(data_opcua["rob_busy"]):
     #print(i+1, R)
-    robot = Transfer_robot(i + 1, Global_task, data_opcua)
+
+    robot = Transfer_robot(id=i + 1, global_task=Global_task, data_opcua=data_opcua, tqueue=q_robot[i])
     T_robot.append(robot)
 
 
@@ -69,13 +81,56 @@ initial_task = GreedyScheduler.initialize_production()
 ## Initialize Task Allocator
 Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
 
-Greedy_Allocator.step_allocation(initial_task)
+alloted_task = Greedy_Allocator.step_allocation(initial_task)
+
+for aalt in alloted_task:
+    print(aalt["id"],aalt["robot"])
+
+######## Peform Task Execution###################
+print("Task Execution Initiated")
+#GreedyScheduler.execution_queue(alloted_task)
+
 
 ### Trigger bids to transfer robots
 #Greedy_Allocator.bid_counter()
 
 
 
+
+####### Task queue functions #############
+allotment_queue = mp.Queue()
+for task in alloted_task:
+    allotment_queue.put_nowait(task)
+
+print(allotment_queue)
+def assignment_function(allotment_queue):
+        # asignee = allotment_queue["robot"]
+        # #print(asignee)
+        # robot_id = asignee-1
+        # robots[robot_id].append(alloted_task)
+        while True:
+
+            try:
+                asignee = allotment_queue.get(False)
+                robot_id = asignee["robot"] - 1
+                #robots[robot_id].append(alloted_task)
+                print(asignee["robot"])
+                robots[robot_id].append(asignee)
+                print(robots)
+
+                # Opt 1: Handle task here and call q.task_done()
+            except Empty:
+                # Handle empty queue here
+                # print("Queue was empty")
+                pass
+
+
+
+##### Start Task releaser to Robot thread################
+
+releaser_thread = Thread(target=assignment_function, args=(allotment_queue,))
+
+releaser_thread.start()
 
 
 

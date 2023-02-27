@@ -1,15 +1,16 @@
 import math
-
-
-
+from queue import Queue, Empty
+from threading import Thread
+from time import sleep
 
 
 #################################### Robot agent code ################################################
 
 class Transfer_robot:
 
-    def __init__(self, id, global_task, data_opcua):
+    def __init__(self, id, global_task, data_opcua, tqueue):
         self.id = id
+        self.start_robot(tqueue)
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
@@ -57,6 +58,31 @@ class Transfer_robot:
         self.assigned_task = False
         return self
 
+
+    def node_function(self, tqueue):
+       while True:
+           try:
+               taken_task = tqueue.get(False)
+               self.sendtoOPCUA(taken_task)
+               # Opt 1: Handle task here and call q.task_done()
+           except Empty:
+               # Handle empty queue here
+               #print("Queue was empty")
+               pass
+            #####get first task######
+            # taken_task = tqueue.get(False)
+            # self.sendtoOPCUA(taken_task)
+            # #tqueue.pop(0)
+
+    def start_robot(self, tqueue):
+        t = Thread(target=self.node_function, args=(tqueue,))
+        t.start()
+    def simulate(self,q_in: Queue):
+        return None
+
+    def sendtoOPCUA(self, task):
+        sleep(0.5)
+        print(f"command sent to visual components {task}")
 
     def execute_typ1cmd(self, fromscheduler):
         self.data_opcua["mobile_manipulator"] = fromscheduler

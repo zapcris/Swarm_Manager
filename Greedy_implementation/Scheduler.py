@@ -1,8 +1,9 @@
-from dataclasses import dataclass
-import threading
-import queue
-from datetime import time
+
+from time import sleep
+from queue import Queue
+from threading import Thread
 from Task_Planner import Task, Task_PG
+from Robot_agent import Transfer_robot
 
 
 
@@ -72,11 +73,11 @@ class Joint_Scheduler:
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.initiated_products.append(p)
 
-        task_for_allocation = self.task_dispatcher()
+        task_for_allocation = self.trigger_allocation()
 
         return task_for_allocation
 ######## Dispatch Task to Task Allocator for broadcasting ###################
-    def task_dispatcher(self):
+    def trigger_allocation(self):
         task_for_allocation = []
 
 ######### Initial Release ########################
@@ -87,17 +88,16 @@ class Joint_Scheduler:
 
         return task_for_allocation
 
-    def generate_queue(self):
-        queue_list = []
 
-        return queue_list
 
-    def release_task(self):
+
+
+    def release_execCommand(self):
         task_for_execution = []
 
         return task_for_execution
 
     def proactive_scheduler(self):
-        global_STN = queue.Queue()
+        global_STN = Queue()
         ############# Future implementation ##############
         return global_STN

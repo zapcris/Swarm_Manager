@@ -29,7 +29,8 @@ class Task_Allocation:
             self.assign_bid(task, i)
             #print(self.bid_data)
 
-        return None
+
+        return task_for_allocation
 
 
     def bulk_allocation(self):
