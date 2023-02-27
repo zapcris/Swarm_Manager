@@ -1,5 +1,3 @@
-import threading
-from queue import Empty
 import multiprocessing as mp
 from queue import Empty
 from threading import Thread
@@ -12,8 +10,8 @@ from Greedy_implementation.client_2 import start_opcua
 #### initialize OPCUA client to communicate to Visual Components ###################
 
 
-# x = threading.Thread(target=start_opcua, args=(data_opcua,))
-# x.start()
+x = Thread(target=start_opcua, args=(data_opcua,))
+x.start()
 
 
 ### instantiate order and generation of task list to that order
@@ -86,7 +84,7 @@ for task in alloted_task:
     q_main_to_releaser.put_nowait(task)
 
 print(q_main_to_releaser)
-def assignment_function(allotment_queue):
+def release_function(scheduling_queue):
         # asignee = allotment_queue["robot"]
         # #print(asignee)
         # robot_id = asignee-1
@@ -94,26 +92,30 @@ def assignment_function(allotment_queue):
         while True:
 
             try:
-                asignee = allotment_queue.get(False)
-                robot_id = asignee["robot"] - 1
+                task_opcua = scheduling_queue.get(False)
+                robot_id = task_opcua["robot"] - 1
                 #robots[robot_id].append(alloted_task)
-                print(asignee["robot"])
+                print(task_opcua["robot"])
                 #### Not required to run separate threads for robots#######
                 #q_robot[robot_id].put_nowait(asignee)
-                status = T_robot[robot_id].sendtoOPCUA(asignee)
+                status = T_robot[robot_id].sendtoOPCUA(task_opcua)
+
                 print(status)
 
                 # Opt 1: Handle task here and call q.task_done()
             except Empty:
                 # Handle empty queue here
                 # print("Queue was empty")
+
+                print("No task to release")
+
                 pass
 
 
 
 ##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=assignment_function, args=(q_main_to_releaser,))
+releaser_thread = Thread(target=release_function, args=(q_main_to_releaser,))
 
 releaser_thread.start()
 

@@ -1,3 +1,4 @@
+import asyncio
 import math
 from queue import Queue, Empty
 from threading import Thread
@@ -126,6 +127,9 @@ class Transfer_robot:
             task.cstatus("Running")
         sleep(0.2)
 
+        if data_opcua["rob_busy"][self.id - 1] == False:
+            task.cstatus("Finished")
+
 
 
 
@@ -148,12 +152,19 @@ class Transfer_robot:
 
 class Workstation_robot:
 
-    def __init__(self, name, process_times, data_opcua):
-        self.name: name
+    def __init__(self, wk_no, process_times, data_opcua):
+        self.name = wk_no
+
         self.processtime = process_times
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
 
+    async def process_execution(self):
+        print("Process task executing")
+        await asyncio.sleep(self.processtime)
+        print("Process task on workstation ",self.name )
+
+        return self
 
 
 

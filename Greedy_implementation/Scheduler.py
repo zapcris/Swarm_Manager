@@ -73,13 +73,16 @@ class Joint_Scheduler:
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.initiated_products.append(p)
 
-        task_for_allocation = self.trigger_allocation()
+        task_for_allocation = self.initial_allocation()
 
         return task_for_allocation
 
+    def normal_production(self):
+
+        return None
 
 ######## Dispatch Task to Task Allocator for broadcasting ###################
-    def trigger_allocation(self):
+    def initial_allocation(self):
         task_for_allocation = []
 
         ######### Initial Release ########################
