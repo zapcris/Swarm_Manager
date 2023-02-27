@@ -2,7 +2,6 @@ from queue import Empty
 import multiprocessing as mp
 from queue import Empty
 from threading import Thread
-
 from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot
 from Greedy_implementation.Scheduler import Joint_Scheduler
 from Greedy_implementation.Task_Planner import Task_PG, order

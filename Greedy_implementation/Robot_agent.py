@@ -2,7 +2,7 @@ import math
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
-from write_opcua import write_opcua
+#from write_opcua import write_opcua
 
 #################################### Robot agent code ################################################
 
@@ -88,22 +88,22 @@ class Transfer_robot:
         cmd.insert((int(self.id) - 1), c)
         if task["command"][0] == 11:
             #main.data_opcua["create_part"] = task["pV"]
-            write_opcua(task["pV"], "create_part", None)
+            #write_opcua(task["pV"], "create_part", None)
             sleep(0.7)
             print("part created",task["pV"])
-            write_opcua(0, "create_part", None)
+            #write_opcua(0, "create_part", None)
             #main.data_opcua["create_part"] = 0
-            write_opcua(0,"create_part")
+            #write_opcua(0,"create_part")
             sleep(0.7)
-            write_opcua(None, "transfer", cmd)
+            #write_opcua(None, "transfer", cmd)
             sleep(0.7)
-            write_opcua(None, "transfer", ["", "", ""])
+            #write_opcua(None, "transfer", ["", "", ""])
             print("command sent to opcuaclient", cmd)
 
         else:
-            write_opcua(None, "transfer", cmd)
+            #write_opcua(None, "transfer", cmd)
             sleep(0.7)
-            write_opcua(None, "transfer", ["", "", ""])
+            #write_opcua(None, "transfer", ["", "", ""])
 
 
 
