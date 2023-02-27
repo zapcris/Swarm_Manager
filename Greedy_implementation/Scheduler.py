@@ -76,11 +76,13 @@ class Joint_Scheduler:
         task_for_allocation = self.trigger_allocation()
 
         return task_for_allocation
+
+
 ######## Dispatch Task to Task Allocator for broadcasting ###################
     def trigger_allocation(self):
         task_for_allocation = []
 
-######### Initial Release ########################
+        ######### Initial Release ########################
         for i, product in enumerate(self.initiated_products):
             cmd = product["task_list"][0]
             TA = Task(i+1, 1, cmd, i+1, 1, False, "Pending", 999)

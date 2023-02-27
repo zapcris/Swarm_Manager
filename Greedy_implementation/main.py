@@ -9,20 +9,6 @@ from Greedy_implementation.Task_allocation import Task_Allocation
 import multiprocessing as mp
 
 
-
-
-### instantiate order and generation of task list to that order
-test_order = Task_PG(order)
-generate_task = test_order.task_list()
-Product_task = generate_task[0]
-Global_task = generate_task[1]
-Task_Queue = generate_task[2]
-
-# for i in Task_Queue:
-#     print(i)
-# print(Product_task)
-#print(Global_task)
-
 #### initialize OPCUA client to communicate to Visual Components ###################
 
 data_opcua = {
@@ -38,6 +24,21 @@ data_opcua = {
 # x.start()
 
 
+### instantiate order and generation of task list to that order
+test_order = Task_PG(order)
+generate_task = test_order.task_list()
+Product_task = generate_task[0]
+Global_task = generate_task[1]
+Task_Queue = generate_task[2]
+
+# for i in Task_Queue:
+#     print(i)
+# print(Product_task)
+#print(Global_task)
+
+
+
+
 
 #########Initialization of Workstation robots###############################
 
@@ -51,11 +52,9 @@ for i, (type,pt) in enumerate(zip(order["Wk_type"], order["Process_times"])):
 
 ########## Initialization of Carrier robots######################################################
 T_robot = []
-r1, r2, r3 = [], [], []
-robots = [r1,r2,r3]
 q_robot = []
 
-for r in robots:
+for r in data_opcua["rob_busy"]:
     q = mp.Queue()
     q_robot.append(q)
 
@@ -99,11 +98,16 @@ print("Task Execution Initiated")
 
 
 ####### Task queue functions #############
-allotment_queue = mp.Queue()
-for task in alloted_task:
-    allotment_queue.put_nowait(task)
 
-print(allotment_queue)
+#pool = mp.Pool()
+#manager = mp.Manager()
+
+q_main_to_releaser = mp.Queue()
+#q_releaser_to_robot = manager.Queue()
+for task in alloted_task:
+    q_main_to_releaser.put_nowait(task)
+
+print(q_main_to_releaser)
 def assignment_function(allotment_queue):
         # asignee = allotment_queue["robot"]
         # #print(asignee)
@@ -116,8 +120,8 @@ def assignment_function(allotment_queue):
                 robot_id = asignee["robot"] - 1
                 #robots[robot_id].append(alloted_task)
                 print(asignee["robot"])
-                robots[robot_id].append(asignee)
-                print(robots)
+                q_robot[robot_id].put_nowait(asignee)
+                print(q_robot)
 
                 # Opt 1: Handle task here and call q.task_done()
             except Empty:
@@ -129,7 +133,7 @@ def assignment_function(allotment_queue):
 
 ##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=assignment_function, args=(allotment_queue,))
+releaser_thread = Thread(target=assignment_function, args=(q_main_to_releaser,))
 
 releaser_thread.start()
 
