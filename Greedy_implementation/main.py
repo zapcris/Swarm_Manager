@@ -1,25 +1,19 @@
+import threading
 from queue import Empty
 import multiprocessing as mp
 from queue import Empty
 from threading import Thread
-from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot
+from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot, data_opcua
 from Greedy_implementation.Scheduler import Joint_Scheduler
 from Greedy_implementation.Task_Planner import Task_PG, order
 from Greedy_implementation.Task_allocation import Task_Allocation
+from Greedy_implementation.client_2 import start_opcua
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
-data_opcua = {
-            "brand": "Ford",
-            "mobile_manipulator": ["", "", ""],
-            "rob_busy": [False, False, False],
-            "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
-            "robot_pos": [[0, 0], [0, 0], [0, 0]],
-            "create_part": 0,
-            "mission": ["", "", "", "", "", "", "", "", "", ""]
-    }
-# x = threading.Thread(target=start_opcua, args=(data_opcua,))
-# x.start()
+
+x = threading.Thread(target=start_opcua, args=(data_opcua,))
+x.start()
 
 
 ### instantiate order and generation of task list to that order
@@ -67,32 +61,18 @@ for i , R in enumerate(data_opcua["rob_busy"]):
 #sys.exit()
 
 ### Initialize Reactive Scheduler
-#
 GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
-
-### Initialize the products and initial task for production
-initial_task = GreedyScheduler.initialize_production()
-
-
-###################### perform task allocation####################################
 
 ## Initialize Task Allocator
 Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
+
+### Perform task creation and allocation process
+initial_task = GreedyScheduler.initialize_production()
 
 alloted_task = Greedy_Allocator.step_allocation(initial_task)
 
 for aalt in alloted_task:
     print(aalt["id"],aalt["robot"])
-
-######## Peform Task Execution###################
-print("Task Execution Initiated")
-#GreedyScheduler.execution_queue(alloted_task)
-
-
-### Trigger bids to transfer robots
-#Greedy_Allocator.bid_counter()
-
-
 
 
 ####### Task queue functions #############
