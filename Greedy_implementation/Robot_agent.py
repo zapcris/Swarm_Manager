@@ -83,10 +83,7 @@ class Transfer_robot:
                # Handle empty queue here
                #print("Queue was empty")
                pass
-            #####get first task######
-            # taken_task = tqueue.get(False)
-            # self.sendtoOPCUA(taken_task)
-            # #tqueue.pop(0)
+
 
     def start_robot(self, tqueue):
         t = Thread(target=self.node_function, args=(tqueue,))
@@ -123,12 +120,12 @@ class Transfer_robot:
             sleep(0.7)
             data_opcua["mobile_manipulator"]= ["", "", ""]
 
-        if data_opcua["rob_busy"][self.id -1] == True:
-            task.cstatus("Running")
-        sleep(0.2)
-
-        if data_opcua["rob_busy"][self.id - 1] == False:
-            task.cstatus("Finished")
+        # if data_opcua["rob_busy"][self.id -1] == True:
+        #     task.cstatus("Running")
+        # sleep(0.2)
+        #
+        # if data_opcua["rob_busy"][self.id - 1] == False:
+        #     task.cstatus("Finished")
 
 
 

@@ -1,4 +1,4 @@
-
+from dataclasses import dataclass
 from time import sleep
 from queue import Queue
 from threading import Thread
@@ -7,22 +7,27 @@ from Robot_agent import Transfer_robot
 
 
 
-
+@dataclass
 class Product:
-    # num = int
-    # PV = int
-    # inProduction = False
+    pv_Id : int
+    pi_Id : int
+    task_list: []
+    inProduction : False
+    finished : False
+    last_instance : int
     # current_position = []
     # start_time = time
     # finish_time = time
-    # finished = False
 
-    def __init__(self, pi_id, pv_id, task_list, inProduction, finished):
-        self.pi = pi_id
-        self.pv = pv_id
-        self.inProduction = inProduction
-        self.finished = finished
-        self.task_list = task_list
+
+    # def __init__(self, pi_Id, pv_Id, task_list, inProduction, finished, last_instance):
+    #     self.pi_ID = pi_Id
+    #     self.pv_ID = pv_Id
+    #     self.inProduction = inProduction
+    #     self.produced = finished
+    #     self.task_list = task_list
+    #     self.last_instance = last_instance
+
 
 
     # def __str__(self):
@@ -31,19 +36,14 @@ class Product:
     # def __repr__(self):
     #     return self
 
-    def __getitem__(self, pi):
-        return getattr(self, pi)
+    def __getitem__(self, pv_Id):
+        return getattr(self, pv_Id)
 
-    # def get_task(self):
-    #
-    #     try:
-    #        self.tqueue = self.task_queue.get(False)
-    #        # Opt 1: Handle task here and call q.task_done()
-    #     except queue.Empty:
-    #        # Handle empty queue here
-    #         pass
-    #
-    #     return getattr(self)
+    def dequeue(self):
+        if len(self.task_list) > 0 :
+            self.task_list.pop(0)
+        return (self)
+
 
 class Joint_Scheduler:
 
@@ -53,8 +53,19 @@ class Joint_Scheduler:
         self.data_opcua = data_opcua
         self.order = order
         self.robots = T_robot
-        self.initiated_products = []
+        self.active_products = []
         self.product_task = product_task
+        self.finished_product = []
+        self.product_seq_ID = []
+        self.seq_order()
+        self.pCount = 0
+        self.running_task = []
+
+
+
+    def seq_order(self):
+        for i in range(self.order["PV"]):
+            self.product_seq_ID.append(i+1)
 
 
     def initialize_production(self):
@@ -63,33 +74,84 @@ class Joint_Scheduler:
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
          ########### encapsulated task sequence object for every product instance #######
-                p = Product(i + 1, 1, self.product_task[i], True, False)
+                p = Product(i + 1, 1, self.product_task[i], True, False, self.order["PI"][i])
+
 
                 print(f"First instance of products Variant {i+1} generated for production")
-                self.initiated_products.append(p)
+                self.active_products.append(p)
+                self.pCount = i+1
         else: ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = Product(i + 1, 1, self.product_task[i], True, False)
+                p = Product(i + 1, 1, self.product_task[i], True, False, self.order["PI"][i])
                 print(f"First instance of products Variant {i+1} generated for production")
-                self.initiated_products.append(p)
+                self.active_products.append(p)
+                self.pCount = i+1
 
-        task_for_allocation = self.initial_allocation()
 
-        return task_for_allocation
+        initial_allocation = self.initial_allocation()
 
+        return initial_allocation
+
+ ######### Triggered after initial production queue is executed in Execution Thread###########
     def normal_production(self):
+        for i, product in enumerate(self.active_products):
 
-        return None
+            if  product["inProduction"] == True and len(product["task_flow"]) == 0 and product["pi_Id"] == product["last_instance"]:
+                print("Product Instance has been completed and to be deleted")
+                product["inProduction"] = False
+                product["Finished"] = True
+                self.finished_product.append(product)
+                self.product_seq_ID.remove(product["pv_ID"])
+                self.active_products.remove(product)
+                sleep(0.2)
+                print("Adding new product variant to active production list")
+                p = Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount-1],
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1])
+                self.active_products.append(p)
+
+            elif product["inProduction"] == True and len(product["task_flow"]) == 0 and product["pi_Id"] != product["last_instance"]:
+                print("Product instance upgraded and changed for same product variant")
+                product["inProduction"] = False
+                product["Finished"] = True
+                old_pi = product["pi_Id"]
+                self.finished_product.append(product)
+                self.active_products.remove(product)
+                sleep(0.2)
+                print("Adding new product instance of same variant to active production list")
+                p = Product(pv_Id=self.pCount, pi_Id=old_pi+1, task_list=self.product_task[self.pCount-1],
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1])
+                self.active_products.append(p)
+
+            else:
+                print("Continue with same product variant and instance resp.",product["pv_Id"], product["pi_Id"])
+        normal_allocation = self.normal_allocation()
+
+        return normal_allocation
+
+
 
 ######## Dispatch Task to Task Allocator for broadcasting ###################
     def initial_allocation(self):
         task_for_allocation = []
 
         ######### Initial Release ########################
-        for i, product in enumerate(self.initiated_products):
+        for i, product in enumerate(self.active_products):
             cmd = product["task_list"][0]
+            print(f"product task flow required before", product["task_list"])
             TA = Task(i+1, 1, cmd, i+1, 1, False, "Pending", 999)
+            product.dequeue()
+            print(f"product task flow required after", product["task_list"])
             task_for_allocation.append(TA)
+
+        return task_for_allocation
+
+    def normal_allocation(self):
+        task_normal_allocation = []
+        if last task executed ?
+
+        then allocate the next task to queue
+
+
 
         return task_for_allocation
 

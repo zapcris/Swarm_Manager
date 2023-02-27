@@ -65,6 +65,8 @@ GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, 
 ## Initialize Task Allocator
 Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
 
+
+Sim_step = 0
 ### Perform task creation and allocation process
 initial_task = GreedyScheduler.initialize_production()
 
@@ -104,7 +106,8 @@ def release_function():
                     q_main_to_releaser.task_done()
                     break
                 q_main_to_releaser.task_done()
-                print("All task completed")
+                Sim_step = 1
+                print("All task completed", Sim_step)
 
                 # Opt 1: Handle task here and call q.task_done()
             except Empty:

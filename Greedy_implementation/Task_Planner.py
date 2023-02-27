@@ -45,6 +45,8 @@ class Task:
     def __getitem__(self, id):
         return getattr(self, id)
 
+
+
     def assign(self, robot):
         object.__setattr__(self, 'allocation', True)
         object.__setattr__(self, 'robot', robot)
