@@ -2,7 +2,7 @@ import math
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
-
+from write_opcua import write_opcua
 
 #################################### Robot agent code ################################################
 
@@ -81,8 +81,36 @@ class Transfer_robot:
         return None
 
     def sendtoOPCUA(self, task):
+        cmd = ["" for _ in range(2)]
+        print(f"Task {task} received from Swarm Manager for execution")
         sleep(0.5)
-        print(f"command sent to visual components {task}")
+        c = str(task["command"][0]) + "," + str(task["command"][1])
+        cmd.insert((int(self.id) - 1), c)
+        if task["command"][0] == 11:
+            #main.data_opcua["create_part"] = task["pV"]
+            write_opcua(task["pV"], "create_part", None)
+            sleep(0.7)
+            print("part created",task["pV"])
+            write_opcua(0, "create_part", None)
+            #main.data_opcua["create_part"] = 0
+            write_opcua(0,"create_part")
+            sleep(0.7)
+            write_opcua(None, "transfer", cmd)
+            sleep(0.7)
+            write_opcua(None, "transfer", ["", "", ""])
+            print("command sent to opcuaclient", cmd)
+
+        else:
+            write_opcua(None, "transfer", cmd)
+            sleep(0.7)
+            write_opcua(None, "transfer", ["", "", ""])
+
+
+
+
+
+
+
 
     def execute_typ1cmd(self, fromscheduler):
         self.data_opcua["mobile_manipulator"] = fromscheduler
