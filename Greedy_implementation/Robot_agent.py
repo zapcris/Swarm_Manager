@@ -4,6 +4,7 @@ from threading import Thread
 from time import sleep
 
 
+
 #################################### Robot agent code ################################################
 
 data_opcua = {
@@ -17,11 +18,12 @@ data_opcua = {
     }
 
 
+
 class Transfer_robot:
 
     def __init__(self, id, global_task, data_opcua, tqueue):
         self.id = id
-        self.start_robot(tqueue)
+        #self.start_robot(tqueue)
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
@@ -94,7 +96,8 @@ class Transfer_robot:
     def sendtoOPCUA(self, task):
         cmd = ["" for _ in range(2)]
         print(f"Task {task} received from Swarm Manager for execution")
-        sleep(0.5)
+        sleep(1)
+
         if task["command"][1] == 12:
             c = str(task["command"][0]) + "," + str("s")
 
@@ -102,10 +105,11 @@ class Transfer_robot:
             c = str(task["command"][0]) + "," + str(task["command"][1])
         cmd.insert((int(self.id) - 1), c)
         if task["command"][0] == 11:
+            sleep(5)
             data_opcua["create_part"] = task["pV"]
             #write_opcua(task["pV"], "create_part", None)
             sleep(0.7)
-            print(f"part created for robot {self.id}", task["pV"])
+            print(f"part created for robot {self.id},", task["pV"])
             data_opcua["create_part"] = 0
             sleep(0.7)
             data_opcua["mobile_manipulator"]= cmd
@@ -118,9 +122,15 @@ class Transfer_robot:
             sleep(0.7)
             data_opcua["mobile_manipulator"]= ["", "", ""]
 
+        if data_opcua["rob_busy"][self.id -1] == True:
+            task.cstatus("Running")
+        sleep(0.2)
 
 
-        return None
+
+
+        return task
+
 
 
 

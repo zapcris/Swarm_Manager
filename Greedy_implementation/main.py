@@ -12,8 +12,8 @@ from Greedy_implementation.client_2 import start_opcua
 #### initialize OPCUA client to communicate to Visual Components ###################
 
 
-x = threading.Thread(target=start_opcua, args=(data_opcua,))
-x.start()
+# x = threading.Thread(target=start_opcua, args=(data_opcua,))
+# x.start()
 
 
 ### instantiate order and generation of task list to that order
@@ -98,8 +98,10 @@ def assignment_function(allotment_queue):
                 robot_id = asignee["robot"] - 1
                 #robots[robot_id].append(alloted_task)
                 print(asignee["robot"])
-                q_robot[robot_id].put_nowait(asignee)
-                print(q_robot)
+                #### Not required to run separate threads for robots#######
+                #q_robot[robot_id].put_nowait(asignee)
+                status = T_robot[robot_id].sendtoOPCUA(asignee)
+                print(status)
 
                 # Opt 1: Handle task here and call q.task_done()
             except Empty:
