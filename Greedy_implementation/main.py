@@ -1,4 +1,5 @@
-import multiprocessing as mp
+import queue
+import sys
 from queue import Empty
 from threading import Thread
 from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot, data_opcua
@@ -10,8 +11,8 @@ from Greedy_implementation.client_2 import start_opcua
 #### initialize OPCUA client to communicate to Visual Components ###################
 
 
-x = Thread(target=start_opcua, args=(data_opcua,))
-x.start()
+# x = Thread(target=start_opcua, args=(data_opcua,))
+# x.start()
 
 
 ### instantiate order and generation of task list to that order
@@ -45,7 +46,7 @@ T_robot = []
 q_robot = []
 
 for r in data_opcua["rob_busy"]:
-    q = mp.Queue()
+    q = queue.Queue()
     q_robot.append(q)
 
 
@@ -70,7 +71,9 @@ initial_task = GreedyScheduler.initialize_production()
 alloted_task = Greedy_Allocator.step_allocation(initial_task)
 
 for aalt in alloted_task:
-    print(aalt["id"],aalt["robot"])
+    #print(aalt["id"],aalt["robot"])
+    print(aalt)
+
 
 
 ####### Task queue functions #############
@@ -78,13 +81,13 @@ for aalt in alloted_task:
 #pool = mp.Pool()
 #manager = mp.Manager()
 
-q_main_to_releaser = mp.Queue()
+q_main_to_releaser = queue.Queue()
 #q_releaser_to_robot = manager.Queue()
 for task in alloted_task:
     q_main_to_releaser.put_nowait(task)
 
 print(q_main_to_releaser)
-def release_function(scheduling_queue):
+def release_function():
         # asignee = allotment_queue["robot"]
         # #print(asignee)
         # robot_id = asignee-1
@@ -92,22 +95,23 @@ def release_function(scheduling_queue):
         while True:
 
             try:
-                task_opcua = scheduling_queue.get(False)
+                task_opcua = q_main_to_releaser.get(False)
                 robot_id = task_opcua["robot"] - 1
-                #robots[robot_id].append(alloted_task)
                 print(task_opcua["robot"])
-                #### Not required to run separate threads for robots#######
-                #q_robot[robot_id].put_nowait(asignee)
                 status = T_robot[robot_id].sendtoOPCUA(task_opcua)
-
-                print(status)
+                #scheduling_queue.done()
+                if task is None:
+                    q_main_to_releaser.task_done()
+                    break
+                q_main_to_releaser.task_done()
+                print("All task completed")
 
                 # Opt 1: Handle task here and call q.task_done()
             except Empty:
                 # Handle empty queue here
                 # print("Queue was empty")
 
-                print("No task to release")
+                #print("No task to release")
 
                 pass
 
@@ -115,11 +119,12 @@ def release_function(scheduling_queue):
 
 ##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=release_function, args=(q_main_to_releaser,))
+releaser_thread = Thread(target=release_function, args=())
 
 releaser_thread.start()
 
-
+# q_main_to_releaser.join()
+# print('All work completed')
 
 
 

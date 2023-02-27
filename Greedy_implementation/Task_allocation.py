@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import queue
 
+from Greedy_implementation.Task_Planner import Task
+
 task_queue = queue.Queue()
 
 ### Task Allocation to robot bidders
@@ -28,6 +30,8 @@ class Task_Allocation:
 
             self.assign_bid(task, i)
             #print(self.bid_data)
+
+        #task_for_allocation.append(Task(0, 0, [0, 0], 0, 0, False, "Final_Task", 999))
 
 
         return task_for_allocation
