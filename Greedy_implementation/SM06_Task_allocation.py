@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import queue
 
-from Greedy_implementation.Task_Planner import Task
+from Greedy_implementation.SM04_Task_Planner import Task
 
 task_queue = queue.Queue()
 

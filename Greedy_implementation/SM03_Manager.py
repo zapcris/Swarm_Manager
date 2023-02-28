@@ -4,11 +4,11 @@ import sys
 import threading
 from queue import Empty
 from threading import Thread
-from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot, data_opcua
-from Greedy_implementation.Scheduler import Joint_Scheduler
-from Greedy_implementation.Task_Planner import Task_PG, order
-from Greedy_implementation.Task_allocation import Task_Allocation
-from Greedy_implementation.client_2 import start_opcua
+from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua
+from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
+from Greedy_implementation.SM04_Task_Planner import Task_PG, order
+from Greedy_implementation.SM06_Task_allocation import Task_Allocation
+from Greedy_implementation.SM02_opcua_client import start_opcua
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
