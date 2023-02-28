@@ -1,5 +1,7 @@
+import asyncio
 import queue
 import sys
+import threading
 from queue import Empty
 from threading import Thread
 from Greedy_implementation.Robot_agent import Transfer_robot, Workstation_robot, data_opcua
@@ -10,7 +12,7 @@ from Greedy_implementation.client_2 import start_opcua
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
-
+#
 # x = Thread(target=start_opcua, args=(data_opcua,))
 # x.start()
 
@@ -66,7 +68,7 @@ GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, 
 Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
 
 
-Sim_step = 0
+
 ### Perform task creation and allocation process
 initial_task = GreedyScheduler.initialize_production()
 
@@ -90,31 +92,48 @@ for task in alloted_task:
 
 print(q_main_to_releaser)
 def release_function():
-        # asignee = allotment_queue["robot"]
-        # #print(asignee)
-        # robot_id = asignee-1
-        # robots[robot_id].append(alloted_task)
+
+        global Sim_step
+        Sim_step = 0
+        print("Simulation step initialized to 0")
         while True:
 
             try:
-                task_opcua = q_main_to_releaser.get(False)
-                robot_id = task_opcua["robot"] - 1
-                print(task_opcua["robot"])
-                status = T_robot[robot_id].sendtoOPCUA(task_opcua)
-                #scheduling_queue.done()
-                if task is None:
+                if Sim_step == 0 :
+                    task_opcua = q_main_to_releaser.get(False)
+                    robot_id = task_opcua["robot"] - 1
+                    print(task_opcua["robot"])
+                    status = T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    #asyncio.run(T_robot[robot_id].unlatch_busy())
+                    #scheduling_queue.done()
+                    # if task_opcua is None:
+                    #     q_main_to_releaser.task_done()
+                    #     break
                     q_main_to_releaser.task_done()
-                    break
-                q_main_to_releaser.task_done()
-                Sim_step = 1
-                print("All task completed", Sim_step)
 
-                # Opt 1: Handle task here and call q.task_done()
+                    print(f"All task completed on Simulation step {Sim_step} ")
+                else:
+                    normal_task = GreedyScheduler.normal_production()
+                    normal_allot = Greedy_Allocator.step_allocation(normal_task)
+                    for task in normal_allot:
+                        q_main_to_releaser.put_nowait(task)
+                    task_opcua = q_main_to_releaser.get(False)
+                    robot_id = task_opcua["robot"] - 1
+                    print(task_opcua["robot"])
+                    status = T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    q_main_to_releaser.task_done()
+                    print(f"All task completed on Simulation step {Sim_step} ")
+
+            # Opt 1: Handle task here and call q.task_done()
             except Empty:
                 # Handle empty queue here
-                # print("Queue was empty")
 
-                #print("No task to release")
+
+                print("No task to release")
+                for robot in data_opcua["rob_busy"]:
+                    if robot == False:
+                        Sim_step = 1
+                        print(f"Simulation step upgraded to {Sim_step}")
 
                 pass
 
@@ -125,6 +144,13 @@ def release_function():
 releaser_thread = Thread(target=release_function, args=())
 
 releaser_thread.start()
+
+def start_async():
+    loop = asyncio.new_event_loop()
+    threading.Thread(target=loop.run_forever).start()
+    return loop
+
+_loop = start_async()
 
 # q_main_to_releaser.join()
 # print('All work completed')

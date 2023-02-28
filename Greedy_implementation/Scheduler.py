@@ -9,12 +9,12 @@ from Robot_agent import Transfer_robot
 
 @dataclass
 class Product:
-    pv_Id : int
-    pi_Id : int
+    pv_Id: int
+    pi_Id: int
     task_list: []
-    inProduction : False
-    finished : False
-    last_instance : int
+    inProduction: False
+    finished: False
+    last_instance: int
     # current_position = []
     # start_time = time
     # finish_time = time
@@ -38,6 +38,16 @@ class Product:
 
     def __getitem__(self, pv_Id):
         return getattr(self, pv_Id)
+
+    def remove_from_production(self):
+        object.__setattr__(self, 'inProduction', False)
+
+
+    def pfinished(self):
+        object.__setattr__(self, 'finished', True)
+    #
+    # def reset_Instance(self):
+    #     object.__setattr__(self, 'last_instance', 0)
 
     def dequeue(self):
         if len(self.task_list) > 0 :
@@ -74,7 +84,7 @@ class Joint_Scheduler:
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
          ########### encapsulated task sequence object for every product instance #######
-                p = Product(i + 1, 1, self.product_task[i], True, False, self.order["PI"][i])
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i])
 
 
                 print(f"First instance of products Variant {i+1} generated for production")
@@ -82,7 +92,7 @@ class Joint_Scheduler:
                 self.pCount = i+1
         else: ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = Product(i + 1, 1, self.product_task[i], True, False, self.order["PI"][i])
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i])
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.active_products.append(p)
                 self.pCount = i+1
@@ -96,12 +106,13 @@ class Joint_Scheduler:
     def normal_production(self):
         for i, product in enumerate(self.active_products):
 
-            if  product["inProduction"] == True and len(product["task_flow"]) == 0 and product["pi_Id"] == product["last_instance"]:
-                print("Product Instance has been completed and to be deleted")
-                product["inProduction"] = False
-                product["Finished"] = True
+            if  product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product["last_instance"]:
+                print(f"Product variant has been completed and to be deleted", product["pv_Id"])
+                product.remove_from_production()
+                product.pfinished()
                 self.finished_product.append(product)
-                self.product_seq_ID.remove(product["pv_ID"])
+                print(self.product_seq_ID)
+                self.product_seq_ID.remove(product["pv_Id"])
                 self.active_products.remove(product)
                 sleep(0.2)
                 print("Adding new product variant to active production list")
@@ -109,10 +120,10 @@ class Joint_Scheduler:
                             inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1])
                 self.active_products.append(p)
 
-            elif product["inProduction"] == True and len(product["task_flow"]) == 0 and product["pi_Id"] != product["last_instance"]:
+            elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product["last_instance"]:
                 print("Product instance upgraded and changed for same product variant")
-                product["inProduction"] = False
-                product["Finished"] = True
+                product.remove_from_production()
+                product.pfinished()
                 old_pi = product["pi_Id"]
                 self.finished_product.append(product)
                 self.active_products.remove(product)
@@ -124,7 +135,7 @@ class Joint_Scheduler:
 
             else:
                 print("Continue with same product variant and instance resp.",product["pv_Id"], product["pi_Id"])
-        normal_allocation = self.normal_allocation()
+        normal_allocation = self.initial_allocation()
 
         return normal_allocation
 
@@ -145,15 +156,15 @@ class Joint_Scheduler:
 
         return task_for_allocation
 
-    def normal_allocation(self):
-        task_normal_allocation = []
-        if last task executed ?
-
-        then allocate the next task to queue
-
-
-
-        return task_for_allocation
+    # def normal_allocation(self):
+    #     task_normal_allocation = []
+    #     if last task executed ?
+    #
+    #     then allocate the next task to queue
+    #
+    #
+    #
+    #     return task_for_allocation
 
 
 

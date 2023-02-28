@@ -80,6 +80,7 @@ class MyWindow:
     def get_pos(self):
         print(data_opcua["machine_pos"])
         print(data_opcua["robot_pos"])
+        print(data_opcua["rob_busy"])
 
     def release(self):
         global tqueue

@@ -15,7 +15,8 @@ data_opcua = {
             "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
             "robot_pos": [[0, 0], [0, 0], [0, 0]],
             "create_part": 0,
-            "mission": ["", "", "", "", "", "", "", "", "", ""]
+            "mission": ["", "", "", "", "", "", "", "", "", ""],
+            "robot_exec": [False, False, False]
     }
 
 
@@ -31,9 +32,14 @@ class Transfer_robot:
         self.success_bid = None
         self.STN = None
         self.assigned_task = False
+        self.executing = data_opcua["rob_busy"][self.id-1]
 
+    def __await__(self):
+        async def closure():
+            print("await")
+            return self
 
-
+        return closure().__await__()
 
     def bid(self, auctioned_task):
         bid_value = 0.0
@@ -55,7 +61,7 @@ class Transfer_robot:
                     end_pos[1] - start_pos[1], 2) * 1.0)
 
         #if self.data_opcua["rob_busy"][self.id-1] == False :
-        if self.assigned_task == False:
+        if self.assigned_task == False and data_opcua["rob_busy"][self.id-1] == False:
             marginal_cost = math.sqrt(math.pow(start_pos[0] - self.data_opcua["robot_pos"][self.id - 1][0], 2) + math.pow(
                     start_pos[1] - self.data_opcua["robot_pos"][self.id - 1][1], 2) * 1.0)
         else:
@@ -119,18 +125,24 @@ class Transfer_robot:
             data_opcua["mobile_manipulator"]= cmd
             sleep(0.7)
             data_opcua["mobile_manipulator"]= ["", "", ""]
+            data_opcua["robot_exec"][self.id-1] = False
+            data_opcua["rob_busy"][self.id - 1] = True
 
-        # if data_opcua["rob_busy"][self.id -1] == True:
-        #     task.cstatus("Running")
-        # sleep(0.2)
-        #
-        # if data_opcua["rob_busy"][self.id - 1] == False:
-        #     task.cstatus("Finished")
-
-
+        print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
 
 
         return task
+
+    async def unlatch_busy(self):
+        # if data_opcua["rob_busy"][self.id-1] == False:
+        #     self.executing = False
+        #     print(f"Robot {self.id} unlatched")
+        # busy_flag = asyncio.Event()
+        # await busy_flag.wait()
+        # print()
+        print(f'Robot {self.id} Executing')
+        await asyncio.sleep(20)
+        print(f'Robot {self.id} Finished')
 
 
 
