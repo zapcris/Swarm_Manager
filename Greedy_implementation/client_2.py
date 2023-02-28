@@ -150,7 +150,7 @@ async def main_function(data_opcua):
 
             # Read if mobile manipulator is busy
             for k in range(len(rob_busy)):
-                robot_busy[k] = await rob_busy[k].read_data_value()
+                robot_busy[k] = await rob_busy[k].read_value()
             data_opcua["rob_busy"] = robot_busy
             ##################################################
             # Read machine position data
@@ -244,7 +244,10 @@ if __name__ == "__main__":
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 
+    while True:
+        time.sleep(1)
 
+        print(data_opcua["rob_busy"])
 
     print("all done!@!!!")
 
