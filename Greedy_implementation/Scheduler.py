@@ -149,7 +149,13 @@ class Joint_Scheduler:
         for i, product in enumerate(self.active_products):
             cmd = product["task_list"][0]
             print(f"product task flow required before", product["task_list"])
-            TA = Task(i+1, 1, cmd, i+1, 1, False, "Pending", 999)
+            if cmd[0] == 11 or cmd[1] == 11:
+                type = 1
+            elif cmd[0] == 12 or cmd[1] == 12:
+                type = 4
+            else:
+                type = 2
+            TA = Task(id=i+1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False, status="Pending", robot=999)
             product.dequeue()
             print(f"product task flow required after", product["task_list"])
             task_for_allocation.append(TA)
