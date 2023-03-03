@@ -3,10 +3,14 @@ import math
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
-
+from multiprocessing import Manager
+from spinach import Engine, MemoryBroker, AsyncioWorkers
 
 
 #################################### Robot agent code ################################################
+# manager = Manager()
+# data_opcua = manager.dict()
+
 
 data_opcua = {
             "brand": "Ford",
@@ -133,7 +137,8 @@ class Transfer_robot:
 
         return task
 
-    async def unlatch_busy(self):
+
+    async def unlatch_busy(self, time):
         # if data_opcua["rob_busy"][self.id-1] == False:
         #     self.executing = False
         #     print(f"Robot {self.id} unlatched")
@@ -141,7 +146,8 @@ class Transfer_robot:
         # await busy_flag.wait()
         # print()
         print(f'Robot {self.id} Executing')
-        await asyncio.sleep(20)
+
+        await asyncio.sleep(time)
         print(f'Robot {self.id} Finished')
 
 

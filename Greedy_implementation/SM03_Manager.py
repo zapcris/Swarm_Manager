@@ -4,16 +4,36 @@ import sys
 import threading
 from queue import Empty
 from threading import Thread
+
+from spinach import AsyncioWorkers
+
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua
 from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
-from Greedy_implementation.SM02_opcua_client import start_opcua
+from Greedy_implementation.SM02_opcua_client import start_opcua, main_function
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
-#
-# x = Thread(target=start_opcua, args=(data_opcua,))
+
+Events = {
+        "brand": "Ford",
+        "rob_execution": [False, False, False],
+        "rob_mission": ["", "", ""],
+        "rob_product": [[int,int],[int,int],[int,int]],
+        "machine_status": [False for stat in range(10)],
+        "machine_product": [[int,int] for product in range(10)],
+        "elapsed_time": [int for et in range(10)],
+        "Product_finished": []
+
+}
+
+Data_opcua = dict(data_opcua)
+
+
+##### Start OPCUA Client Thread################
+
+# x = Thread(target=start_opcua, args=(Data_opcua,))
 # x.start()
 
 
@@ -59,8 +79,6 @@ for i , R in enumerate(data_opcua["rob_busy"]):
     T_robot.append(robot)
 
 
-#sys.exit()
-
 ### Initialize Reactive Scheduler
 GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
 
@@ -82,15 +100,17 @@ for aalt in alloted_task:
 
 ####### Task queue functions #############
 
-#pool = mp.Pool()
-#manager = mp.Manager()
-
 q_main_to_releaser = queue.Queue()
-#q_releaser_to_robot = manager.Queue()
+#q_to_eventloop = queue.Queue()
+
 for task in alloted_task:
     q_main_to_releaser.put_nowait(task)
 
-print(q_main_to_releaser)
+#print(q_main_to_releaser)
+
+
+
+
 def release_function():
 
         global Sim_step
@@ -99,17 +119,23 @@ def release_function():
         while True:
 
             try:
+                #asyncio.run(T_robot[1].unlatch_busy())
+
+
                 if Sim_step == 0 :
                     task_opcua = q_main_to_releaser.get(False)
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
                     status = T_robot[robot_id].sendtoOPCUA(task_opcua)
-                    #asyncio.run(T_robot[robot_id].unlatch_busy())
+
                     #scheduling_queue.done()
                     # if task_opcua is None:
                     #     q_main_to_releaser.task_done()
                     #     break
                     q_main_to_releaser.task_done()
+                    #asyncio.run(T_robot[robot_id].unlatch_busy())
+
+
 
                     print(f"All task completed on Simulation step {Sim_step} ")
                 else:
@@ -141,16 +167,23 @@ def release_function():
 
 ##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=release_function, args=())
+releaser_thread = Thread(target=release_function, args=(T_robot,))
 
 releaser_thread.start()
 
-def start_async():
-    loop = asyncio.new_event_loop()
-    threading.Thread(target=loop.run_forever).start()
-    return loop
 
-_loop = start_async()
+
+##### running loop example ######
+loop = asyncio.get_event_loop()
+asyncio.ensure_future(T_robot[0].unlatch_busy(40))
+asyncio.ensure_future(T_robot[1].unlatch_busy(20))
+loop.run_forever()
+
+threading.Thread(
+    target=checker_function,
+    args=(asyncio.get_event_loop(), loop)
+).start()
+
 
 # q_main_to_releaser.join()
 # print('All work completed')
@@ -158,6 +191,8 @@ _loop = start_async()
 
 
 ############################## Test debug function###########################################
+
+
 #broadcast_bid(task_list)
 
 # for t in task_list:
@@ -171,6 +206,17 @@ _loop = start_async()
 
 
 
+##### injecting async function to a thread #######
 
+# async def main():
+#     # create classes and call methods here
+#     await asyncio.gather(  # waits for both of the arguments to return
+#         asyncio.create_task(T_robot[0].unlatch_busy(20)),
+#         asyncio.create_task(T_robot[1].unlatch_busy(20)),
+#         asyncio.create_task(T_robot[2].unlatch_busy(20)),  # schedules first to run independently under asyncio.
+#         asyncio.to_thread(release_function),  # runs second in thread
+#     )
+#
+# asyncio.run(main())
 
 
