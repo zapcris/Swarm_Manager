@@ -1,5 +1,6 @@
 import asyncio
 import math
+from datetime import datetime
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
@@ -47,6 +48,7 @@ class Transfer_robot:
         self.STN = None
         self.assigned_task = False
         self.executing = data_opcua["rob_busy"][self.id-1]
+        self.event = asyncio.Event()
 
     def __await__(self):
         async def closure():
@@ -116,6 +118,7 @@ class Transfer_robot:
         print(f"Task {task} received from Swarm Manager for execution")
         sleep(1)
 
+
         if task["command"][1] == 12:
             c = str(task["command"][0]) + "," + str("s")
 
@@ -123,7 +126,7 @@ class Transfer_robot:
             c = str(task["command"][0]) + "," + str(task["command"][1])
         cmd.insert((int(self.id) - 1), c)
         if task["command"][0] == 11:
-            sleep(5)
+            sleep(3)
             data_opcua["create_part"] = task["pV"]
             #write_opcua(task["pV"], "create_part", None)
             sleep(0.7)
@@ -143,7 +146,7 @@ class Transfer_robot:
             data_opcua["rob_busy"][self.id - 1] = True
 
         #print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
-        Events["rob_execution"][self.id-1] = True
+        Events["rob_execution"][self.id - 1] = True
 
 
 
@@ -151,27 +154,29 @@ class Transfer_robot:
         return task
 
 
-    async def execution_time(self, event1):
+    async def execution_time(self,event,id):
         # if data_opcua["rob_busy"][self.id-1] == False:
         #     self.executing = False
         #     print(f"Robot {self.id} unlatched")
         # busy_flag = asyncio.Event()
         # await busy_flag.wait()
         while True:
-            print(f'waiting for robot {self.id} for  execution')
-            print(f'the event status is {Events["rob_execution"][self.id-1]}')
-            # async with condition:
-            #     await condition.wait()
-            await event1.wait()
 
-            print(f'the event status is {Events["rob_execution"][self.id - 1]}')
-            print(f'Robot {self.id} execution timer is started')
-
-            await asyncio.sleep(20)
-            print(f'Robot {self.id} execution is finished after 20 seconds')
-            Events["rob_execution"][self.id - 1] = False
-            # async with condition:
-            #     condition.notify()
+            #print(f'waiting for robot {id} for  execution')
+            await event.wait()
+            print(f'Robot {id} execution timer is started')
+            start_time = datetime.now()
+            await asyncio.sleep(3)
+            Events["rob_execution"][id - 1] = True
+            while Events["rob_execution"][id - 1] == True:
+                if data_opcua["rob_busy"][id-1] == True:
+                    #exec_time = (datetime.now() - start_time).total_seconds()
+                    print(f"Robot {id} is running")
+                    pass
+                elif data_opcua["rob_busy"][id-1] == False:
+                    Events["rob_execution"][id - 1] = False
+            exec_time = (datetime.now() - start_time).total_seconds()
+            print(f"Robot {id} took {exec_time:,.2f} seconds to run")
 
 
 

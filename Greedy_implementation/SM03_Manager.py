@@ -22,8 +22,8 @@ Data_opcua = dict(data_opcua)
 
 ##### Start OPCUA Client Thread################
 
-# x = Thread(target=start_opcua, args=(Data_opcua,))
-# x.start()
+x = Thread(target=start_opcua, args=(Data_opcua,))
+x.start()
 
 
 ### instantiate order and generation of task list to that order
@@ -37,7 +37,6 @@ Task_Queue = generate_task[2]
 #     print(i)
 # print(Product_task)
 #print(Global_task)
-
 
 
 
@@ -122,9 +121,13 @@ def release_function(T_robot):
                     #     q_main_to_releaser.task_done()
                     #     break
                     q_main_to_releaser.task_done()
-                    done()
+                    #done()
+                    print("Execution task release", task_opcua)
+                    #task_released(task_opcua)
+                    break
 
-                    #asyncio.run(T_robot[robot_id].unlatch_busy())
+
+
 
 
 
@@ -139,9 +142,11 @@ def release_function(T_robot):
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
 
-                    status = T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    #status = T_robot[robot_id].sendtoOPCUA(task_opcua)
                     q_main_to_releaser.task_done()
                     print(f"All task completed on Simulation step {Sim_step} ")
+                    #done()
+                    #task_released(task_opcua)
 
 
             # Opt 1: Handle task here and call q.task_done()
@@ -166,14 +171,34 @@ releaser_thread = Thread(target=release_function, args=(T_robot,))
 releaser_thread.start()
 
 
-### new event thread ####
-
-
-
+### new Events check thread ####
 event1 = asyncio.Event()
+event2 = asyncio.Event()
+event3 = asyncio.Event()
+events = [event1 for rob in T_robot]
 
+
+### new event loop thread for async functions####
 def done():
     event1.set()
+
+
+def task_released(task):
+    #events[0].set()
+    id = task["robot"] - 1
+    print("Triggered robot id is:", id+1)
+    if id == 0:
+        loop.call_soon_threadsafe(event1.set)
+        print("Triggered event is 1")
+    elif id ==1 :
+        loop.call_soon_threadsafe(event2.set)
+        print("Triggered event is 2")
+    elif id ==2 :
+        loop.call_soon_threadsafe(event3.set)
+        print("Triggered event is 3")
+
+
+
 async def firstWorker():
     while True:
         await event1.wait()
@@ -186,18 +211,48 @@ async def secondWorker():
         print("Second Worker Executed")
 
 
+async def robot_exec_time():
+    while True:
+        await events[0].wait()
+        print("#####################Robot 1 is executing ####################")
+        await asyncio.sleep(2)
+        print("#####################Robot 1 has finished ####################")
+        events[0].clear()
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-try:
-    asyncio.ensure_future(firstWorker())
-    asyncio.ensure_future(secondWorker())
-    loop.run_forever()
-except KeyboardInterrupt:
-    pass
-finally:
-    print("Closing Loop")
-    loop.close()
+async def execution_time(even,id):
+
+    while True:
+        print(f'Execution time task started for robot {id}')
+        await even.wait()
+
+        print(f'Robot {id} execution timer is started')
+        await asyncio.sleep(5)
+        print(f'Robot {id} execution is finished after 1 seconds')
+        even.clear()
+
+
+
+
+async def event_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        #asyncio.ensure_future(firstWorker())
+        #asyncio.ensure_future(secondWorker())
+        #asyncio.ensure_future(robot_exec_time())
+        asyncio.ensure_future(T_robot[0].execution_time(event1, 1))
+        asyncio.ensure_future(T_robot[0].execution_time(event2, 2))
+        asyncio.ensure_future(T_robot[0].execution_time(event3, 3))
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Closing Loop")
+        loop.close()
+
+
+thread_eloop = Thread(target=event_loop, daemon=True)
+thread_eloop.start()
 
 sys.exit()
 
