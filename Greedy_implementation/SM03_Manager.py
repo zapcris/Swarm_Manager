@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import queue
 import sys
 from queue import Empty
@@ -121,6 +122,8 @@ def release_function(T_robot):
                     #     q_main_to_releaser.task_done()
                     #     break
                     q_main_to_releaser.task_done()
+                    done()
+
                     #asyncio.run(T_robot[robot_id].unlatch_busy())
 
 
@@ -165,51 +168,64 @@ releaser_thread.start()
 
 ### new event thread ####
 
-async def foo(event):
+
+
+event1 = asyncio.Event()
+
+def done():
+    event1.set()
+async def firstWorker():
     while True:
-        print('foo')
-        await event.wait()
-        print('bar')
-
-
-async def main1():
-    event = asyncio.Event()
-
-    asyncio.create_task(foo(event))
-
-    for i in range(5):
-        await asyncio.sleep(i)
-        event.set()
-        event.clear()
-
-async def event_function:
-    loop = asyncio.get_event_loop()
-    event1 = asyncio.Event()
-    #asyncio.create_task(T_robot[0].execution_time(event1))
-    asyncio.create_task(foo(event1))
-    print("Event status is: " ,Events["rob_execution"][0])
-
-    if Events["rob_execution"][0] == True:
-        event1.set()
+        await event1.wait()
+        print("First Worker Executed")
         event1.clear()
-        print("Event is set true")
 
-    try:
-        asyncio.ensure_future(T_robot[i].execution_time(event1))
-        #asyncio.ensure_future(secondWorker())
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("Closing Loop")
-        loop.close()
+async def secondWorker():
+    while True:
+        await asyncio.sleep(1)
+        print("Second Worker Executed")
 
-def start_event_thread(Event):
-    asyncio.run(event_function())
-    #asyncio.run(main1())
 
-y = Thread(target=start_event_thread, daemon=True)
-y.start()
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+try:
+    asyncio.ensure_future(firstWorker())
+    asyncio.ensure_future(secondWorker())
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    print("Closing Loop")
+    loop.close()
+
+sys.exit()
+
+
+
+
+# #asyncio.create_task(T_robot[0].execution_time(event1))
+# asyncio.create_task(foo(event1))
+# print("Event status is: " ,Events["rob_execution"][0])
+#
+# if Events["rob_execution"][0] == True:
+#     event1.set()
+#     event1.clear()
+#     print("Event is set true")
+
+try:
+    asyncio.ensure_future(main1())
+    #asyncio.ensure_future(secondWorker())
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    print("Closing Loop")
+    loop.close()
+
+
+
+
 
 
 

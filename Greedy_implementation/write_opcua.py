@@ -9,3 +9,5 @@
 #         data_opcua["mobile_manipulator"] = tfr_cmd
 #
 #     return None
+
+print(bool(True))
