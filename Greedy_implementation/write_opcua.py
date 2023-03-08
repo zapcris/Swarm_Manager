@@ -1,14 +1,17 @@
 import asyncio
 import queue
 import tracemalloc
+from datetime import datetime
 from threading import Thread
 from time import sleep
+
+from Greedy_implementation.SM07_Robot_agent import Events, data_opcua
 
 tracemalloc.start()
 
 ####### Normal queue functionality####
 q_main_to_releaser = asyncio.Queue()
-alloted_task = [m for m in range(1000)]
+alloted_task = [m for m in range(10)]
 
 for task in alloted_task:
     q_main_to_releaser.put_nowait(task)
@@ -23,10 +26,10 @@ def t_released(task):
 
     id = task
     print("Triggered robot id is:", id+1)
-    if id >= 0 and id <=3:
+    if id == 0 or id == 2 :
         loop.call_soon_threadsafe(event1.set)
         print("Triggered event is 1")
-    elif id >= 4 and id <=6:
+    elif id == 1 and id <=3:
         loop.call_soon_threadsafe(event2.set)
         print("Triggered event is 2")
     else:
@@ -82,6 +85,7 @@ async def factorial(name, number, event):
     event.clear()
     return f
 
+
 async def main():
     # Schedule three calls *concurrently*:
     L = await asyncio.gather(
@@ -91,11 +95,55 @@ async def main():
     )
     print(L)
 
-#asyncio.run(main())
+async def execution_time(flag, id):
 
+    while True:
+        # print(f'waiting for robot {id} for  execution')
+        await flag.wait()
+        print(f'Robot {id} execution timer has started')
+        start_time = datetime.now()
+        if id == 1 :
+            stime = 15
+        elif id == 2:
+            stime = 5
+        elif id == 3:
+            stime = 2
+        else:
+            stime = 0
+
+        await asyncio.sleep(stime)
+
+        # Events["rob_execution"][id - 1] = True
+        # while Events["rob_execution"][id - 1] == True:
+        #     if data_opcua["rob_busy"][id - 1] == True:
+        #         # exec_time = (datetime.now() - start_time).total_seconds()
+        #         # print(f"Robot {id} is running")
+        #         pass
+        #     elif data_opcua["rob_busy"][id - 1] == False:
+        #         Events["rob_execution"][id - 1] = False
+        exec_time = (datetime.now() - start_time).total_seconds()
+
+        flag.clear()
+        print(f"Robot {id} took {exec_time:,.2f} seconds to run")
+
+        return None
+
+#asyncio.run(main())
+async def main2() :
+    """Fetch all urls from the list of urls
+
+    It is done concurrently and combined into a single coroutine"""
+
+
+    results = await asyncio.gather(
+        (execution_time(event1, 1)),
+        (execution_time(event2, 2)),
+        (execution_time(event3, 3))
+    )
+    print(results)
 
 try:
-    asyncio.ensure_future(main())
+    asyncio.ensure_future(main2())
     loop.run_forever()
 except KeyboardInterrupt:
     pass
