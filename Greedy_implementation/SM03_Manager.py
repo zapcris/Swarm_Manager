@@ -1,11 +1,15 @@
 import asyncio
 import queue
 import sys
+import tracemalloc
+from asyncio import AbstractEventLoop
 from datetime import datetime
 from queue import Empty
 from threading import Thread
 from time import sleep
 from typing import Optional
+
+from pyasn1.compat.octets import null
 
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events
 from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
@@ -15,7 +19,7 @@ from Greedy_implementation.SM02_opcua_client import start_opcua
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
-loop: Optional[asyncio.AbstractEventLoop] = None
+tracemalloc.start()
 
 Data_opcua = dict(data_opcua)
 
@@ -88,7 +92,7 @@ for aalt in alloted_task:
 
 ####### Task queue functions #############
 
-q_main_to_releaser = queue.Queue()
+q_main_to_releaser = asyncio.Queue()
 #q_to_eventloop = queue.Queue()
 
 for task in alloted_task:
@@ -99,7 +103,7 @@ for task in alloted_task:
 
 
 
-def release_function(T_robot):
+async def release_function(T_robot):
 
         global Sim_step
         Sim_step = 0
@@ -111,7 +115,7 @@ def release_function(T_robot):
 
 
                 if Sim_step == 0 :
-                    task_opcua = q_main_to_releaser.get(False)
+                    task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
                     T_robot[robot_id].sendtoOPCUA(task_opcua)
@@ -124,12 +128,7 @@ def release_function(T_robot):
                     #done()
                     #print("Execution task release", task_opcua)
                     task_released(task=task_opcua)
-                    sleep(5)
-
-
-
-
-
+                    await asyncio.sleep(5)
 
 
                     print(f"All task completed on Simulation step {Sim_step} ")
@@ -139,7 +138,7 @@ def release_function(T_robot):
                     normal_allot = Greedy_Allocator.step_allocation(normal_task)
                     for task in normal_allot:
                         q_main_to_releaser.put_nowait(task)
-                    task_opcua = q_main_to_releaser.get(False)
+                    task_opcua = q_main_to_releaser.get()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
 
@@ -147,7 +146,7 @@ def release_function(T_robot):
                     q_main_to_releaser.task_done()
                     #print(f" Task completed on Simulation step {Sim_step} ")
                     #done()
-                    #task_released(task_opcua)
+                    #task_released(task=task_opcua)
 
 
             # Opt 1: Handle task here and call q.task_done()
@@ -165,22 +164,43 @@ def release_function(T_robot):
 
 
 
-##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=release_function, args=(T_robot,))
-
-releaser_thread.start()
 
 
 
 ### new Events check thread ####
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+class Event_ts(asyncio.Event):
+    def __init__(self, _loop: AbstractEventLoop):
+        super().__init__()
+        self._loop = _loop
+        # if self._loop is None:
+        #     self._loop = asyncio.get_event_loop()
+
+    def set(self):
+        self._loop.call_soon_threadsafe(super().set)
+
+    def clear(self):
+        self._loop.call_soon_threadsafe(super().clear)
+
+#loop: Optional[asyncio.AbstractEventLoop] = None
+# event1 : asyncio.Event()]
+# event2 : Optional[asyncio.Event()]
+# event3 : Optional[asyncio.Event()] = None
+# event1 = Event_ts(_loop=loop)
+# event2 = Event_ts(_loop=loop)
+# event3 = Event_ts(_loop=loop)
+# events = [event1 for rob in T_robot]
 event1 = asyncio.Event()
 event2 = asyncio.Event()
 event3 = asyncio.Event()
-events = [event1 for rob in T_robot]
-
 
 ### new event loop thread for async functions####
+
+
+
 def event_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
@@ -190,7 +210,6 @@ def done():
 
 
 def task_released(task):
-    #events[0].set()
 
     id = task["robot"] - 1
     print("Triggered robot id is:", id+1)
@@ -218,21 +237,21 @@ async def secondWorker():
         print("Second Worker Executed")
 
 
-async def robot_exec_time():
-    while True:
-        await events[0].wait()
-        print("#####################Robot 1 is executing ####################")
-        await asyncio.sleep(2)
-        print("#####################Robot 1 has finished ####################")
-        events[0].clear()
+# async def robot_exec_time():
+#     while True:
+#         await events[0].wait()
+#         print("#####################Robot 1 is executing ####################")
+#         await asyncio.sleep(2)
+#         print("#####################Robot 1 has finished ####################")
+#         events[0].clear()
 
-async def execution_time(event,id):
+async def execution_time(flag, id):
 
     while True:
         # print(f'waiting for robot {id} for  execution')
-        await event.wait()
+        await flag.wait()
         print(f'Robot {id} execution timer has started')
-        # await asyncio.sleep(3)
+        #await asyncio.sleep(3)
         start_time = datetime.now()
         Events["rob_execution"][id - 1] = True
         while Events["rob_execution"][id - 1] == True:
@@ -244,7 +263,7 @@ async def execution_time(event,id):
                 Events["rob_execution"][id - 1] = False
         exec_time = (datetime.now() - start_time).total_seconds()
 
-        event.clear()
+        flag.clear()
 
         return print(f"Robot {id} took {exec_time:,.2f} seconds to run")
 
@@ -253,14 +272,45 @@ async def main() :
     """Fetch all urls from the list of urls
 
     It is done concurrently and combined into a single coroutine"""
-    t1 = asyncio.create_task(execution_time(event1, 1))
-    t2 = asyncio.create_task(execution_time(event2, 2))
-    t3 = asyncio.create_task(execution_time(event3, 3))
+
+    t1 = (execution_time(event1, 1))
+    t2 = (execution_time(event2, 2))
+    t3 = (execution_time(event3, 3))
     tasks = [t1, t2, t3]
-    results = await asyncio.gather(*tasks)
+    results = await asyncio.gather(
+        (execution_time(event1, 1)),
+        (execution_time(event2, 2)),
+        (execution_time(event3, 3))
+    )
     print(results)
 
 
+
+
+
+
+try:
+    asyncio.ensure_future(main())
+
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    print("Closing Loop")
+    loop.close()
+
+
+
+
+
+##### Start Task releaser to Robot thread################
+
+releaser_thread = Thread(target=release_function, daemon=True, args=(T_robot,))
+
+releaser_thread.start()
+
+
+sys.exit()
 
 def event_loop() -> None:
     global loop
