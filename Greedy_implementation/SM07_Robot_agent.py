@@ -126,7 +126,7 @@ class Transfer_robot:
             c = str(task["command"][0]) + "," + str(task["command"][1])
         cmd.insert((int(self.id) - 1), c)
         if task["command"][0] == 11:
-            sleep(3)
+            #sleep(3)
             data_opcua["create_part"] = task["pV"]
             #write_opcua(task["pV"], "create_part", None)
             sleep(0.7)
@@ -164,19 +164,20 @@ class Transfer_robot:
 
             #print(f'waiting for robot {id} for  execution')
             await event.wait()
-            print(f'Robot {id} execution timer is started')
+            print(f'Robot {id} execution timer has started')
+            #await asyncio.sleep(3)
             start_time = datetime.now()
-            await asyncio.sleep(3)
             Events["rob_execution"][id - 1] = True
             while Events["rob_execution"][id - 1] == True:
                 if data_opcua["rob_busy"][id-1] == True:
                     #exec_time = (datetime.now() - start_time).total_seconds()
-                    print(f"Robot {id} is running")
+                    #print(f"Robot {id} is running")
                     pass
                 elif data_opcua["rob_busy"][id-1] == False:
                     Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
+            event.clear()
 
 
 

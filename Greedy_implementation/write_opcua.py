@@ -10,4 +10,3 @@
 #
 #     return None
 
-print(bool(True))
