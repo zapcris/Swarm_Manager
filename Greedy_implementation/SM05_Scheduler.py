@@ -12,9 +12,12 @@ class Product:
     pv_Id: int
     pi_Id: int
     task_list: []
+    released : bool
     inProduction: False
     finished: False
     last_instance: int
+
+
     # current_position = []
     # start_time = time
     # finish_time = time

@@ -5,7 +5,7 @@ from queue import Queue, Empty
 from threading import Thread
 from time import sleep
 
-
+from Greedy_implementation.SM04_Task_Planner import order
 
 #################################### Robot agent code ################################################
 # manager = Manager()
@@ -40,6 +40,7 @@ class Transfer_robot:
 
     def __init__(self, id, global_task, data_opcua, tqueue):
         self.id = id
+        self.free = False
         #self.start_robot(tqueue)
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
@@ -195,19 +196,24 @@ class Transfer_robot:
 
 class Workstation_robot:
 
-    def __init__(self, wk_no, process_times, data_opcua):
-        self.name = wk_no
+    def __init__(self, wk_no, order, data_opcua):
+        self.id = wk_no
 
-        self.processtime = process_times
+        #self.processtime = process_times
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
 
-    async def process_execution(self):
-        print("Process task executing")
-        await asyncio.sleep(self.processtime)
-        print("Process task on workstation ",self.name )
 
-        return self
+
+    async def process_execution(self,product,event):
+        process_time = order["Process_times"][product.pv_Id][self.id-1]
+        await event.wait()
+        print(f"Process task executing at {self.id}")
+        await asyncio.sleep(process_time)
+        print("Process task on workstation ",self.id )
+        event.clear()
+
+        return None
 
 
 
