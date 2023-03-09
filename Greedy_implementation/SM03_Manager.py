@@ -102,6 +102,7 @@ q_main_to_releaser = asyncio.Queue()
 #q_to_eventloop = queue.Queue()
 
 for task in alloted_task:
+    print(f"tasks in the queue:", task)
     q_main_to_releaser.put_nowait(task)
 
 #print(q_main_to_releaser)
@@ -124,7 +125,8 @@ async def release_task_execution():
                     task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
-                    T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    await T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    print(f"Task released to robot {robot_id+1}")
 
                     q_main_to_releaser.task_done()
                     #done()
