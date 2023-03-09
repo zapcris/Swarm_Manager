@@ -30,6 +30,28 @@ x = Thread(target=start_opcua, args=(data_opcua,))
 x.start()
 
 
+###########Initialization of Event Loop########################
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+
+### events flags for transfer and workstation robots#####
+event1 = asyncio.Event()
+event2 = asyncio.Event()
+event3 = asyncio.Event()
+wk_1 = asyncio.Event()
+wk_2 = asyncio.Event()
+wk_3 = asyncio.Event()
+wk_4 = asyncio.Event()
+wk_5 = asyncio.Event()
+wk_6 = asyncio.Event()
+wk_7 = asyncio.Event()
+wk_8 = asyncio.Event()
+wk_9 = asyncio.Event()
+wk_10 = asyncio.Event()
+
+
+
 ### instantiate order and generation of task list to that order
 test_order = Task_PG(order)
 generate_task = test_order.task_list()
@@ -64,6 +86,9 @@ for r in data_opcua["rob_busy"]:
     q_robot.append(q)
 
 
+
+
+
 for i , R in enumerate(data_opcua["rob_busy"]):
     #print(i+1, R)
 
@@ -84,10 +109,6 @@ initial_task = GreedyScheduler.initialize_production()
 
 alloted_task = Greedy_Allocator.step_allocation(initial_task)
 
-for aalt in alloted_task:
-    #print(aalt["id"],aalt["robot"])
-    print(aalt)
-
 
 
 ####### Task queue functions #############
@@ -103,7 +124,7 @@ for task in alloted_task:
 
 
 
-async def release_function(T_robot):
+async def release_task_execution():
 
         global Sim_step
         Sim_step = 0
@@ -163,15 +184,19 @@ async def release_function(T_robot):
                 pass
 
 
+def main_release():
+    asyncio.run(release_task_execution())
 
+releaser_thread = Thread(target=main_release, daemon=True)
+
+releaser_thread.start()
 
 
 
 
 ### new Events check thread ####
 
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
+
 class Event_ts(asyncio.Event):
     def __init__(self, _loop: AbstractEventLoop):
         super().__init__()
@@ -185,17 +210,7 @@ class Event_ts(asyncio.Event):
     def clear(self):
         self._loop.call_soon_threadsafe(super().clear)
 
-#loop: Optional[asyncio.AbstractEventLoop] = None
-# event1 : asyncio.Event()]
-# event2 : Optional[asyncio.Event()]
-# event3 : Optional[asyncio.Event()] = None
-# event1 = Event_ts(_loop=loop)
-# event2 = Event_ts(_loop=loop)
-# event3 = Event_ts(_loop=loop)
-# events = [event1 for rob in T_robot]
-event1 = asyncio.Event()
-event2 = asyncio.Event()
-event3 = asyncio.Event()
+
 
 ### new event loop thread for async functions####
 
@@ -303,201 +318,199 @@ finally:
 
 
 
-##### Start Task releaser to Robot thread################
 
-releaser_thread = Thread(target=release_function, daemon=True, args=(T_robot,))
 
-releaser_thread.start()
+
 
 
 sys.exit()
 
-def event_loop() -> None:
-    global loop
-    loop = asyncio.new_event_loop()
-    t = Thread(target=event_background_loop, args=(loop,), daemon=True)
-    t.start()
-
-    asyncio.run_coroutine_threadsafe(main(), loop)
-
-
-if __name__ == "__main__":
-    event_loop()
-
-
-sys.exit()
-
-# loop = asyncio.new_event_loop()
-# asyncio.set_event_loop(loop)
+# def event_loop() -> None:
+#     global loop
+#     loop = asyncio.new_event_loop()
+#     t = Thread(target=event_background_loop, args=(loop,), daemon=True)
+#     t.start()
 #
-# try:
-#     #asyncio.ensure_future(firstWorker())
-#     #asyncio.ensure_future(secondWorker())
-#     #asyncio.ensure_future(robot_exec_time())
-#     # asyncio.ensure_future(execution_time(event1, 1))
-#     # asyncio.ensure_future(execution_time(event2, 2))
-#     # asyncio.ensure_future(execution_time(event3, 3))
-#     # t1 = asyncio.create_task(execution_time(event1, 1))
-#     # t2 = asyncio.create_task(execution_time(event2, 2))
-#     # t3 = asyncio.create_task(execution_time(event3, 3))
-#     # tasks = [t1,t2,t3]
-#     # asyncio.gather(*tasks)
-#     #asyncio.run(main())
-#     asyncio.ensure_future(main())
-#     loop.run_forever()
-# except KeyboardInterrupt:
-#     pass
-# finally:
-#     print("Closing Loop")
-#     loop.close()
+#     asyncio.run_coroutine_threadsafe(main(), loop)
 #
 #
-#
+# if __name__ == "__main__":
+#     event_loop()
 #
 #
 # sys.exit()
 #
-# thread_eloop = Thread(target=event_loop, daemon=True)
-# thread_eloop.start()
-#
-#
-#
-#
-#
-#
-# # #asyncio.create_task(T_robot[0].execution_time(event1))
-# # asyncio.create_task(foo(event1))
-# # print("Event status is: " ,Events["rob_execution"][0])
+# # loop = asyncio.new_event_loop()
+# # asyncio.set_event_loop(loop)
 # #
-# # if Events["rob_execution"][0] == True:
-# #     event1.set()
-# #     event1.clear()
-# #     print("Event is set true")
-#
-# try:
-#     asyncio.ensure_future(main1())
-#     #asyncio.ensure_future(secondWorker())
-#     loop.run_forever()
-# except KeyboardInterrupt:
-#     pass
-# finally:
-#     print("Closing Loop")
-#     loop.close()
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# sys.exit()
-#
-# ######### Code for separate Event Loop Thread##########
-# def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
-#     asyncio.set_event_loop(loop)
-#     loop.run_forever()
-#
-#
-#
-#
-# async def fetch_all_robots(T_robot) :
-#     """Fetch all urls from the list of urls
-#
-#     It is done concurrently and combined into a single coroutine"""
-#
-#     condition = asyncio.Condition()
-#     event = asyncio.Event()
-#     events = [event for i in range(3)]
-#
-#     tasks = []
-#
-#
-#
-#     # for i, robot in enumerate(T_robot):
-#     #     #if Events["rob_execution"][i] == True:
-#     #     t3 = asyncio.create_task(T_robot[i].execution_time(condition))
-#     #     tasks.append(t3)
-#     #
-#     # for i, rob in enumerate(Events["rob_execution"]):
-#     #     if rob[i] == True:
-#     #         events[i].set()
-#
-#     t = asyncio.create_task(T_robot[0].execution_time(event))
-#
-#     tasks.append(t)
-#
-#
-#
-#     # async with condition:
-#     #     t = asyncio.create_task(T_robot[0].execution_time(condition=condition))
-#     #     tasks.append(t)
-#     #
-#     #     await condition.wait()
-#     results = await asyncio.gather(*tasks)
-#
-#     if Events["rob_execution"][0]==True:
-#         event.set()
-#         print("Event is set true")
-#
-#
-#
-#     return results
-#
-# ##### running loop example ######
-# loop = asyncio.new_event_loop()
-# t = Thread(target=start_background_loop, args=(loop,), daemon=True)
-# t.start()
-# #task = asyncio.run_coroutine_threadsafe(fetch_all_robots(), loop)
-#
-#
-# task = asyncio.run_coroutine_threadsafe(fetch_all_robots(T_robot), loop)
-#
-# # q_main_to_releaser.join()
-# # print('All work completed')
-#
-#
-#
-# ############################## Test debug function###########################################
-#
-#
-# #broadcast_bid(task_list)
-#
-# # for t in task_list:
-# #     if t["id"] == 1 or t["id"] == 2 :
-# #         t.assign(robot="one")
-# #         t.cstatus(status="Executing")
-# #         print(t)
-# #     else:
-# #         t.deassign(robot="None")
-# #         print(t)
-#
-#
-#
-# ##### injecting async function to a thread #######
-#
-# # async def main():
-# #     # create classes and call methods here
-# #     await asyncio.gather(  # waits for both of the arguments to return
-# #         asyncio.create_task(T_robot[0].unlatch_busy(20)),
-# #         asyncio.create_task(T_robot[1].unlatch_busy(20)),
-# #         asyncio.create_task(T_robot[2].unlatch_busy(20)),  # schedules first to run independently under asyncio.
-# #         asyncio.to_thread(release_function),  # runs second in thread
-# #     )
+# # try:
+# #     #asyncio.ensure_future(firstWorker())
+# #     #asyncio.ensure_future(secondWorker())
+# #     #asyncio.ensure_future(robot_exec_time())
+# #     # asyncio.ensure_future(execution_time(event1, 1))
+# #     # asyncio.ensure_future(execution_time(event2, 2))
+# #     # asyncio.ensure_future(execution_time(event3, 3))
+# #     # t1 = asyncio.create_task(execution_time(event1, 1))
+# #     # t2 = asyncio.create_task(execution_time(event2, 2))
+# #     # t3 = asyncio.create_task(execution_time(event3, 3))
+# #     # tasks = [t1,t2,t3]
+# #     # asyncio.gather(*tasks)
+# #     #asyncio.run(main())
+# #     asyncio.ensure_future(main())
+# #     loop.run_forever()
+# # except KeyboardInterrupt:
+# #     pass
+# # finally:
+# #     print("Closing Loop")
+# #     loop.close()
 # #
-# # asyncio.run(main())
-#
-#
+# #
+# #
+# #
+# #
+# # sys.exit()
+# #
+# # thread_eloop = Thread(target=event_loop, daemon=True)
+# # thread_eloop.start()
+# #
+# #
+# #
+# #
+# #
+# #
+# # # #asyncio.create_task(T_robot[0].execution_time(event1))
+# # # asyncio.create_task(foo(event1))
+# # # print("Event status is: " ,Events["rob_execution"][0])
+# # #
+# # # if Events["rob_execution"][0] == True:
+# # #     event1.set()
+# # #     event1.clear()
+# # #     print("Event is set true")
+# #
+# # try:
+# #     asyncio.ensure_future(main1())
+# #     #asyncio.ensure_future(secondWorker())
+# #     loop.run_forever()
+# # except KeyboardInterrupt:
+# #     pass
+# # finally:
+# #     print("Closing Loop")
+# #     loop.close()
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# #
+# # sys.exit()
+# #
+# # ######### Code for separate Event Loop Thread##########
+# # def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
+# #     asyncio.set_event_loop(loop)
+# #     loop.run_forever()
+# #
+# #
+# #
+# #
+# # async def fetch_all_robots(T_robot) :
+# #     """Fetch all urls from the list of urls
+# #
+# #     It is done concurrently and combined into a single coroutine"""
+# #
+# #     condition = asyncio.Condition()
+# #     event = asyncio.Event()
+# #     events = [event for i in range(3)]
+# #
+# #     tasks = []
+# #
+# #
+# #
+# #     # for i, robot in enumerate(T_robot):
+# #     #     #if Events["rob_execution"][i] == True:
+# #     #     t3 = asyncio.create_task(T_robot[i].execution_time(condition))
+# #     #     tasks.append(t3)
+# #     #
+# #     # for i, rob in enumerate(Events["rob_execution"]):
+# #     #     if rob[i] == True:
+# #     #         events[i].set()
+# #
+# #     t = asyncio.create_task(T_robot[0].execution_time(event))
+# #
+# #     tasks.append(t)
+# #
+# #
+# #
+# #     # async with condition:
+# #     #     t = asyncio.create_task(T_robot[0].execution_time(condition=condition))
+# #     #     tasks.append(t)
+# #     #
+# #     #     await condition.wait()
+# #     results = await asyncio.gather(*tasks)
+# #
+# #     if Events["rob_execution"][0]==True:
+# #         event.set()
+# #         print("Event is set true")
+# #
+# #
+# #
+# #     return results
+# #
+# # ##### running loop example ######
+# # loop = asyncio.new_event_loop()
+# # t = Thread(target=start_background_loop, args=(loop,), daemon=True)
+# # t.start()
+# # #task = asyncio.run_coroutine_threadsafe(fetch_all_robots(), loop)
+# #
+# #
+# # task = asyncio.run_coroutine_threadsafe(fetch_all_robots(T_robot), loop)
+# #
+# # # q_main_to_releaser.join()
+# # # print('All work completed')
+# #
+# #
+# #
+# # ############################## Test debug function###########################################
+# #
+# #
+# # #broadcast_bid(task_list)
+# #
+# # # for t in task_list:
+# # #     if t["id"] == 1 or t["id"] == 2 :
+# # #         t.assign(robot="one")
+# # #         t.cstatus(status="Executing")
+# # #         print(t)
+# # #     else:
+# # #         t.deassign(robot="None")
+# # #         print(t)
+# #
+# #
+# #
+# # ##### injecting async function to a thread #######
+# #
+# # # async def main():
+# # #     # create classes and call methods here
+# # #     await asyncio.gather(  # waits for both of the arguments to return
+# # #         asyncio.create_task(T_robot[0].unlatch_busy(20)),
+# # #         asyncio.create_task(T_robot[1].unlatch_busy(20)),
+# # #         asyncio.create_task(T_robot[2].unlatch_busy(20)),  # schedules first to run independently under asyncio.
+# # #         asyncio.to_thread(release_function),  # runs second in thread
+# # #     )
+# # #
+# # # asyncio.run(main())
+# #
+# #
