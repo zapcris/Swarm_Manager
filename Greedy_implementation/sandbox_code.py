@@ -163,7 +163,7 @@ async def execution_time(flag, id):
 
         start_time = datetime.now()
         if id == 1 :
-            stime = 15
+            stime = 5
         elif id == 2:
             stime = 5
         elif id == 3:
@@ -190,7 +190,8 @@ async def execution_time(flag, id):
         print(f"the product is delivered to workstation {task}")
         a =  wk_event(task[1])
 
-        loop.call_soon_threadsafe(a.set)
+        #loop.call_soon_threadsafe(a.set)
+        a.set()
         rob_released()
         #await process_execution(task[1], 1)
         print("Triggered workstation is  is",task[1])
@@ -199,14 +200,14 @@ async def execution_time(flag, id):
 
         return None
 
-async def process_execution(wk, product_pv):
+async def process_execution(event, wk, product_pv):
     process_time = order["Process_times"][product_pv][wk-1]
-    #await event.wait()
-    print(f"Process task executing at {wk}")
+    await event.wait()
+    print(f"Process task executing at workstation {wk}")
     await asyncio.sleep(process_time)
     print("Process task completed on workstation ",wk )
     prod_release()
-    #event.clear()
+    event.clear()
 
 def prod_release():
     global Task_allocation
@@ -226,19 +227,20 @@ async def main2() :
 
 
     results = await asyncio.gather(
+        #r_function(),
         (execution_time(event1, 1 )),
         (execution_time(event2, 2)),
-        (execution_time(event3, 3,))
-        # (process_execution(wk_1, 1, 1)),
-        # (process_execution(wk_2, 2, 1)),
-        # (process_execution(wk_3, 3, 1)),
-        # (process_execution(wk_4, 4, 1)),
-        # (process_execution(wk_5, 5, 1)),
-        # (process_execution(wk_6, 6, 1)),
-        # (process_execution(wk_7, 7, 1)),
-        # (process_execution(wk_8, 8, 1)),
-        # (process_execution(wk_9, 9, 1)),
-        # (process_execution(wk_10, 10, 1))
+        (execution_time(event3, 3,)),
+        (process_execution(wk_1, 1, 1)),
+        (process_execution(wk_2, 2, 1)),
+        (process_execution(wk_3, 3, 1)),
+        (process_execution(wk_4, 4, 1)),
+        (process_execution(wk_5, 5, 1)),
+        (process_execution(wk_6, 6, 1)),
+        (process_execution(wk_7, 7, 1)),
+        (process_execution(wk_8, 8, 1)),
+        (process_execution(wk_9, 9, 1)),
+        (process_execution(wk_10, 10, 1))
     )
     print(results)
 
