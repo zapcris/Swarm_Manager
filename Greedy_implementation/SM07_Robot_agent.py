@@ -5,12 +5,47 @@ from queue import Queue, Empty
 from threading import Thread
 from time import sleep
 
-from Greedy_implementation.SM04_Task_Planner import order
+from Greedy_implementation.SM04_Task_Planner import order, Task
 
 #################################### Robot agent code ################################################
 # manager = Manager()
 # data_opcua = manager.dict()
+event1 = asyncio.Event()
+event2 = asyncio.Event()
+event3 = asyncio.Event()
+wk_1 = asyncio.Event()
+wk_2 = asyncio.Event()
+wk_3 = asyncio.Event()
+wk_4 = asyncio.Event()
+wk_5 = asyncio.Event()
+wk_6 = asyncio.Event()
+wk_7 = asyncio.Event()
+wk_8 = asyncio.Event()
+wk_9 = asyncio.Event()
+wk_10 = asyncio.Event()
 
+
+def wk_event(wk):
+    if wk == 1:
+       return wk_1
+    elif wk == 2:
+        return wk_2
+    elif wk == 3:
+        return wk_3
+    elif wk == 4:
+        return wk_4
+    elif wk == 5:
+        return wk_5
+    elif wk == 6:
+        return wk_6
+    elif wk == 7:
+        return wk_7
+    elif wk == 8:
+        return wk_8
+    elif wk == 9:
+        return wk_9
+    elif wk == 10:
+        return wk_10
 
 data_opcua = {
             "brand": "Ford",
@@ -40,7 +75,7 @@ class Transfer_robot:
 
     def __init__(self, id, global_task, data_opcua, tqueue):
         self.id = id
-        self.free = False
+        self.free = bool
         #self.start_robot(tqueue)
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
@@ -50,7 +85,7 @@ class Transfer_robot:
         self.assigned_task = False
         self.executing = data_opcua["rob_busy"][self.id-1]
         self.event = asyncio.Event()
-        self.task = None
+        self.task = Task
 
     def __await__(self):
         async def closure():
@@ -116,6 +151,7 @@ class Transfer_robot:
         return None
 
     def sendtoOPCUA(self, task):
+        self.Free = False
         self.task = task
         cmd = ["" for _ in range(2)]
         print(f"Task {task} received from Swarm Manager for execution")
@@ -180,6 +216,11 @@ class Transfer_robot:
                     Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
+            t =  self.task.command()
+            print(f"the product is delivered to workstation {t[1]}")
+            a = wk_event(t[1])
+            #a.set()
+            print("Triggered workstation is  is", t[1])
             event.clear()
 
 
@@ -200,6 +241,7 @@ class Workstation_robot:
 
     def __init__(self, wk_no, order, data_opcua):
         self.id = wk_no
+        self.free = True
 
         #self.processtime = process_times
         #self.auctioned_task = auctioned_task
@@ -207,12 +249,13 @@ class Workstation_robot:
 
 
 
-    async def process_execution(self,product,event):
-        process_time = order["Process_times"][product.pv_Id][self.id-1]
+    async def process_execution(self,event, wk, product):
+        process_time = order["Process_times"][product.pv_Id][wk-1]
         await event.wait()
-        print(f"Process task executing at {self.id}")
+        self.free = False
+        print(f"Process task executing at {wk}")
         await asyncio.sleep(process_time)
-        print("Process task on workstation ",self.id )
+        print("Process task on workstation ",wk )
         event.clear()
 
         return None

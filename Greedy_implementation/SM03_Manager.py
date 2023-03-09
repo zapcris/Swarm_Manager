@@ -11,7 +11,8 @@ from typing import Optional
 
 from pyasn1.compat.octets import null
 
-from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events
+from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
+    event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10
 from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
@@ -37,19 +38,7 @@ asyncio.set_event_loop(loop)
 
 
 ### events flags for transfer and workstation robots#####
-event1 = asyncio.Event()
-event2 = asyncio.Event()
-event3 = asyncio.Event()
-wk_1 = asyncio.Event()
-wk_2 = asyncio.Event()
-wk_3 = asyncio.Event()
-wk_4 = asyncio.Event()
-wk_5 = asyncio.Event()
-wk_6 = asyncio.Event()
-wk_7 = asyncio.Event()
-wk_8 = asyncio.Event()
-wk_9 = asyncio.Event()
-wk_10 = asyncio.Event()
+
 
 
 
@@ -191,27 +180,7 @@ releaser_thread.start()
 
 
 
-def wk_event(wk):
-    if wk == 1:
-       return wk_1
-    elif wk == 2:
-        return wk_2
-    elif wk == 3:
-        return wk_3
-    elif wk == 4:
-        return wk_4
-    elif wk == 5:
-        return wk_5
-    elif wk == 6:
-        return wk_6
-    elif wk == 7:
-        return wk_7
-    elif wk == 8:
-        return wk_8
-    elif wk == 9:
-        return wk_9
-    elif wk == 10:
-        return wk_10
+
 
 
 ### new Events check thread ####
