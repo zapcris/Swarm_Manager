@@ -12,7 +12,7 @@ class Product:
     pv_Id: int
     pi_Id: int
     task_list: []
-    released : bool
+    #released : bool
     inProduction: False
     finished: False
     last_instance: int
@@ -165,15 +165,6 @@ class Joint_Scheduler:
 
         return task_for_allocation
 
-    # def normal_allocation(self):
-    #     task_normal_allocation = []
-    #     if last task executed ?
-    #
-    #     then allocate the next task to queue
-    #
-    #
-    #
-    #     return task_for_allocation
 
 
 

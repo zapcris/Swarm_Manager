@@ -2,14 +2,9 @@ import asyncio
 import queue
 import sys
 import tracemalloc
-from asyncio import AbstractEventLoop
-from datetime import datetime
+
 from queue import Empty
 from threading import Thread
-from time import sleep
-from typing import Optional
-
-from pyasn1.compat.octets import null
 
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10
@@ -17,7 +12,7 @@ from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
 from Greedy_implementation.SM02_opcua_client import start_opcua
-from Greedy_implementation.sandbox_code import process_execution, execution_time
+
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
@@ -28,7 +23,7 @@ Data_opcua = dict(data_opcua)
 
 ##### Start OPCUA Client Thread################
 
-x = Thread(target=start_opcua, args=(data_opcua,))
+x = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
 x.start()
 
 

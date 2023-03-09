@@ -211,7 +211,7 @@ async def main_function(data_opcua):
 
 
 
-async def start_opcua(data_opcua):
+def start_opcua(data_opcua):
     asyncio.run(main_function(data_opcua))
 
 if __name__ == "__main__":

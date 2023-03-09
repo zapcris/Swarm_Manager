@@ -216,7 +216,7 @@ class Transfer_robot:
                     Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
-            t =  self.task.command()
+            t =  self.task["command"]
             print(f"the product is delivered to workstation {t[1]}")
             a = wk_event(t[1])
             #a.set()
