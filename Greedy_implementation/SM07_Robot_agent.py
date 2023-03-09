@@ -50,6 +50,7 @@ class Transfer_robot:
         self.assigned_task = False
         self.executing = data_opcua["rob_busy"][self.id-1]
         self.event = asyncio.Event()
+        self.task = None
 
     def __await__(self):
         async def closure():
@@ -115,6 +116,7 @@ class Transfer_robot:
         return None
 
     def sendtoOPCUA(self, task):
+        self.task = task
         cmd = ["" for _ in range(2)]
         print(f"Task {task} received from Swarm Manager for execution")
         sleep(1)

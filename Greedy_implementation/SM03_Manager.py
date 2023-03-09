@@ -16,6 +16,7 @@ from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
 from Greedy_implementation.SM02_opcua_client import start_opcua
+from Greedy_implementation.sandbox_code import process_execution, execution_time
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
@@ -132,7 +133,7 @@ async def release_task_execution():
         while True:
 
             try:
-                #asyncio.run(T_robot[1].unlatch_busy())
+
 
 
                 if Sim_step == 0 :
@@ -141,25 +142,22 @@ async def release_task_execution():
                     print(task_opcua["robot"])
                     T_robot[robot_id].sendtoOPCUA(task_opcua)
 
-                    #scheduling_queue.done()
-                    # if task_opcua is None:
-                    #     q_main_to_releaser.task_done()
-                    #     break
                     q_main_to_releaser.task_done()
                     #done()
                     #print("Execution task release", task_opcua)
                     task_released(task=task_opcua)
+                    print("Event Status", Events["rob_execution"])
                     await asyncio.sleep(5)
 
 
-                    print(f"All task completed on Simulation step {Sim_step} ")
-                    print("Event Status", Events["rob_execution"])
+
+
                 elif Sim_step > 0 and Sim_step < 99 :
                     normal_task = GreedyScheduler.normal_production()
                     normal_allot = Greedy_Allocator.step_allocation(normal_task)
                     for task in normal_allot:
                         q_main_to_releaser.put_nowait(task)
-                    task_opcua = q_main_to_releaser.get()
+                    task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
 
@@ -193,35 +191,30 @@ releaser_thread.start()
 
 
 
+def wk_event(wk):
+    if wk == 1:
+       return wk_1
+    elif wk == 2:
+        return wk_2
+    elif wk == 3:
+        return wk_3
+    elif wk == 4:
+        return wk_4
+    elif wk == 5:
+        return wk_5
+    elif wk == 6:
+        return wk_6
+    elif wk == 7:
+        return wk_7
+    elif wk == 8:
+        return wk_8
+    elif wk == 9:
+        return wk_9
+    elif wk == 10:
+        return wk_10
+
 
 ### new Events check thread ####
-
-
-class Event_ts(asyncio.Event):
-    def __init__(self, _loop: AbstractEventLoop):
-        super().__init__()
-        self._loop = _loop
-        # if self._loop is None:
-        #     self._loop = asyncio.get_event_loop()
-
-    def set(self):
-        self._loop.call_soon_threadsafe(super().set)
-
-    def clear(self):
-        self._loop.call_soon_threadsafe(super().clear)
-
-
-
-### new event loop thread for async functions####
-
-
-
-def event_background_loop(loop: asyncio.AbstractEventLoop) -> None:
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
-
-def done():
-    event1.set()
 
 
 def task_released(task):
@@ -240,69 +233,64 @@ def task_released(task):
 
 
 
-async def firstWorker():
-    while True:
-        await event1.wait()
-        print("First Worker Executed")
-        event1.clear()
 
-async def secondWorker():
-    while True:
-        await asyncio.sleep(1)
-        print("Second Worker Executed")
-
-
-# async def robot_exec_time():
+# async def execution_time(flag, id):
+#
 #     while True:
-#         await events[0].wait()
-#         print("#####################Robot 1 is executing ####################")
-#         await asyncio.sleep(2)
-#         print("#####################Robot 1 has finished ####################")
-#         events[0].clear()
-
-async def execution_time(flag, id):
-
-    while True:
-        # print(f'waiting for robot {id} for  execution')
-        await flag.wait()
-        print(f'Robot {id} execution timer has started')
-        #await asyncio.sleep(3)
-        start_time = datetime.now()
-        Events["rob_execution"][id - 1] = True
-        while Events["rob_execution"][id - 1] == True:
-            if data_opcua["rob_busy"][id - 1] == True:
-                # exec_time = (datetime.now() - start_time).total_seconds()
-                # print(f"Robot {id} is running")
-                pass
-            elif data_opcua["rob_busy"][id - 1] == False:
-                Events["rob_execution"][id - 1] = False
-        exec_time = (datetime.now() - start_time).total_seconds()
-
-        flag.clear()
-
-        return print(f"Robot {id} took {exec_time:,.2f} seconds to run")
-
+#         # print(f'waiting for robot {id} for  execution')
+#         await flag.wait()
+#         print(f'Robot {id} execution timer has started')
+#         #await asyncio.sleep(3)
+#         start_time = datetime.now()
+#         Events["rob_execution"][id - 1] = True
+#         while Events["rob_execution"][id - 1] == True:
+#             if data_opcua["rob_busy"][id - 1] == True:
+#                 # exec_time = (datetime.now() - start_time).total_seconds()
+#                 # print(f"Robot {id} is running")
+#                 pass
+#             elif data_opcua["rob_busy"][id - 1] == False:
+#                 Events["rob_execution"][id - 1] = False
+#         exec_time = (datetime.now() - start_time).total_seconds()
+#
+#         flag.clear()
+#
+#         return print(f"Robot {id} took {exec_time:,.2f} seconds to run")
+#
+#
+# async def process_execution(event, wk, product_pv):
+#     process_time = order["Process_times"][product_pv][wk-1]
+#     await event.wait()
+#     print(f"Process task executing at workstation {wk}")
+#     await asyncio.sleep(process_time)
+#     print("Process task completed on workstation ",wk )
+#     #prod_release()
+#     event.clear()
 
 async def main() :
     """Fetch all urls from the list of urls
 
     It is done concurrently and combined into a single coroutine"""
 
-    t1 = (execution_time(event1, 1))
-    t2 = (execution_time(event2, 2))
-    t3 = (execution_time(event3, 3))
-    tasks = [t1, t2, t3]
     results = await asyncio.gather(
-        (execution_time(event1, 1)),
-        (execution_time(event2, 2)),
-        (execution_time(event3, 3))
+        # r_function(),
+        (T_robot[0].execution_time(event1, 1)),
+        (T_robot[1].execution_time(event2, 2)),
+        (T_robot[2].execution_time(event3, 3))
+        # (process_execution(wk_1, 1, 1)),
+        # (process_execution(wk_2, 2, 1)),
+        # (process_execution(wk_3, 3, 1)),
+        # (process_execution(wk_4, 4, 1)),
+        # (process_execution(wk_5, 5, 1)),
+        # (process_execution(wk_6, 6, 1)),
+        # (process_execution(wk_7, 7, 1)),
+        # (process_execution(wk_8, 8, 1)),
+        # (process_execution(wk_9, 9, 1)),
+        # (process_execution(wk_10, 10, 1))
     )
     print(results)
 
 
-
-
-
+####### Event loop runs in main thread######
 
 try:
     asyncio.ensure_future(main())
@@ -316,7 +304,7 @@ finally:
 
 
 
-
+##### END of Main Program ############
 
 
 
