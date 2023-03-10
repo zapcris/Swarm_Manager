@@ -7,6 +7,7 @@ from time import sleep
 from multiprocessing import Pool
 
 from Greedy_implementation.SM04_Task_Planner import order, Task
+from Greedy_implementation.SM05_Scheduler import Product
 
 #################################### Robot agent code ################################################
 # manager = Manager()
@@ -76,6 +77,12 @@ Events = {
     "Product_finished": []
 
 }
+null_product = Product(pv_Id= 0, pi_Id = 0, task_list=[], inProduction=False, finished=False, last_instance= 0, robot=0, wk=0)
+null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
+T_robot = []
+W_robot = []
+
+
 
 
 async def bg_tsk(flag, condn):
@@ -92,7 +99,7 @@ async def bg_tsk(flag, condn):
 
 class Transfer_robot:
 
-    def __init__(self, id, global_task, data_opcua, tqueue):
+    def __init__(self, id, global_task, product, tqueue):
         self.id = id
         self.free = bool
         # self.start_robot(tqueue)
@@ -102,9 +109,11 @@ class Transfer_robot:
         self.success_bid = None
         self.STN = None
         self.assigned_task = False
+        self.assigned_product = False
         self.executing = data_opcua["rob_busy"][self.id - 1]
         self.event = asyncio.Event()
-        self.task = Task(id=1, type=1, command=[11,2], pI=1, pV=1, allocation= True,status="first",robot=1)
+        self.task = Task(id=0, type=0, command=[], pI=0, pV=0, allocation= False,status="null",robot=1)
+        self.product = product
 
     def __await__(self):
         async def closure():
@@ -143,12 +152,26 @@ class Transfer_robot:
         # print(bid_value)
         return bid_value
 
-    def task_assigned(self):
+    def task_assigned(self, task):
         self.assigned_task = True
+        self.task = task
         return self
+
+    def prod_assigned(self, product):
+        self.assigned_task = True
+        self.product = product
+        return self
+
 
     def task_deassigned(self):
         self.assigned_task = False
+        self.task = null_Task
+        return self
+
+
+    def prod_deassigned(self):
+        self.assigned_task = False
+        self.product = null_product
         return self
 
     def node_function(self, tqueue):
@@ -168,7 +191,8 @@ class Transfer_robot:
 
     def simulate(self, q_in: Queue):
         return None
-
+    def assign_product(self, product):
+        self.product = product
     async def sendtoOPCUA(self, task):
         self.Free = False
         self.task = task
@@ -244,11 +268,14 @@ class Transfer_robot:
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
+            W_robot[t[1]-1].prod_assigned(self.product)
             a = wk_event(t[1])
             a.set()
             print("Triggered workstation is  is", t[1])
             event2.clear()
             event.clear()
+            await self.prod_deassigned()
+            await self.task_deassigned()
 
     async def check_rob_done(self,event: asyncio.Event, event_opcua:asyncio.Event):
         while True:
@@ -280,19 +307,37 @@ class Workstation_robot:
         self.id = wk_no
         self.free = True
         self.order = order
+        self.assigned_prod = False
         self.product = product
 
-        # self.processtime = process_times
-        # self.auctioned_task = auctioned_task
+
+    def __await__(self):
+        async def closure():
+            print("await")
+            return self
+
+        return closure().__await__()
+
+    def prod_assigned(self, product):
+        self.assigned_prod = True
+        self.product = product
+        return self
+
+    def prod_deassigned(self):
+        self.assigned_prod = False
+        self.product = null_product
+        return self
 
 
     async def process_execution(self, event: asyncio.Event):
         process_time = order["Process_times"][self.product.pv_Id][self.id - 1]
         await event.wait()
         self.free = False
-        print(f"Process task executing at {self.id}")
+        print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
-        print("Process task on workstation ", self.id)
+        print(f"Process task on workstation {self.id} finished")
+        await self.prod_deassigned()
         event.clear()
+        print(f"Done workstation {self.id}")
 
-        return None
+

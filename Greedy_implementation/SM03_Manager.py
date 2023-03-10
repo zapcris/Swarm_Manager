@@ -1,15 +1,11 @@
 import asyncio
-import concurrent.futures
 import queue
 import sys
 import tracemalloc
-
-from queue import Empty
 from threading import Thread
-
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
-    event3_opcua
+    event3_opcua, W_robot, T_robot, null_product
 from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
@@ -53,19 +49,19 @@ Task_Queue = generate_task[2]
 
 
 
-
 #########Initialization of Workstation robots###############################
 
-W_robot = []
-for i, (type,pt) in enumerate(zip(order["Wk_type"], order["Process_times"])):
-    if type==1 or type==2:
+
+for i, type in enumerate(order["Wk_type"]):
+    if type == 1 or type == 2:
         #print("create wk", i, pt, type)
-        wr = Workstation_robot(i, pt, data_opcua)
+        wr = Workstation_robot(wk_no=i, order=order, product=null_product)
         W_robot.append(wr)
 
 
+
 ########## Initialization of Carrier robots######################################################
-T_robot = []
+
 q_robot = []
 
 for r in data_opcua["rob_busy"]:
@@ -79,7 +75,7 @@ for r in data_opcua["rob_busy"]:
 for i , R in enumerate(data_opcua["rob_busy"]):
     #print(i+1, R)
 
-    robot = Transfer_robot(id=i + 1, global_task=Global_task, data_opcua=data_opcua, tqueue=q_robot[i])
+    robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
     T_robot.append(robot)
 
 
@@ -92,9 +88,9 @@ Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
 
 
 ### Perform task creation and allocation process
-initial_task = GreedyScheduler.initialize_production()
+initial_allotment = GreedyScheduler.initialize_production()
 
-alloted_task = Greedy_Allocator.step_allocation(initial_task)
+alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1])
 
 
 
@@ -103,7 +99,7 @@ alloted_task = Greedy_Allocator.step_allocation(initial_task)
 q_main_to_releaser = asyncio.Queue()
 #q_to_eventloop = queue.Queue()
 
-for task in alloted_task:
+for task in alloted_initial_task[0]:
     print(f"tasks in the queue:", task)
     q_main_to_releaser.put_nowait(task)
 
@@ -113,15 +109,11 @@ for task in alloted_task:
 
 
 async def release_task_execution():
-
         global Sim_step
         Sim_step = 0
         print("Simulation step initialized to 0")
         while True:
-
             try:
-
-
 
                 if Sim_step == 0 :
                     task_opcua = q_main_to_releaser.get_nowait()
@@ -179,26 +171,7 @@ releaser_thread = Thread(target=main_release, daemon=True)
 releaser_thread.start()
 
 
-async def check_robot_status():
-    while True:
-        if event1 == True and data_opcua["rob_busy"][0] == False:
-            event1_opcua.set()
-            print("Event 2 (opcua) for Robot 1 acitivated")
-        elif event2 == True and data_opcua["rob_busy"][1] == False:
-            event2_opcua.set()
-            print("Event 2 (opcua) for Robot 2 acitivated")
-        elif event3 == True and data_opcua["rob_busy"][2] == False:
-            event3_opcua.set()
-            print("Event 2 (opcua) for Robot 3 acitivated")
-        else:
-            pass
 
-def main_status():
-    asyncio.run(check_robot_status())
-
-# status_thread = Thread(target=main_status, daemon=True)
-#
-# status_thread.start()
 
 ### new Events check thread ####
 
@@ -284,16 +257,17 @@ async def main() :
         (T_robot[1].check_rob_done(event2, event2_opcua)),
         (T_robot[2].check_rob_done(event3, event3_opcua)),
 
-        (process_execution(wk_1, 1, 1)),
-        (process_execution(wk_2, 2, 1)),
-        (process_execution(wk_3, 3, 1)),
-        (process_execution(wk_4, 4, 1)),
-        (process_execution(wk_5, 5, 1)),
-        (process_execution(wk_6, 6, 1)),
-        (process_execution(wk_7, 7, 1)),
-        (process_execution(wk_8, 8, 1)),
-        (process_execution(wk_9, 9, 1)),
-        (process_execution(wk_10, 10, 1))
+        (W_robot[0].process_execution(wk_1)),
+        (W_robot[1].process_execution(wk_2)),
+        (W_robot[2].process_execution(wk_3)),
+        (W_robot[3].process_execution(wk_4)),
+        (W_robot[4].process_execution(wk_5)),
+        (W_robot[5].process_execution(wk_6)),
+        (W_robot[6].process_execution(wk_7)),
+        (W_robot[7].process_execution(wk_8)),
+        (W_robot[8].process_execution(wk_9)),
+        (W_robot[9].process_execution(wk_10))
+
     )
     print(results)
 

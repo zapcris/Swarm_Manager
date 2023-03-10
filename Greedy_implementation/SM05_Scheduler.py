@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from time import sleep
 from queue import Queue
-from threading import Thread
-from SM04_Task_Planner import Task, Task_PG
-from SM07_Robot_agent import Transfer_robot
+from SM04_Task_Planner import Task
+
 
 
 
@@ -16,6 +15,9 @@ class Product:
     inProduction: False
     finished: False
     last_instance: int
+    robot : int
+    wk : int
+
 
 
     # current_position = []
@@ -45,6 +47,13 @@ class Product:
     def remove_from_production(self):
         object.__setattr__(self, 'inProduction', False)
 
+    def to_robot(self, robot):
+        object.__setattr__(self, 'wk', 0)
+        object.__setattr__(self, 'robot', robot)
+
+    def to_wk(self, wk):
+        object.__setattr__(self, 'robot', 0)
+        object.__setattr__(self, 'wk', wk)
 
     def pfinished(self):
         object.__setattr__(self, 'finished', True)
@@ -87,7 +96,7 @@ class Joint_Scheduler:
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
          ########### encapsulated task sequence object for every product instance #######
-                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i])
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i], robot=0, wk=0)
 
 
                 print(f"First instance of products Variant {i+1} generated for production")
@@ -95,7 +104,7 @@ class Joint_Scheduler:
                 self.pCount = i+1
         else: ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i])
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i], robot=0, wk=0)
                 print(f"First instance of products Variant {i+1} generated for production")
                 self.active_products.append(p)
                 self.pCount = i+1
@@ -103,7 +112,7 @@ class Joint_Scheduler:
 
         initial_allocation = self.initial_allocation()
 
-        return initial_allocation
+        return initial_allocation, self.active_products
 
  ######### Triggered after initial production queue is executed in Execution Thread###########
     def normal_production(self):
@@ -133,7 +142,7 @@ class Joint_Scheduler:
                 sleep(0.2)
                 print("Adding new product instance of same variant to active production list")
                 p = Product(pv_Id=self.pCount, pi_Id=old_pi+1, task_list=self.product_task[self.pCount-1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1])
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1], robot=0, wk=0)
                 self.active_products.append(p)
 
             else:
