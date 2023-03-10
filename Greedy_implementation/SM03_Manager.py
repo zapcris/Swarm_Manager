@@ -157,7 +157,7 @@ async def release_task_execution():
 
 
             # Opt 1: Handle task here and call q.task_done()
-            except Empty:
+            except:
                 # Handle empty queue here
 
 
@@ -179,9 +179,26 @@ releaser_thread = Thread(target=main_release, daemon=True)
 releaser_thread.start()
 
 
+async def check_robot_status():
+    while True:
+        if event1 == True and data_opcua["rob_busy"][0] == False:
+            event1_opcua.set()
+            print("Event 2 (opcua) for Robot 1 acitivated")
+        elif event2 == True and data_opcua["rob_busy"][1] == False:
+            event2_opcua.set()
+            print("Event 2 (opcua) for Robot 2 acitivated")
+        elif event3 == True and data_opcua["rob_busy"][2] == False:
+            event3_opcua.set()
+            print("Event 2 (opcua) for Robot 3 acitivated")
+        else:
+            pass
 
+def main_status():
+    asyncio.run(check_robot_status())
 
-
+# status_thread = Thread(target=main_status, daemon=True)
+#
+# status_thread.start()
 
 ### new Events check thread ####
 
@@ -202,18 +219,18 @@ def task_released(task):
 
 
 async def check_event():
-    while event1 or event2 or event3:
-        if event1 == True and data_opcua["rob_busy"][0] == False:
-            event1_opcua.set()
-            print("Event 2 (opcua) for Robot 1 acitivated")
-        elif event2 == True and data_opcua["rob_busy"][1] == False:
-            event2_opcua.set()
-            print("Event 2 (opcua) for Robot 2 acitivated")
-        elif event3 == True and data_opcua["rob_busy"][2] == False:
-            event3_opcua.set()
-            print("Event 2 (opcua) for Robot 3 acitivated")
-        else:
-            pass
+        while event1.is_set() or event2.is_set() or event3.is_set():
+            if event1.is_set() and data_opcua["rob_busy"][0] == False:
+                event1_opcua.set()
+                print("Event 2 (opcua) for Robot 1 acitivated")
+            elif event2.is_set() and data_opcua["rob_busy"][1] == False:
+                event2_opcua.set()
+                print("Event 2 (opcua) for Robot 2 acitivated")
+            elif event3.is_set() and data_opcua["rob_busy"][2] == False:
+                event3_opcua.set()
+                print("Event 2 (opcua) for Robot 3 acitivated")
+            else:
+                pass
 
 
 # async def execution_time(flag, id):
@@ -260,20 +277,23 @@ async def main() :
     # tasks = [t1, t2, t3, t4]
     results = await asyncio.gather(
         #*tasks
-        asyncio.create_task(T_robot[0].execution_time(event1, 1, event1_opcua)),
-        asyncio.create_task(T_robot[1].execution_time(event2, 2, event2_opcua)),
-        asyncio.create_task(T_robot[2].execution_time(event3, 3, event3_opcua))
-        #asyncio.create_task(check_event())
-        # (process_execution(wk_1, 1, 1)),
-        # (process_execution(wk_2, 2, 1)),
-        # (process_execution(wk_3, 3, 1)),
-        # (process_execution(wk_4, 4, 1)),
-        # (process_execution(wk_5, 5, 1)),
-        # (process_execution(wk_6, 6, 1)),
-        # (process_execution(wk_7, 7, 1)),
-        # (process_execution(wk_8, 8, 1)),
-        # (process_execution(wk_9, 9, 1)),
-        # (process_execution(wk_10, 10, 1))
+        (T_robot[0].execution_time(event1, 1, event1_opcua)),
+        (T_robot[1].execution_time(event2, 2, event2_opcua)),
+        (T_robot[2].execution_time(event3, 3, event3_opcua)),
+        (T_robot[0].check_rob_done(event1, event1_opcua)),
+        (T_robot[1].check_rob_done(event2, event2_opcua)),
+        (T_robot[2].check_rob_done(event3, event3_opcua)),
+
+        (process_execution(wk_1, 1, 1)),
+        (process_execution(wk_2, 2, 1)),
+        (process_execution(wk_3, 3, 1)),
+        (process_execution(wk_4, 4, 1)),
+        (process_execution(wk_5, 5, 1)),
+        (process_execution(wk_6, 6, 1)),
+        (process_execution(wk_7, 7, 1)),
+        (process_execution(wk_8, 8, 1)),
+        (process_execution(wk_9, 9, 1)),
+        (process_execution(wk_10, 10, 1))
     )
     print(results)
 

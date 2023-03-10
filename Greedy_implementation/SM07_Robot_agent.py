@@ -4,6 +4,7 @@ from datetime import datetime
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
+from multiprocessing import Pool
 
 from Greedy_implementation.SM04_Task_Planner import order, Task
 
@@ -238,16 +239,30 @@ class Transfer_robot:
 
 
             await event2.wait()
-            Events["rob_execution"][id - 1] = False
+            #Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             a = wk_event(t[1])
-            # a.set()
-            #print("Triggered workstation is  is", t[1])
+            a.set()
+            print("Triggered workstation is  is", t[1])
             event2.clear()
             event.clear()
+
+    async def check_rob_done(self,event: asyncio.Event, event_opcua:asyncio.Event):
+        while True:
+            await asyncio.sleep(2)
+            await event.wait()
+            if event.is_set() == True and data_opcua["rob_busy"][self.id -1] == False:
+                event_opcua.set()
+                print(f"Event 2 (opcua) for Robot {self.id} acitivated")
+            else:
+                #print("No opcua event generated")
+                pass
+
+
+
 
     def execute_typ1cmd(self, fromscheduler):
         self.data_opcua["mobile_manipulator"] = fromscheduler
@@ -261,21 +276,23 @@ class Transfer_robot:
 
 class Workstation_robot:
 
-    def __init__(self, wk_no, order, data_opcua):
+    def __init__(self, wk_no, order, product):
         self.id = wk_no
         self.free = True
+        self.order = order
+        self.product = product
 
         # self.processtime = process_times
         # self.auctioned_task = auctioned_task
-        self.data_opcua = data_opcua
 
-    async def process_execution(self, event, wk, product):
-        process_time = order["Process_times"][product.pv_Id][wk - 1]
+
+    async def process_execution(self, event: asyncio.Event):
+        process_time = order["Process_times"][self.product.pv_Id][self.id - 1]
         await event.wait()
         self.free = False
-        print(f"Process task executing at {wk}")
+        print(f"Process task executing at {self.id}")
         await asyncio.sleep(process_time)
-        print("Process task on workstation ", wk)
+        print("Process task on workstation ", self.id)
         event.clear()
 
         return None
