@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import queue
 import sys
 import tracemalloc
@@ -7,7 +8,8 @@ from queue import Empty
 from threading import Thread
 
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
-    event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10
+    event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
+    event3_opcua
 from Greedy_implementation.SM05_Scheduler import Joint_Scheduler
 from Greedy_implementation.SM04_Task_Planner import Task_PG, order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocation
@@ -22,7 +24,7 @@ Data_opcua = dict(data_opcua)
 
 
 ##### Start OPCUA Client Thread################
-
+#
 x = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
 x.start()
 
@@ -159,6 +161,7 @@ async def release_task_execution():
                 # Handle empty queue here
 
 
+
                 print("No task to release")
                 for robot in data_opcua["rob_busy"]:
                     if robot == False:
@@ -187,17 +190,30 @@ def task_released(task):
 
     id = task["robot"] - 1
     print("Triggered robot id is:", id+1)
-    if id == 0:
+    if id == 0 and data_opcua["rob_busy"][0]:
         loop.call_soon_threadsafe(event1.set)
-        print("Triggered event is 1")
-    elif id ==1 :
+        print("Triggered event is 1 for robot 1")
+    elif id == 1 and data_opcua["rob_busy"][1]:
         loop.call_soon_threadsafe(event2.set)
-        print("Triggered event is 2")
-    elif id ==2 :
+        print("Triggered event is 1 for robot 2 ")
+    elif id == 2 and data_opcua["rob_busy"][2]:
         loop.call_soon_threadsafe(event3.set)
-        print("Triggered event is 3")
+        print("Triggered event is 1 for robot 3")
 
 
+async def check_event():
+    while event1 or event2 or event3:
+        if event1 == True and data_opcua["rob_busy"][0] == False:
+            event1_opcua.set()
+            print("Event 2 (opcua) for Robot 1 acitivated")
+        elif event2 == True and data_opcua["rob_busy"][1] == False:
+            event2_opcua.set()
+            print("Event 2 (opcua) for Robot 2 acitivated")
+        elif event3 == True and data_opcua["rob_busy"][2] == False:
+            event3_opcua.set()
+            print("Event 2 (opcua) for Robot 3 acitivated")
+        else:
+            pass
 
 
 # async def execution_time(flag, id):
@@ -236,12 +252,18 @@ async def main() :
     """Fetch all urls from the list of urls
 
     It is done concurrently and combined into a single coroutine"""
+    # t1 = asyncio.ensure_future(release_task_execution())
+    # t2 = asyncio.ensure_future((T_robot[0].execution_time(event1, 1)))
+    # t3 = asyncio.ensure_future((T_robot[1].execution_time(event2, 2)))
+    # t4 = asyncio.ensure_future((T_robot[2].execution_time(event3, 3)))
 
+    # tasks = [t1, t2, t3, t4]
     results = await asyncio.gather(
-        # r_function(),
-        (T_robot[0].execution_time(event1, 1)),
-        (T_robot[1].execution_time(event2, 2)),
-        (T_robot[2].execution_time(event3, 3))
+        #*tasks
+        asyncio.create_task(T_robot[0].execution_time(event1, 1, event1_opcua)),
+        asyncio.create_task(T_robot[1].execution_time(event2, 2, event2_opcua)),
+        asyncio.create_task(T_robot[2].execution_time(event3, 3, event3_opcua))
+        #asyncio.create_task(check_event())
         # (process_execution(wk_1, 1, 1)),
         # (process_execution(wk_2, 2, 1)),
         # (process_execution(wk_3, 3, 1)),

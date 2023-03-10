@@ -51,6 +51,8 @@ def wk_event(wk):
         return wk_10
 
 
+
+
 data_opcua = {
     "brand": "Ford",
     "mobile_manipulator": ["", "", ""],
@@ -73,6 +75,18 @@ Events = {
     "Product_finished": []
 
 }
+
+
+async def bg_tsk(flag, condn):
+    while True:
+        if condn == True:
+
+            pass
+        else:
+
+            flag.set()
+            break
+
 
 
 class Transfer_robot:
@@ -192,30 +206,47 @@ class Transfer_robot:
 
         return None
 
-    async def execution_time(self, event, id):
+
+
+    async def execution_time(self, event, id, event2):
 
         while True:
 
             # print(f'waiting for robot {id} for  execution')
             await event.wait()
-            print(f'Robot {id} execution timer has started')
-            # await asyncio.sleep(3)
+            print(f'Robot {self.id} execution tim'
+                  f'er has started')
+            # if self.id ==1 :
+            #     time = 15
+            # elif self.id ==2 :
+            #     time = 5
+            # else:
+            #     time = 5
+            # await asyncio.sleep(time)
             start_time = datetime.now()
+            print(f"Robot {self.id} started executing at {start_time}")
             Events["rob_execution"][id - 1] = True
-            while Events["rob_execution"][id - 1] == True:
-                if data_opcua["rob_busy"][id - 1] == True:
-                    # exec_time = (datetime.now() - start_time).total_seconds()
-                    # print(f"Robot {id} is running")
-                    pass
-                elif data_opcua["rob_busy"][id - 1] == False:
-                    Events["rob_execution"][id - 1] = False
+            # while Events["rob_execution"][id - 1] == True:
+            #     if data_opcua["rob_busy"][id - 1] == True:
+            #         # exec_time = (datetime.now() - start_time).total_seconds()
+            #         # print(f"Robot {id} is running")
+            #         pass
+            #     elif data_opcua["rob_busy"][id - 1] == False:
+            #         Events["rob_execution"][id - 1] = False
+            # flag = asyncio.Event()
+            condi = data_opcua["rob_busy"][id - 1]
+
+
+            await event2.wait()
+            Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
-            print(f"the product is delivered to workstation {t[1]}")
+            print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             a = wk_event(t[1])
             # a.set()
-            print("Triggered workstation is  is", t[1])
+            #print("Triggered workstation is  is", t[1])
+            event2.clear()
             event.clear()
 
     def execute_typ1cmd(self, fromscheduler):

@@ -3,22 +3,26 @@ import time
 from asyncua import Client, Node, ua
 import threading
 
+from Greedy_implementation.SM07_Robot_agent import event1, event2, event3, event1_opcua, event2_opcua, event3_opcua
+
+
+
 async def main_function(data_opcua):
     full_path = "opc.tcp://127.0.0.1:4840/freeopcua/server/"
 
     async with Client(url=full_path) as client:
 
         objects = await client.nodes.root.get_children()
-        print(objects)
+        #print(objects)
         for i in objects:
             object_name = await i.read_browse_name()
             if object_name.Name == 'Objects':
-                print("Objects:", object_name.Name)
+                #print("Objects:", object_name.Name)
                 folder_object = await i.get_children()
 
                 for i2 in folder_object:
                     folder_name = await i2.read_browse_name()
-                    print("folder_name",folder_name)
+                    #print("folder_name",folder_name)
                     if(folder_name.Name == "create_part"):
                         create_part = await i2.get_children()
                     if(folder_name.Name == "machine_parts"):
@@ -32,13 +36,13 @@ async def main_function(data_opcua):
 
         for k in create_part:
             object_name = await k.read_browse_name()
-            print(object_name)
+            #print(object_name)
             if object_name.Name == 'create_new_part':
                 create_new_part = k
 
         for k in Moble_manipulator_busy:
             object_name = await k.read_browse_name()
-            print(object_name)
+            #print(object_name)
             if object_name.Name == 'rob1_busy':
                 rob1_busy = k
             if object_name.Name == 'rob2_busy':
@@ -54,7 +58,7 @@ async def main_function(data_opcua):
 
         for k in Positions:
             object_name = await k.read_browse_name()
-            print(object_name)
+            #print(object_name)
             if object_name.Name == 'machine_pos':
                 machine_pos = k
             if object_name.Name == 'robot_pos':
@@ -62,7 +66,7 @@ async def main_function(data_opcua):
 
         for k in machine_parts:
             object_name = await k.read_browse_name()
-            print(object_name)
+            #print(object_name)
             if object_name.Name == 'create_machine1':
                 create_machine1 = k
             if object_name.Name == 'machine_1_part':
@@ -95,7 +99,7 @@ async def main_function(data_opcua):
 
         for k in mobile_manipulator_control:
             object_name = await k.read_browse_name()
-            print(object_name)
+            #print(object_name)
             if object_name.Name == 'mobile_manipulator_1':
                 mobile_manipulator_1 = k
             if object_name.Name == 'mobile_manipulator_2':
@@ -151,7 +155,9 @@ async def main_function(data_opcua):
             # Read if mobile manipulator is busy
             for k in range(len(rob_busy)):
                 robot_busy[k] = await rob_busy[k].read_value()
+
             data_opcua["rob_busy"] = robot_busy
+
             ##################################################
             # Read machine position data
             values = await machine_pos.read_value()
