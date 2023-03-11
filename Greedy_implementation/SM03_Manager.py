@@ -15,8 +15,6 @@ from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_r
 tracemalloc.start()
 
 
-
-
 ##### Start OPCUA Client Thread################
 #
 x = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
