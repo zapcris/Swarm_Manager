@@ -91,8 +91,8 @@ Product_task = generate_task[0]
 Global_task = generate_task[1]
 Task_Queue = generate_task[2]
 
-for a in Product_task:
-    print(a)
+# for a in Product_task:
+#     print(a)
 
 ### Initialize Reactive Scheduler
 GreedyScheduler = Scheduling_agent(
@@ -147,7 +147,7 @@ class Transfer_robot:
         end_loc = auctioned_task["command"][1]
         total_ws = len(self.data_opcua["machine_pos"])
         if start_loc == 11:  ## if source node
-            start_pos = [100, 100]
+            start_pos = [0, -1000]
         else:
             start_pos = self.data_opcua["machine_pos"][start_loc - 1]
         if end_loc == 12:  ## if source node or sink node
@@ -294,6 +294,7 @@ class Transfer_robot:
                 await self.task_deassigned()
             else:
                 print(f"Product moved to sink node")
+                GreedyScheduler.prod_completed(self.product)
 
 
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
@@ -350,7 +351,7 @@ class Workstation_robot:
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
-        await self.product.pop_task()
+        await self.product.remove_task()
         print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
         GreedyScheduler.process_task_executed(self.product)
         print(f"Done workstation {self.id}")

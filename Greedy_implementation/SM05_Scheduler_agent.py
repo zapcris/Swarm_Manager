@@ -37,6 +37,9 @@ class Scheduling_agent:
 
         return self
 
+    def prod_completed(self, product):
+        self.finished_product.append(product)
+        return self
 
 
     def initialize_production(self):
