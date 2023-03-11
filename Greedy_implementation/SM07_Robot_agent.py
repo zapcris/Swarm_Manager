@@ -4,10 +4,8 @@ from datetime import datetime
 from queue import Queue, Empty
 from threading import Thread
 from time import sleep
-from multiprocessing import Pool
-
-from Greedy_implementation.SM04_Task_Planner import order, Task
-from Greedy_implementation.SM05_Scheduler import Product
+from Greedy_implementation.SM04_Task_Planner import order
+from Greedy_implementation.SM10_Product_Task import Product, Task
 
 #################################### Robot agent code ################################################
 # manager = Manager()

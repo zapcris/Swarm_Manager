@@ -1,11 +1,8 @@
 from dataclasses import dataclass
 from time import sleep
 from queue import Queue
-from SM04_Task_Planner import Task
 
-
-
-
+from Greedy_implementation.SM10_Product_Task import Product, Task
 
 
 class Joint_Scheduler:
