@@ -69,7 +69,7 @@ class Product:
     # def reset_Instance(self):
     #     object.__setattr__(self, 'last_instance', 0)
 
-    def dequeue(self):
+    def pop_task(self):
         if len(self.task_list) > 0 :
             self.task_list.pop(0)
         return (self)

@@ -108,11 +108,14 @@ async def release_task_execution():
 
 
                     step2_allotment = GreedyScheduler.normalized_production()
-                    step2_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=step2_allotment[0], product_obj=step2_allotment[1])
+                    step2_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=step2_allotment[0],
+                                                                          product_obj=step2_allotment[1])
+
 
                 elif Sim_step > 2 and Sim_step < 99 :
                     normal_allotment = GreedyScheduler.normal_production()
-                    normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0], product_obj=normal_allotment[1])
+                    normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0],
+                                                                           product_obj=normal_allotment[1])
                     for task in normal_alloted_task:
                         q_main_to_releaser.put_nowait(task)
                     task_opcua = q_main_to_releaser.get_nowait()
