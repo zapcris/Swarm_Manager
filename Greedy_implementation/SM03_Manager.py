@@ -6,19 +6,19 @@ from threading import Thread
 
 
 from Greedy_implementation.SM02_opcua_client import start_opcua
-from Greedy_implementation.SM04_Task_Planner import order, Task_Planning_agent
-from Greedy_implementation.SM05_Scheduler import Task_Allocator_agent, Scheduling_agent
+from Greedy_implementation.SM04_Task_Planner import order
+
+from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
 
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
-    event3_opcua, W_robot, T_robot, null_product
-
+    event3_opcua, W_robot, T_robot, null_product, GreedyScheduler, Global_task
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
 tracemalloc.start()
 
-Data_opcua = dict(data_opcua)
+
 
 
 ##### Start OPCUA Client Thread################
@@ -32,12 +32,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 
-### instantiate order and generation of task list to that order
-test_order = Task_Planning_agent(order)
-generate_task = test_order.task_list()
-Product_task = generate_task[0]
-Global_task = generate_task[1]
-Task_Queue = generate_task[2]
+
 
 
 #########Initialization of Workstation robots###############################
@@ -66,13 +61,7 @@ for i , R in enumerate(data_opcua["rob_busy"]):
     robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
     T_robot.append(robot)
 
-### Initialize Reactive Scheduler
-GreedyScheduler = Scheduling_agent(
-    order=order,
-    product_task=Product_task,
-        T_robot=T_robot
 
-)
 
 ##### Initialize Task Allocator agent #########
 

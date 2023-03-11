@@ -3,7 +3,8 @@ import math
 from datetime import datetime
 from time import sleep
 
-from SM04_Task_Planner import order
+from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
+from SM04_Task_Planner import order, Task_Planning_agent
 from SM10_Product_Task import Product, Task
 
 
@@ -83,6 +84,21 @@ Events = {
 }
 
 
+### instantiate order and generation of task list to that order
+test_order = Task_Planning_agent(order)
+generate_task = test_order.task_list()
+Product_task = generate_task[0]
+Global_task = generate_task[1]
+Task_Queue = generate_task[2]
+
+
+### Initialize Reactive Scheduler
+GreedyScheduler = Scheduling_agent(
+    order=order,
+    product_task=Product_task,
+        T_robot=T_robot
+
+)
 
 
 async def bg_tsk(flag, condn):
@@ -328,7 +344,7 @@ class Workstation_robot:
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
-        #GreedyScheduler.process_task_executed(self.product)
+        GreedyScheduler.process_task_executed(self.product)
         await self.prod_deassigned()
         print(f"Done workstation {self.id}")
         self.free = True
