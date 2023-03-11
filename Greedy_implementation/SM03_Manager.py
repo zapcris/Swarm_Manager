@@ -3,13 +3,9 @@ import queue
 import sys
 import tracemalloc
 from threading import Thread
-
-
 from Greedy_implementation.SM02_opcua_client import start_opcua
 from Greedy_implementation.SM04_Task_Planner import order
-
 from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
-
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
     event3_opcua, W_robot, T_robot, null_product, GreedyScheduler, Global_task
@@ -188,37 +184,7 @@ async def check_event():
                 pass
 
 
-# async def execution_time(flag, id):
-#
-#     while True:
-#         # print(f'waiting for robot {id} for  execution')
-#         await flag.wait()
-#         print(f'Robot {id} execution timer has started')
-#         #await asyncio.sleep(3)
-#         start_time = datetime.now()
-#         Events["rob_execution"][id - 1] = True
-#         while Events["rob_execution"][id - 1] == True:
-#             if data_opcua["rob_busy"][id - 1] == True:
-#                 # exec_time = (datetime.now() - start_time).total_seconds()
-#                 # print(f"Robot {id} is running")
-#                 pass
-#             elif data_opcua["rob_busy"][id - 1] == False:
-#                 Events["rob_execution"][id - 1] = False
-#         exec_time = (datetime.now() - start_time).total_seconds()
-#
-#         flag.clear()
-#
-#         return print(f"Robot {id} took {exec_time:,.2f} seconds to run")
-#
-#
-# async def process_execution(event, wk, product_pv):
-#     process_time = order["Process_times"][product_pv][wk-1]
-#     await event.wait()
-#     print(f"Process task executing at workstation {wk}")
-#     await asyncio.sleep(process_time)
-#     print("Process task completed on workstation ",wk )
-#     #prod_release()
-#     event.clear()
+
 
 async def main() :
     """Fetch all urls from the list of urls
