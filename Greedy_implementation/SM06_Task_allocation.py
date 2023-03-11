@@ -5,8 +5,6 @@ class Task_Allocator_agent:
 
     def __init__(self, global_task, T_robot):
         self.global_task = global_task
-        #self.auctioned_task = auctioned_task
-        #self.data_opcua = data_opcua
         self.bid_data = []
         self.t_robot = T_robot
 
@@ -56,7 +54,7 @@ class Task_Allocator_agent:
         ### assigned task and product to robot agents here ####
         T_robot[i].task_assigned(task)
         T_robot[i].prod_assigned(product)
-        print(f"Task allocated to robot {min_index+1}")
+        print(f"Task and Product assigned to robot {min_index+1}")
         print("New task status", task)
         print("New product status", product)
 

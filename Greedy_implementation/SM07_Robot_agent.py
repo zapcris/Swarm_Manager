@@ -345,8 +345,8 @@ class Workstation_robot:
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
         GreedyScheduler.process_task_executed(self.product)
-        await self.prod_deassigned()
         print(f"Done workstation {self.id}")
+        await self.prod_deassigned()
         self.free = True
         print(f"The Workstation {self.id} free status is {self.free}")
         event.clear()

@@ -8,8 +8,6 @@ class Scheduling_agent:
 
     def __init__(self, order, product_task, T_robot):
 
-        #self.global_task = global_task
-        #self.data_opcua = data_opcua
         self.order = order
         self.robots = T_robot
         self.active_products = []
@@ -71,7 +69,7 @@ class Scheduling_agent:
                 sleep(0.2)
                 print("Adding new product variant to active production list")
                 p = Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount - 1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1])
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0, wk=0)
                 self.active_products.append(p)
 
             elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product[
@@ -115,8 +113,8 @@ class Scheduling_agent:
                 type = 2
             TA = Task(id=i + 1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False,
                       status="Pending", robot=999)
-            product.dequeue()
-            print(f"product task flow required after", product["task_list"])
+            #product.dequeue()
+            #print(f"product task flow required after", product["task_list"])
             task_for_allocation.append(TA)
 
         return task_for_allocation
