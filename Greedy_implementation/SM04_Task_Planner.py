@@ -22,16 +22,16 @@ order = {
     "PI": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
     "Process_times": [[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                    [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                    ]
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      ]
 }
 
 
@@ -42,7 +42,7 @@ order = {
 ## Allocation : 0 (not alloted)
 
 
-class Task_PG:
+class Task_Planning_agent:
 
     def __init__(self, order):
         self.order = order
@@ -72,13 +72,12 @@ class Task_PG:
         # for t in product_task:
         #     print(t)
 
-########### Generate a global list of task objects ##############################
+        ########### Generate a global list of task objects ##############################
         total = []
         for i, p in enumerate(product_task):
-            l =  len(p) * self.order["PI"][i]
+            l = len(p) * self.order["PI"][i]
             total.append(l)
-        #print(sum(total))
-
+        # print(sum(total))
 
         for i, pt in enumerate(product_task):
             for pI in range(self.order["PI"][i]):
@@ -91,18 +90,16 @@ class Task_PG:
                         type = 4
                     else:
                         type = 2
-                    #task_node = Task(n, type, cmd, i + 1, pI+1,  False, "Pending", 999)
+                    # task_node = Task(n, type, cmd, i + 1, pI+1,  False, "Pending", 999)
                     task_node = n
                     global_task.append(task_node)
-                    #print(task_node)
-
-
+                    # print(task_node)
 
         return product_task, global_task, task_queue
 
 
 ### instantiate order and generation of task list to that order
-test_order = Task_PG(order)
+test_order = Task_Planning_agent(order)
 generate_task = test_order.task_list()
 Product_task = generate_task[0]
 Global_task = generate_task[1]

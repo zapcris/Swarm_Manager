@@ -1,8 +1,5 @@
 from time import sleep
 from queue import Queue
-
-from Greedy_implementation.SM04_Task_Planner import order, Product_task
-from Greedy_implementation.SM07_Robot_agent import data_opcua, T_robot
 from Greedy_implementation.SM10_Product_Task import Product, Task
 
 
@@ -25,6 +22,13 @@ class Scheduling_agent:
     def seq_order(self):
         for i in range(self.order["PV"]):
             self.product_seq_ID.append(i + 1)
+
+    def process_task_executed(self, product):
+        for prod in self.active_products:
+            if prod.pv_Id == product.pv_Id and prod.pi_Id == product.pi_Id:
+                product.dequeue()
+
+
 
     def initialize_production(self):
 
@@ -127,5 +131,4 @@ class Scheduling_agent:
         return global_STN
 
 
-### Initialize Reactive Scheduler
-GreedyScheduler = Scheduling_agent(order=order, product_task=Product_task, data_opcua=data_opcua, T_robot=T_robot)
+

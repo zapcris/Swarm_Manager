@@ -2,12 +2,9 @@ from Greedy_implementation.SM04_Task_Planner import Global_task
 from Greedy_implementation.SM07_Robot_agent import T_robot, data_opcua
 
 
-
-
 class Task_Allocator_agent:
 
     def __init__(self, global_task, data_opcua, T_robot):
-
         self.global_task = global_task
         #self.auctioned_task = auctioned_task
         self.data_opcua = data_opcua
@@ -17,43 +14,34 @@ class Task_Allocator_agent:
 
     def step_allocation(self, task_for_allocation, product_obj):
         for i, (task, prod) in enumerate(zip(task_for_allocation, product_obj)):
-            self.bid_data =[] #### reset received bid data list for every new task ##############
-
+            #### reset received bid data list for every new task ##############
+            self.bid_data = []
             for j, tr in enumerate(self.t_robot):
                 #print(i,j)
-
                 self.broadcast_bid(j, task)
-
             self.assign_bid(task, prod, i)
             #print(self.bid_data)
-
         #task_for_allocation.append(Task(0, 0, [0, 0], 0, 0, False, "Final_Task", 999))
-
-
         return task_for_allocation, product_obj
 
 
     def bulk_allocation(self):
         for i, task in enumerate(self.global_task):
-            self.bid_data =[] #### reset received bid data list for every new task ##############
+            #### reset received bid data list for every new task ##############
+            self.bid_data = []
             for j, tr in enumerate(self.t_robot):
                 #print(i,j)
                 self.broadcast_bid(j, task)
-
             #self.assign_bid(task, i)
             #print(self.bid_data)
             if i == 2:
                 break
-
         return None
 
     def broadcast_bid(self, i, task):
-
         bid = self.t_robot[i].bid(task)
-
         print(f"{bid} Bid Received from Robot {i+1} for task {task}")
         self.bid_data.append(bid)
-
         return self.bid_data
 
 
@@ -69,16 +57,12 @@ class Task_Allocator_agent:
         ### assigned task and product to robot agents here ####
         T_robot[i].task_assigned(task)
         T_robot[i].prod_assigned(product)
-
         print(f"Task allocated to robot {min_index+1}")
         print("New task status", task)
         print("New product status", product)
 
-
-
     def deassign_task(self):
         ### for future implementation
-
         return None
 
 
