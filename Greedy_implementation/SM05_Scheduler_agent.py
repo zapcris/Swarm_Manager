@@ -39,6 +39,13 @@ class Scheduling_agent:
 
     def prod_completed(self, product):
         self.finished_product.append(product)
+        for prod in self.active_products:
+            if prod.pv_Id == product.pv_Id and prod.pi_Id == product.pi_Id:
+                index = self.active_products.index(prod)
+                self.active_products.pop(index)
+                print("The product deleted from the Scheduler")
+            else:
+                print("The product to be deleted not found in the active product list inside scheduler")
         return self
 
 
