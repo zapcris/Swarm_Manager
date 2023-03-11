@@ -119,7 +119,7 @@ async def release_task_execution():
                     task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
-                    await T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
                     print(f"Task released to robot {robot_id+1}")
 
                     q_main_to_releaser.task_done()
@@ -132,10 +132,10 @@ async def release_task_execution():
 
 
 
-                elif Sim_step > 0 and Sim_step < 99 :
-                    normal_task = GreedyScheduler.normal_production()
-                    normal_allot = Greedy_Allocator.step_allocation(normal_task)
-                    for task in normal_allot:
+                elif Sim_step == 2 :
+                    normal_allotment = GreedyScheduler.normal_production()
+                    normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0], product_obj=normal_allotment[1])
+                    for task in normal_alloted_task:
                         q_main_to_releaser.put_nowait(task)
                     task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
@@ -151,14 +151,12 @@ async def release_task_execution():
             # Opt 1: Handle task here and call q.task_done()
             except:
                 # Handle empty queue here
-
-
-
-                print("No task to release")
-                for robot in data_opcua["rob_busy"]:
-                    if robot == False:
-                        Sim_step = 99
-                        print(f"Simulation step upgraded to {Sim_step}")
+                print("Task Queue emptied")
+                Sim_step = 2
+                # for robot in data_opcua["rob_busy"]:
+                #     if robot == False:
+                #         Sim_step = 99
+                #         print(f"Simulation step upgraded to {Sim_step}")
 
                 pass
 
@@ -250,23 +248,23 @@ async def main() :
     # tasks = [t1, t2, t3, t4]
     results = await asyncio.gather(
         #*tasks
-        (T_robot[0].execution_time(event1, 1, event1_opcua)),
-        (T_robot[1].execution_time(event2, 2, event2_opcua)),
-        (T_robot[2].execution_time(event3, 3, event3_opcua)),
-        (T_robot[0].check_rob_done(event1, event1_opcua)),
-        (T_robot[1].check_rob_done(event2, event2_opcua)),
-        (T_robot[2].check_rob_done(event3, event3_opcua)),
+        (T_robot[0].execution_time(event=event1, event_opcua=event1_opcua)),
+        (T_robot[1].execution_time(event=event2, event_opcua=event2_opcua)),
+        (T_robot[2].execution_time(event=event3, event_opcua=event3_opcua)),
+        (T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua)),
+        (T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua)),
+        (T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua)),
 
-        (W_robot[0].process_execution(wk_1)),
-        (W_robot[1].process_execution(wk_2)),
-        (W_robot[2].process_execution(wk_3)),
-        (W_robot[3].process_execution(wk_4)),
-        (W_robot[4].process_execution(wk_5)),
-        (W_robot[5].process_execution(wk_6)),
-        (W_robot[6].process_execution(wk_7)),
-        (W_robot[7].process_execution(wk_8)),
-        (W_robot[8].process_execution(wk_9)),
-        (W_robot[9].process_execution(wk_10))
+        (W_robot[0].process_execution(event=wk_1)),
+        (W_robot[1].process_execution(event=wk_2)),
+        (W_robot[2].process_execution(event=wk_3)),
+        (W_robot[3].process_execution(event=wk_4)),
+        (W_robot[4].process_execution(event=wk_5)),
+        (W_robot[5].process_execution(event=wk_6)),
+        (W_robot[6].process_execution(event=wk_7)),
+        (W_robot[7].process_execution(event=wk_8)),
+        (W_robot[8].process_execution(event=wk_9)),
+        (W_robot[9].process_execution(event=wk_10))
 
     )
     print(results)

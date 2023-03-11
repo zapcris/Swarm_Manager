@@ -70,6 +70,7 @@ class Task_Allocation:
         task.assign(robot=min_index + 1)
         product.to_robot(robot=min_index + 1)
         #self.t_robot[i].task_assigned()
+        ### assigned task and product to robot agents here ####
         T_robot[i].task_assigned(task)
         T_robot[i].prod_assigned(product)
 

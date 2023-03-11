@@ -75,7 +75,7 @@ Events = {
     "Product_finished": []
 
 }
-null_product = Product(pv_Id= 0, pi_Id = 0, task_list=[], inProduction=False, finished=False, last_instance= 0, robot=0, wk=0)
+null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0, wk=0)
 null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
 T_robot = []
 W_robot = []
@@ -115,7 +115,7 @@ class Transfer_robot:
 
     def __await__(self):
         async def closure():
-            print("await")
+            #print("await")
             return self
 
         return closure().__await__()
@@ -153,23 +153,27 @@ class Transfer_robot:
     def task_assigned(self, task):
         self.assigned_task = True
         self.task = task
+        self.free = False
         return self
 
     def prod_assigned(self, product):
         self.assigned_task = True
         self.product = product
+        self.free = False
         return self
 
 
     def task_deassigned(self):
         self.assigned_task = False
         self.task = null_Task
+        self.free = True
         return self
 
 
     def prod_deassigned(self):
         self.assigned_task = False
         self.product = null_product
+        self.free = True
         return self
 
     def node_function(self, tqueue):
@@ -231,7 +235,7 @@ class Transfer_robot:
 
 
 
-    async def execution_time(self, event, id, event2):
+    async def execution_time(self, event, event2):
 
         while True:
 
@@ -248,7 +252,7 @@ class Transfer_robot:
             # await asyncio.sleep(time)
             start_time = datetime.now()
             print(f"Robot {self.id} started executing at {start_time}")
-            Events["rob_execution"][id - 1] = True
+            Events["rob_execution"][self.id - 1] = True
             # while Events["rob_execution"][id - 1] == True:
             #     if data_opcua["rob_busy"][id - 1] == True:
             #         # exec_time = (datetime.now() - start_time).total_seconds()
@@ -257,13 +261,13 @@ class Transfer_robot:
             #     elif data_opcua["rob_busy"][id - 1] == False:
             #         Events["rob_execution"][id - 1] = False
             # flag = asyncio.Event()
-            condi = data_opcua["rob_busy"][id - 1]
+
 
 
             await event2.wait()
             #Events["rob_execution"][id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
-            print(f"Robot {id} took {exec_time:,.2f} seconds to run")
+            print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             W_robot[t[1]-1].prod_assigned(self.product)
@@ -273,6 +277,7 @@ class Transfer_robot:
             event2.clear()
             event.clear()
             await self.prod_deassigned()
+            print(f"The robot {self.id} free status is {self.free}")
             await self.task_deassigned()
 
     async def check_rob_done(self,event: asyncio.Event, event_opcua:asyncio.Event):
@@ -336,6 +341,8 @@ class Workstation_robot:
         print(f"Process task on workstation {self.id} finished")
         await self.prod_deassigned()
         print(f"Done workstation {self.id}")
+        self.free = True
+        print(f"The Workstation {self.id} free status is {self.free}")
         event.clear()
 
 
