@@ -7,7 +7,12 @@ task_queue = queue.Queue()
 
 ### Task Allocation to robot bidders
 
-### GREEDY TASK ALLOCATION #####
+
+## Initialize Task Allocator
+Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
+
+
+
 class Task_Allocation:
 
     def __init__(self, global_task, data_opcua, T_robot):

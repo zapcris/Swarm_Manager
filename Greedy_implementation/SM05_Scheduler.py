@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 from time import sleep
 from queue import Queue
-
 from Greedy_implementation.SM10_Product_Task import Product, Task
 
-
+### Initialize Reactive Scheduler
+GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
 class Joint_Scheduler:
 
     def __init__(self, order, global_task, product_task, data_opcua, T_robot):
@@ -89,6 +88,10 @@ class Joint_Scheduler:
 
         return normal_allocation
 
+
+
+    def normalized_production(self):
+        for i, product in enumerate(self.active_products):
 
 
 ######## Dispatch Task to Task Allocator for broadcasting ###################

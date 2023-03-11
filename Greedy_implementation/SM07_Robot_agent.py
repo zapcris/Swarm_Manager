@@ -339,6 +339,7 @@ class Workstation_robot:
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
+
         await self.prod_deassigned()
         print(f"Done workstation {self.id}")
         self.free = True
