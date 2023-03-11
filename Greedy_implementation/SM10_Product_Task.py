@@ -71,5 +71,7 @@ class Product:
 
     def remove_task(self):
         if len(self.task_list) > 0 :
+            print(f"Task {self.task_list[0]} removed from the product {self.pv_Id, self.pi_Id}")
             self.task_list.pop(0)
+
         return (self)

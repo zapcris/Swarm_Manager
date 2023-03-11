@@ -329,7 +329,7 @@ class Workstation_robot:
 
     def __await__(self):
         async def closure():
-            print("await")
+            #print("await")
             return self
 
         return closure().__await__()
@@ -340,8 +340,10 @@ class Workstation_robot:
         return self
 
     def prod_deassigned(self):
+        print(f"Product {self.product} released from workstation {self.id}")
         self.assigned_prod = False
         self.product = null_product
+
         return self
 
     async def process_execution(self, event: asyncio.Event):
@@ -351,8 +353,8 @@ class Workstation_robot:
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
-        await self.product.remove_task()
-        print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
+        self.product.remove_task()
+        #print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
         GreedyScheduler.process_task_executed(self.product)
         print(f"Done workstation {self.id}")
         await self.prod_deassigned()

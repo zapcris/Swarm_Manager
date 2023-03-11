@@ -23,19 +23,13 @@ class Scheduling_agent:
             self.product_seq_ID.append(i + 1)
 
     def process_task_executed(self, product):
-
-        if len(product.task_list) > 0:
             for prod in self.active_products:
                 if prod.pv_Id == product.pv_Id and prod.pi_Id == product.pi_Id :
                     prod = product
                     print(f"Active product list updated inside Scheduler with {prod}")
-
                 else:
                     pass
-        else:
-            print(f"The last product {product} has finished execution")
-
-        return self
+            return self
 
     def prod_completed(self, product):
         self.finished_product.append(product)
