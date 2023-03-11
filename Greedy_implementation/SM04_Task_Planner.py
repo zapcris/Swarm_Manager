@@ -40,32 +40,6 @@ order = {
 
 ## status : Pending / running / Performed
 ## Allocation : 0 (not alloted)
-@dataclass
-class Task:
-    id: int
-    type: int
-    command: []
-    pV: int
-    pI: int
-    allocation: bool
-    status: str
-    robot: int
-
-    def __getitem__(self, id):
-        return getattr(self, id)
-
-
-
-    def assign(self, robot):
-        object.__setattr__(self, 'allocation', True)
-        object.__setattr__(self, 'robot', robot)
-
-    def deassign(self, robot):
-        object.__setattr__(self, 'allocation', False)
-        object.__setattr__(self, 'robot', robot)
-
-    def cstatus(self, status):
-        object.__setattr__(self, 'status', status)
 
 
 class Task_PG:

@@ -127,7 +127,7 @@ async def release_task_execution():
                     #print("Execution task release", task_opcua)
                     task_released(task=task_opcua)
                     print("Event Status", Events["rob_execution"])
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(7)
 
 
 
