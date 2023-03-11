@@ -3,13 +3,15 @@ import queue
 import sys
 import tracemalloc
 from threading import Thread
-from SM06_Task_allocation import Greedy_Allocator
-from SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
+
+
+from Greedy_implementation.SM02_opcua_client import start_opcua
+from Greedy_implementation.SM04_Task_Planner import order, Task_Planning_agent
+from Greedy_implementation.SM05_Scheduler import Task_Allocator_agent, Scheduling_agent
+
+from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
     event3_opcua, W_robot, T_robot, null_product
-from Greedy_implementation.SM04_Task_Planner import order, Global_task
-import SM11_Agent_Initialization
-
 
 
 #### initialize OPCUA client to communicate to Visual Components ###################
@@ -21,14 +23,21 @@ Data_opcua = dict(data_opcua)
 
 ##### Start OPCUA Client Thread################
 #
-# x = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
-# x.start()
+x = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
+x.start()
 
 
 ###########Initialization of Event Loop########################
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
+
+### instantiate order and generation of task list to that order
+test_order = Task_Planning_agent(order)
+generate_task = test_order.task_list()
+Product_task = generate_task[0]
+Global_task = generate_task[1]
+Task_Queue = generate_task[2]
 
 
 #########Initialization of Workstation robots###############################
@@ -57,10 +66,20 @@ for i , R in enumerate(data_opcua["rob_busy"]):
     robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
     T_robot.append(robot)
 
+### Initialize Reactive Scheduler
+GreedyScheduler = Scheduling_agent(
+    order=order,
+    product_task=Product_task,
+        T_robot=T_robot
 
+)
+
+##### Initialize Task Allocator agent #########
+
+Greedy_Allocator = Task_Allocator_agent(global_task=Global_task, T_robot=T_robot)
 
 ### Perform task creation and allocation process
-initial_allotment = SM11_Agent_Initialization.GreedyScheduler.initialize_production()
+initial_allotment = GreedyScheduler.initialize_production()
 
 alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1])
 
@@ -105,11 +124,11 @@ async def release_task_execution():
                 elif Sim_step == 2:
 
 
-                    step2_allotment = SM11_Agent_Initialization.GreedyScheduler.normalized_production()
+                    step2_allotment = GreedyScheduler.normalized_production()
                     step2_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=step2_allotment[0], product_obj=step2_allotment[1])
 
                 elif Sim_step > 2 and Sim_step < 99 :
-                    normal_allotment = SM11_Agent_Initialization.GreedyScheduler.normal_production()
+                    normal_allotment = GreedyScheduler.normal_production()
                     normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0], product_obj=normal_allotment[1])
                     for task in normal_alloted_task:
                         q_main_to_releaser.put_nowait(task)

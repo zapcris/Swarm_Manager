@@ -1,5 +1,4 @@
 import queue
-from dataclasses import dataclass
 
 ### sink placement 12###
 ## Source = 0 , Cell type = 1 , Server type =2 , Sink = 3######
@@ -98,9 +97,6 @@ class Task_Planning_agent:
         return product_task, global_task, task_queue
 
 
-### instantiate order and generation of task list to that order
-test_order = Task_Planning_agent(order)
-generate_task = test_order.task_list()
-Product_task = generate_task[0]
-Global_task = generate_task[1]
-Task_Queue = generate_task[2]
+
+
+

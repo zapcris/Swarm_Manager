@@ -3,9 +3,6 @@ import time
 from asyncua import Client, Node, ua
 import threading
 
-from Greedy_implementation.SM07_Robot_agent import event1, event2, event3, event1_opcua, event2_opcua, event3_opcua
-
-
 
 async def main_function(data_opcua):
     full_path = "opc.tcp://127.0.0.1:4840/freeopcua/server/"

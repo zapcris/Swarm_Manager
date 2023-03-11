@@ -1,16 +1,21 @@
 import asyncio
 import math
 from datetime import datetime
-from queue import Queue, Empty
-from threading import Thread
 from time import sleep
+
 from SM04_Task_Planner import order
 from SM10_Product_Task import Product, Task
-import SM11_Agent_Initialization
+
+
+#### Initialization data###############
+
+null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0,
+                       wk=0)
+null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
+T_robot = []
+W_robot = []
 
 #################################### Robot agent code ################################################
-# manager = Manager()
-# data_opcua = manager.dict()
 event1 = asyncio.Event()
 event2 = asyncio.Event()
 event3 = asyncio.Event()
@@ -52,6 +57,8 @@ def wk_event(wk):
         return wk_10
 
 
+
+
 data_opcua = {
     "brand": "Ford",
     "mobile_manipulator": ["", "", ""],
@@ -74,11 +81,8 @@ Events = {
     "Product_finished": []
 
 }
-null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0,
-                       wk=0)
-null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
-T_robot = []
-W_robot = []
+
+
 
 
 async def bg_tsk(flag, condn):
@@ -177,16 +181,15 @@ class Transfer_robot:
                 taken_task = tqueue.get(False)
                 self.sendtoOPCUA(taken_task)
                 # Opt 1: Handle task here and call q.task_done()
-            except Empty:
+            except :
                 # Handle empty queue here
                 # print("Queue was empty")
                 pass
 
     def start_robot(self, tqueue):
-        t = Thread(target=self.node_function, args=(tqueue,))
-        t.start()
+        return None
 
-    def simulate(self, q_in: Queue):
+    def simulate(self):
         return None
 
     def assign_product(self, product):
@@ -325,7 +328,7 @@ class Workstation_robot:
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
-        SM11_Agent_Initialization.GreedyScheduler.process_task_executed(self.product)
+        #GreedyScheduler.process_task_executed(self.product)
         await self.prod_deassigned()
         print(f"Done workstation {self.id}")
         self.free = True
