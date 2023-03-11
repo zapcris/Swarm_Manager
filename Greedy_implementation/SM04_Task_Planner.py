@@ -99,3 +99,11 @@ class Task_PG:
 
 
         return product_task, global_task, task_queue
+
+
+### instantiate order and generation of task list to that order
+test_order = Task_PG(order)
+generate_task = test_order.task_list()
+Product_task = generate_task[0]
+Global_task = generate_task[1]
+Task_Queue = generate_task[2]

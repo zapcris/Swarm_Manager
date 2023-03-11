@@ -1,14 +1,16 @@
 from time import sleep
 from queue import Queue
+
+from Greedy_implementation.SM04_Task_Planner import order, Product_task
+from Greedy_implementation.SM07_Robot_agent import data_opcua, T_robot
 from Greedy_implementation.SM10_Product_Task import Product, Task
 
-### Initialize Reactive Scheduler
-GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
-class Joint_Scheduler:
 
-    def __init__(self, order, global_task, product_task, data_opcua, T_robot):
+class Scheduling_agent:
 
-        self.global_task = global_task
+    def __init__(self, order, product_task, data_opcua, T_robot):
+
+        # self.global_task = global_task
         self.data_opcua = data_opcua
         self.order = order
         self.robots = T_robot
@@ -20,42 +22,40 @@ class Joint_Scheduler:
         self.pCount = 0
         self.running_task = []
 
-
-
     def seq_order(self):
         for i in range(self.order["PV"]):
-            self.product_seq_ID.append(i+1)
-
+            self.product_seq_ID.append(i + 1)
 
     def initialize_production(self):
 
         #### Initialization of Products based on total available robots ######
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
-         ########### encapsulated task sequence object for every product instance #######
-                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i], robot=0, wk=0)
+                ########### encapsulated task sequence object for every product instance #######
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
+                            last_instance=self.order["PI"][i], robot=0, wk=0)
 
-
-                print(f"First instance of products Variant {i+1} generated for production")
+                print(f"First instance of products Variant {i + 1} generated for production")
                 self.active_products.append(p)
-                self.pCount = i+1
-        else: ###### if total robots greater than product variants############
+                self.pCount = i + 1
+        else:  ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False, last_instance=self.order["PI"][i], robot=0, wk=0)
-                print(f"First instance of products Variant {i+1} generated for production")
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
+                            last_instance=self.order["PI"][i], robot=0, wk=0)
+                print(f"First instance of products Variant {i + 1} generated for production")
                 self.active_products.append(p)
-                self.pCount = i+1
-
+                self.pCount = i + 1
 
         initial_allocation = self.initial_allocation()
 
         return initial_allocation, self.active_products
 
- ######### Triggered after initial production queue is executed in Execution Thread###########
+    ######### Triggered after initial production queue is executed in Execution Thread###########
     def normal_production(self):
         for i, product in enumerate(self.active_products):
 
-            if  product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product["last_instance"]:
+            if product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product[
+                "last_instance"]:
                 print(f"Product variant has been completed and to be deleted", product["pv_Id"])
                 product.remove_from_production()
                 product.pfinished()
@@ -65,11 +65,12 @@ class Joint_Scheduler:
                 self.active_products.remove(product)
                 sleep(0.2)
                 print("Adding new product variant to active production list")
-                p = Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount-1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1])
+                p = Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount - 1],
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1])
                 self.active_products.append(p)
 
-            elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product["last_instance"]:
+            elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product[
+                "last_instance"]:
                 print("Product instance upgraded and changed for same product variant")
                 product.remove_from_production()
                 product.pfinished()
@@ -78,23 +79,22 @@ class Joint_Scheduler:
                 self.active_products.remove(product)
                 sleep(0.2)
                 print("Adding new product instance of same variant to active production list")
-                p = Product(pv_Id=self.pCount, pi_Id=old_pi+1, task_list=self.product_task[self.pCount-1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount-1], robot=0, wk=0)
+                p = Product(pv_Id=self.pCount, pi_Id=old_pi + 1, task_list=self.product_task[self.pCount - 1],
+                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
+                            wk=0)
                 self.active_products.append(p)
 
             else:
-                print("Continue with same product variant and instance resp.",product["pv_Id"], product["pi_Id"])
+                print("Continue with same product variant and instance resp.", product["pv_Id"], product["pi_Id"])
         normal_allocation = self.initial_allocation()
 
         return normal_allocation
 
-
-
     def normalized_production(self):
         for i, product in enumerate(self.active_products):
+            pass
 
-
-######## Dispatch Task to Task Allocator for broadcasting ###################
+    ######## Dispatch Task to Task Allocator for broadcasting ###################
     def initial_allocation(self):
         task_for_allocation = []
 
@@ -108,17 +108,13 @@ class Joint_Scheduler:
                 type = 4
             else:
                 type = 2
-            TA = Task(id=i+1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False, status="Pending", robot=999)
+            TA = Task(id=i + 1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False,
+                      status="Pending", robot=999)
             product.dequeue()
             print(f"product task flow required after", product["task_list"])
             task_for_allocation.append(TA)
 
         return task_for_allocation
-
-
-
-
-
 
     def release_execCommand(self):
         task_for_execution = []
@@ -129,3 +125,7 @@ class Joint_Scheduler:
         global_STN = Queue()
         ############# Future implementation ##############
         return global_STN
+
+
+### Initialize Reactive Scheduler
+GreedyScheduler = Scheduling_agent(order=order, product_task=Product_task, data_opcua=data_opcua, T_robot=T_robot)

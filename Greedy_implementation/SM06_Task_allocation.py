@@ -1,19 +1,10 @@
-
-import queue
-
-from Greedy_implementation.SM07_Robot_agent import T_robot
-
-task_queue = queue.Queue()
-
-### Task Allocation to robot bidders
-
-
-## Initialize Task Allocator
-Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
+from Greedy_implementation.SM04_Task_Planner import Global_task
+from Greedy_implementation.SM07_Robot_agent import T_robot, data_opcua
 
 
 
-class Task_Allocation:
+
+class Task_Allocator_agent:
 
     def __init__(self, global_task, data_opcua, T_robot):
 
@@ -95,4 +86,6 @@ class Task_Allocation:
 
         return None
 
+##### Initialize Task Allocator agent #########
 
+Greedy_Allocator = Task_Allocator_agent(global_task=Global_task, data_opcua=data_opcua, T_robot=T_robot)

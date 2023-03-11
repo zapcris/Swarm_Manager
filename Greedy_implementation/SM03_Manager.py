@@ -3,12 +3,12 @@ import queue
 import sys
 import tracemalloc
 from threading import Thread
-
 from Greedy_implementation.SM05_Scheduler import GreedyScheduler
+from Greedy_implementation.SM06_Task_allocation import Greedy_Allocator
 from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
     event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
     event3_opcua, W_robot, T_robot, null_product
-from Greedy_implementation.SM04_Task_Planner import Task_PG, order
+from Greedy_implementation.SM04_Task_Planner import order, Global_task
 from Greedy_implementation.SM02_opcua_client import start_opcua
 
 
@@ -30,27 +30,8 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 
-### events flags for transfer and workstation robots#####
-
-
-
-
-### instantiate order and generation of task list to that order
-test_order = Task_PG(order)
-generate_task = test_order.task_list()
-Product_task = generate_task[0]
-Global_task = generate_task[1]
-Task_Queue = generate_task[2]
-
-# for i in Task_Queue:
-#     print(i)
-# print(Product_task)
-#print(Global_task)
-
-
 
 #########Initialization of Workstation robots###############################
-
 
 for i, type in enumerate(order["Wk_type"]):
     if type == 1 or type == 2:
@@ -70,20 +51,11 @@ for r in data_opcua["rob_busy"]:
 
 
 
-
-
 for i , R in enumerate(data_opcua["rob_busy"]):
     #print(i+1, R)
 
     robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
     T_robot.append(robot)
-
-
-### Initialize Reactive Scheduler
-#GreedyScheduler = Joint_Scheduler(order, Global_task, Product_task, data_opcua, T_robot)
-
-## Initialize Task Allocator
-#Greedy_Allocator = Task_Allocation(Global_task, data_opcua, T_robot)
 
 
 
