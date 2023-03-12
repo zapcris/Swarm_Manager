@@ -78,7 +78,8 @@ for task in alloted_initial_task[0]:
     q_main_to_releaser.put_nowait(task)
 
 
-
+fin_prod = []
+done_prod = []
 
 async def release_task_execution():
         global Sim_step
@@ -104,14 +105,6 @@ async def release_task_execution():
 
 
 
-                elif Sim_step == 2:
-
-
-                    step2_allotment = GreedyScheduler.normalized_production()
-                    step2_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=step2_allotment[0],
-                                                                          product_obj=step2_allotment[1])
-
-
                 # elif Sim_step > 2 and Sim_step < 99 :
                     # #normal_allotment = GreedyScheduler.normal_production()
                     # normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0],
@@ -133,6 +126,33 @@ async def release_task_execution():
             except:
                 # Handle empty queue here
                 #print("Task Queue emptied")
+                for robot in T_robot:
+                    if robot.self.finished.robot != null_product:
+                        f_p = robot.finished_product
+                        fin_prod.append(f_p)
+                        print(f"product added to finished list")
+                        robot.clr_fin_prod()
+                if fin_prod:
+                   new_allotment = GreedyScheduler.prod_completed(fin_prod)
+                   fin_prod.clear()
+                else:
+                    pass
+
+
+
+                for wk in W_robot:
+                    if wk.finished.robot != null_product:
+                        d_p = wk.done_product
+                        done_prod.append(d_p)
+                        print(f"product added to done list")
+                        wk.clr_done_prod()
+                if done_prod:
+                    normal_allotment =  GreedyScheduler.normalized_production(done_prod)
+                else:
+                   pass
+
+
+
                 Sim_step = 99
                 # for robot in data_opcua["rob_busy"]:
                 #     if robot == False:

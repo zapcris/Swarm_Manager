@@ -1,7 +1,5 @@
-from time import sleep
 from queue import Queue
-import SM10_Product_Task
-
+from Greedy_implementation.SM10_Product_Task import Product, Task
 
 
 class Scheduling_agent:
@@ -73,7 +71,7 @@ class Scheduling_agent:
 
     def add_new_instance(self, pv_Id, pi_Id):
         new_Inst = pi_Id+1
-        product = SM10_Product_Task.Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id-1], inProduction=True, finished=False,
+        product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id-1], inProduction=True, finished=False,
                             last_instance=self.order["PI"][pv_Id-1], robot=0, wk=0,released=False)
         self.active_products.append(product)
         print(f"New Product instance {new_Inst} from Product variant {pv_Id} added to active list")
@@ -85,7 +83,7 @@ class Scheduling_agent:
         if self.order["PV"] >= len(self.robots):
             for i, r in enumerate(self.robots):
                 ########### encapsulated task sequence object for every product instance #######
-                p = SM10_Product_Task.Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
                             last_instance=self.order["PI"][i], robot=0, wk=0,released=False)
 
                 print(f"First instance of products Variant {i + 1} generated for production")
@@ -93,13 +91,13 @@ class Scheduling_agent:
                 self.pCount = i + 1
         else:  ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
-                p = SM10_Product_Task.Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
+                p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
                             last_instance=self.order["PI"][i], robot=0, wk=0,released=False)
                 print(f"First instance of products Variant {i + 1} generated for production")
                 self.active_products.append(p)
                 self.pCount = i + 1
 
-        initial_allocation = self.initial_allocation()
+        initial_allocation = self.task_evaluation()
 
         return initial_allocation, self.active_products
 
@@ -144,44 +142,52 @@ class Scheduling_agent:
     #
     #     return normal_allocation
 
-    def normalized_production(self,product):
-        self.q.put_nowait(product)
-        ### start normal allocation #####
-        self.normalized_allocation()
-    def normalized_allocation(self):
-        try:
-            while True:
-                Task_List = []
-                Product_List = []
-                product = self.q.get(block=False)
-                done = False
-                while not done:
-                    try:
-                        cmd = product.task_list[0]
-                        print(f"product task flow required before", product.task_list)
-                        if cmd[0] == 11 or cmd[1] == 11:
-                            type = 1
-                        elif cmd[0] == 12 or cmd[1] == 12:
-                            type = 4
-                        else:
-                            type = 2
-                        TA = SM10_Product_Task.Task(id=1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
-                                  status="Pending", robot=999)
-                        Task_List.append(TA)
-                        Product_List.append(product)
-                        #Greedy_Allocator.step_allocation(TA,product_obj=Product_List)
-                        done = True
-                    except Exception as e:
-                        pass  # just try again to do stuff
-                self.q.task_done()
-        except:
-            pass  # no more items
+    def normalized_production(self, prod_list):
+        for new_prod in prod_list:
+            for act_prod in self.active_products:
+                if act_prod.pi_Id == new_prod.pi_Id and act_prod.pv_Id == new_prod.pv_Id:
+                    act_prod = new_prod
+                    print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
+                else:
+                    pass
+        tasks_for_allocation = self.task_evaluation()
+
+
+        return tasks_for_allocation, self.active_products
+    # def normalized_allocation(self):
+    #     try:
+    #         while True:
+    #             Task_List = []
+    #             Product_List = []
+    #             product = self.q.get(block=False)
+    #             done = False
+    #             while not done:
+    #                 try:
+    #                     cmd = product.task_list[0]
+    #                     print(f"product task flow required before", product.task_list)
+    #                     if cmd[0] == 11 or cmd[1] == 11:
+    #                         type = 1
+    #                     elif cmd[0] == 12 or cmd[1] == 12:
+    #                         type = 4
+    #                     else:
+    #                         type = 2
+    #                     TA = Task(id=1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
+    #                               status="Pending", robot=999)
+    #                     Task_List.append(TA)
+    #                     Product_List.append(product)
+    #                     #Greedy_Allocator.step_allocation(TA,product_obj=Product_List)
+    #                     done = True
+    #                 except Exception as e:
+    #                     pass  # just try again to do stuff
+    #             self.q.task_done()
+    #     except:
+    #         pass  # no more items
 
 
 
 
     ######## Dispatch Task to Task Allocator for broadcasting ###################
-    def initial_allocation(self):
+    def task_evaluation(self):
         task_for_allocation = []
 
         ######### Initial Release ########################
@@ -194,7 +200,7 @@ class Scheduling_agent:
                 type = 4
             else:
                 type = 2
-            TA = SM10_Product_Task.Task(id=i + 1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False,
+            TA = Task(id=i + 1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False,
                       status="Pending", robot=999)
             # product.dequeue()
             # print(f"product task flow required after", product["task_list"])
@@ -202,12 +208,6 @@ class Scheduling_agent:
 
         return task_for_allocation
 
-    def release_execCommand(self):
-        task_for_execution = []
 
-        return task_for_execution
 
-    def proactive_scheduler(self):
-        global_STN = Queue()
-        ############# Future implementation ##############
-        return global_STN
+

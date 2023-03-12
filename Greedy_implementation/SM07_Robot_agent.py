@@ -127,6 +127,7 @@ class Transfer_robot:
         self.event = asyncio.Event()
         self.task = Task(id=0, type=0, command=[], pI=0, pV=0, allocation=False, status="null", robot=1)
         self.product = product
+        self.finished_product = null_product
 
     def __await__(self):
         async def closure():
@@ -189,23 +190,9 @@ class Transfer_robot:
         self.free = True
         return self
 
-    def node_function(self, tqueue):
-        while True:
-            try:
-                taken_task = tqueue.get(False)
-                self.sendtoOPCUA(taken_task)
-                # Opt 1: Handle task here and call q.task_done()
-            except:
-                # Handle empty queue here
-                # print("Queue was empty")
-                pass
-
-    def start_robot(self, tqueue):
-        return None
-
-    def simulate(self):
-        return None
-
+    def clr_fin_prod(self):
+        self.finished_product = null_product
+        return self
     def assign_product(self, product):
         self.product = product
 
@@ -290,7 +277,8 @@ class Transfer_robot:
                 await self.task_deassigned()
             else:
                 print(f"Product moved to sink node")
-                GreedyScheduler.prod_completed(self.product)
+                self.finished_product = self.product
+                #GreedyScheduler.prod_completed(self.product)
 
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
         while True:
@@ -321,6 +309,7 @@ class Workstation_robot:
         self.order = order
         self.assigned_prod = False
         self.product = product
+        self.done_product = null_product
 
     def __await__(self):
         async def closure():
@@ -334,12 +323,16 @@ class Workstation_robot:
         self.product = product
         return self
 
+    def clr_done_prod(self):
+        self.done_product = null_product
+        return self
+
     def prod_deassigned(self):
         print(f"Product {self.product} released from workstation {self.id}")
         self.product.set_Release()
+        self.done_product = self.product
         self.assigned_prod = False
-        # self.product = null_product
-        GreedyScheduler.normalized_production(self.product)
+        #GreedyScheduler.normalized_production(self.product)
 
         return self
 
