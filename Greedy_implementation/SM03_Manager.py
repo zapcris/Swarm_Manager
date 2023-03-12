@@ -88,7 +88,7 @@ async def release_task_execution():
         while True:
             try:
 
-                if Sim_step == 0 :
+                if Sim_step <= 2 :
                     task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
@@ -101,6 +101,7 @@ async def release_task_execution():
                     task_released(task=task_opcua)
                     print("Event Status", Events["rob_execution"])
                     await asyncio.sleep(7)
+                    Sim_step += 1
 
 
 
@@ -125,6 +126,7 @@ async def release_task_execution():
             # Opt 1: Handle task here and call q.task_done()
             except:
                 # Handle empty queue here
+
                 #print("Task Queue emptied")
                 for robot in T_robot:
                     if robot.self.finished.robot != null_product:
@@ -134,11 +136,13 @@ async def release_task_execution():
                         robot.clr_fin_prod()
                 if fin_prod:
                    new_allotment = GreedyScheduler.prod_completed(fin_prod)
+                   alloted_new_task = Greedy_Allocator.step_allocation(new_allotment[0], new_allotment[1])
                    fin_prod.clear()
+                   for task in alloted_new_task[0]:
+                       print(f"tasks entered in the queue:", task)
+                       q_main_to_releaser.put_nowait(task)
                 else:
                     pass
-
-
 
                 for wk in W_robot:
                     if wk.finished.robot != null_product:
@@ -148,16 +152,16 @@ async def release_task_execution():
                         wk.clr_done_prod()
                 if done_prod:
                     normal_allotment =  GreedyScheduler.normalized_production(done_prod)
+                    alloted_normal_task = Greedy_Allocator.step_allocation(normal_allotment[0], normal_allotment[1])
+                    done_prod.clear()
+                    for task in alloted_normal_task[0]:
+                        print(f"tasks entered in the queue:", task)
+                        q_main_to_releaser.put_nowait(task)
                 else:
                    pass
 
 
 
-                Sim_step = 99
-                # for robot in data_opcua["rob_busy"]:
-                #     if robot == False:
-                #         Sim_step = 99
-                #         print(f"Simulation step upgraded to {Sim_step}")
 
                 pass
 

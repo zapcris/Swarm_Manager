@@ -31,51 +31,65 @@ class Scheduling_agent:
                 pass
         return self
 
-    def prod_completed(self, product):
-        self.finished_product.append(product)
-        for prod in self.active_products:
-            if prod.pv_Id == product.pv_Id and prod.pi_Id == product.pi_Id:
-                del_pv = product.pv_Id
-                del_pi = product.pi_Id
-                index = self.active_products.index(prod)
-                if product.pi_Id == product.last_instance:
-                    e = self.remaining_order[del_pv - 1]
-                    self.remaining_order[del_pv - 1] = 0
-                    print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
-                    self.active_products.pop(index)
-                    print(f"The product variant {del_pv} deleted from the Scheduler")
-                    self.add_new_variant(del_pv)
-                    #### added new product variant if product was last instance#####
+    def prod_completed(self, prod_list):
+        for product in prod_list:
+            self.finished_product.append(product)
+            for old_prod in self.active_products:
+                if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
+                    del_pv = product.pv_Id
+                    del_pi = product.pi_Id
+                    index = self.active_products.index(old_prod)
+                    if product.pi_Id == product.last_instance:
+                        e = self.remaining_order[del_pv - 1]
+                        self.remaining_order[del_pv - 1] = 0
+                        print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
+                        self.active_products.pop(index)
+                        print(f"The product variant {del_pv} deleted from the Scheduler")
+                        self.add_new_variant(del_pv)
+                        #### added new product variant if product was last instance#####
+                    else:
+                        e = self.remaining_order[del_pv - 1]
+                        self.remaining_order[del_pv - 1] = e - 1
+                        print(f"The product instance reduced in remaining order list inside Scheduler")
+                        self.active_products.pop(index)
+                        print(f"The product Instance {del_pi} deleted from the Scheduler")
+                        self.add_new_instance(del_pv, del_pi)
+                        #### added new instance if product wasn't the last one#####
                 else:
-                    e = self.remaining_order[del_pv - 1]
-                    self.remaining_order[del_pv - 1] = e - 1
-                    print(f"The product instance reduced in remaining order list inside Scheduler")
-                    self.active_products.pop(index)
-                    print(f"The product Instance {del_pi} deleted from the Scheduler")
-                    self.add_new_instance(del_pv, del_pi)
-                    #### added new instance if product wasn't the last one#####
-            else:
-                print("The product to be deleted not found in the active product list inside scheduler")
-        return self
+                    print("The product to be deleted not found in the active product list inside scheduler")
+
+        tasks_for_allocation = self.task_evaluation()
+
+
+        return tasks_for_allocation, self.active_products
 
     def add_new_variant(self, pv_Id):
+        print(f"Remaining order {self.remaining_order}")
         if self.remaining_order[pv_Id - 1] == 0:
+            new_active_list = self.active_products
             for i, order in enumerate(self.remaining_order):
                 for product in self.active_products:
-                    if i == product.pv_Id - 1 or order == 0:
+                    if product.pv_Id - 1 == i and order == 0:
+                        new_active_list.remove(product)
+                    else:
                         pass
+            self.active_product = new_active_list
+            print(f"Active product list update to variants inside Scheduler")
 
+        else:
+            print(f"The product variant {pv_Id} was not finished in the remaining order list")
 
 
         return None
 
     def add_new_instance(self, pv_Id, pi_Id):
         new_Inst = pi_Id+1
+        ## new task list injected into the current product object ########
         product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id-1], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][pv_Id-1], robot=0, wk=0,released=False)
+                            last_instance=self.order["PI"][pv_Id-1], robot=0, wk=0, released=False)
         self.active_products.append(product)
         print(f"New Product instance {new_Inst} from Product variant {pv_Id} added to active list")
-        return None
+
 
     def initialize_production(self):
 
