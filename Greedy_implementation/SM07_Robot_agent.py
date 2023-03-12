@@ -2,7 +2,6 @@ import asyncio
 import math
 from datetime import datetime
 from time import sleep
-
 from Greedy_implementation.SM04_Task_Planning_agent import Task_Planning_agent, order
 from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
 from Greedy_implementation.SM10_Product_Task import Product, Task
@@ -11,7 +10,7 @@ from Greedy_implementation.SM10_Product_Task import Product, Task
 #### Initialization data###############
 
 null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0,
-                       wk=0,released=False)
+                       wk=0, released=False)
 null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
 T_robot = []
 W_robot = []
@@ -58,8 +57,6 @@ def wk_event(wk):
         return wk_10
 
 
-
-
 data_opcua = {
     "brand": "Ford",
     "mobile_manipulator": ["", "", ""],
@@ -83,7 +80,6 @@ Events = {
 
 }
 
-
 ### instantiate order and generation of task list to that order
 test_order = Task_Planning_agent(input_order=order)
 generate_task = test_order.task_list()
@@ -98,7 +94,7 @@ Task_Queue = generate_task[2]
 GreedyScheduler = Scheduling_agent(
     order=order,
     product_task=Product_task,
-        T_robot=T_robot
+    T_robot=T_robot
 
 )
 
@@ -199,7 +195,7 @@ class Transfer_robot:
                 taken_task = tqueue.get(False)
                 self.sendtoOPCUA(taken_task)
                 # Opt 1: Handle task here and call q.task_done()
-            except :
+            except:
                 # Handle empty queue here
                 # print("Queue was empty")
                 pass
@@ -282,7 +278,7 @@ class Transfer_robot:
             print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
-            if t[1] <= 11: ### checking for sink node commmand#####
+            if t[1] <= 11:  ### checking for sink node commmand#####
                 W_robot[t[1] - 1].prod_assigned(self.product)
                 a = wk_event(t[1])
                 a.set()
@@ -296,7 +292,6 @@ class Transfer_robot:
                 print(f"Product moved to sink node")
                 GreedyScheduler.prod_completed(self.product)
 
-
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
         while True:
             await asyncio.sleep(2)
@@ -305,7 +300,7 @@ class Transfer_robot:
                 event_opcua.set()
                 print(f"Event 2 (opcua) for Robot {self.id} acitivated")
             else:
-                #print("No opcua event generated")
+                # print("No opcua event generated")
                 pass
 
     def execute_typ1cmd(self, fromscheduler):
@@ -329,7 +324,7 @@ class Workstation_robot:
 
     def __await__(self):
         async def closure():
-            #print("await")
+            # print("await")
             return self
 
         return closure().__await__()
@@ -343,9 +338,8 @@ class Workstation_robot:
         print(f"Product {self.product} released from workstation {self.id}")
         self.product.set_Release()
         self.assigned_prod = False
-        #self.product = null_product
+        # self.product = null_product
         GreedyScheduler.normalized_production(self.product)
-
 
         return self
 
@@ -357,7 +351,7 @@ class Workstation_robot:
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
         self.product.remove_task()
-        #print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
+        # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
         GreedyScheduler.process_task_executed(self.product)
         print(f"Done workstation {self.id}")
         await self.prod_deassigned()

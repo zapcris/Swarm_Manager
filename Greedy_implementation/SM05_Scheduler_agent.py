@@ -104,45 +104,45 @@ class Scheduling_agent:
         return initial_allocation, self.active_products
 
     ######### Triggered after initial production queue is executed in Execution Thread###########
-    def normal_production(self):
-        for i, product in enumerate(self.active_products):
-
-            if product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product[
-                "last_instance"]:
-                print(f"Product variant has been completed and to be deleted", product["pv_Id"])
-                product.remove_from_production()
-                product.pfinished()
-                self.finished_product.append(product)
-                print(self.product_seq_ID)
-                self.product_seq_ID.remove(product["pv_Id"])
-                self.active_products.remove(product)
-                sleep(0.2)
-                print("Adding new product variant to active production list")
-                p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount - 1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
-                            wk=0,released=False)
-                self.active_products.append(p)
-
-            elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product[
-                "last_instance"]:
-                print("Product instance upgraded and changed for same product variant")
-                product.remove_from_production()
-                product.pfinished()
-                old_pi = product["pi_Id"]
-                self.finished_product.append(product)
-                self.active_products.remove(product)
-                sleep(0.2)
-                print("Adding new product instance of same variant to active production list")
-                p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=old_pi + 1, task_list=self.product_task[self.pCount - 1],
-                            inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
-                            wk=0,released=False)
-                self.active_products.append(p)
-
-            else:
-                print("Continue with same product variant and instance resp.", product["pv_Id"], product["pi_Id"])
-        normal_allocation = self.initial_allocation()
-
-        return normal_allocation
+    # def normal_production(self):
+    #     for i, product in enumerate(self.active_products):
+    #
+    #         if product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product[
+    #             "last_instance"]:
+    #             print(f"Product variant has been completed and to be deleted", product["pv_Id"])
+    #             product.remove_from_production()
+    #             product.pfinished()
+    #             self.finished_product.append(product)
+    #             print(self.product_seq_ID)
+    #             self.product_seq_ID.remove(product["pv_Id"])
+    #             self.active_products.remove(product)
+    #             sleep(0.2)
+    #             print("Adding new product variant to active production list")
+    #             p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount - 1],
+    #                         inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
+    #                         wk=0,released=False)
+    #             self.active_products.append(p)
+    #
+    #         elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product[
+    #             "last_instance"]:
+    #             print("Product instance upgraded and changed for same product variant")
+    #             product.remove_from_production()
+    #             product.pfinished()
+    #             old_pi = product["pi_Id"]
+    #             self.finished_product.append(product)
+    #             self.active_products.remove(product)
+    #             sleep(0.2)
+    #             print("Adding new product instance of same variant to active production list")
+    #             p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=old_pi + 1, task_list=self.product_task[self.pCount - 1],
+    #                         inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
+    #                         wk=0,released=False)
+    #             self.active_products.append(p)
+    #
+    #         else:
+    #             print("Continue with same product variant and instance resp.", product["pv_Id"], product["pi_Id"])
+    #     normal_allocation = self.initial_allocation()
+    #
+    #     return normal_allocation
 
     def normalized_production(self,product):
         self.q.put_nowait(product)

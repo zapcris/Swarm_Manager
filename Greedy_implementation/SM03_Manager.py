@@ -112,18 +112,18 @@ async def release_task_execution():
                                                                           product_obj=step2_allotment[1])
 
 
-                elif Sim_step > 2 and Sim_step < 99 :
-                    normal_allotment = GreedyScheduler.normal_production()
-                    normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0],
-                                                                           product_obj=normal_allotment[1])
-                    for task in normal_alloted_task:
-                        q_main_to_releaser.put_nowait(task)
-                    task_opcua = q_main_to_releaser.get_nowait()
-                    robot_id = task_opcua["robot"] - 1
-                    print(task_opcua["robot"])
-
-                    T_robot[robot_id].sendtoOPCUA(task_opcua)
-                    q_main_to_releaser.task_done()
+                # elif Sim_step > 2 and Sim_step < 99 :
+                    # #normal_allotment = GreedyScheduler.normal_production()
+                    # normal_alloted_task = Greedy_Allocator.step_allocation(task_for_allocation=normal_allotment[0],
+                    #                                                        product_obj=normal_allotment[1])
+                    # for task in normal_alloted_task:
+                    #     q_main_to_releaser.put_nowait(task)
+                    # task_opcua = q_main_to_releaser.get_nowait()
+                    # robot_id = task_opcua["robot"] - 1
+                    # print(task_opcua["robot"])
+                    #
+                    # T_robot[robot_id].sendtoOPCUA(task_opcua)
+                    # q_main_to_releaser.task_done()
                     #print(f" Task completed on Simulation step {Sim_step} ")
                     #done()
                     #task_released(task=task_opcua)
