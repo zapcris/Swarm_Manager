@@ -1,5 +1,6 @@
 import queue
 
+############Taken from Task planning agen #############################################
 ### sink placement 12###
 ## Source = 0 , Cell type = 1 , Server type =2 , Sink = 3######
 
@@ -40,11 +41,10 @@ order = {
 ## status : Pending / running / Performed
 ## Allocation : 0 (not alloted)
 
-
 class Task_Planning_agent:
 
-    def __init__(self, order):
-        self.order = order
+    def __init__(self, input_order):
+        self.order = input_order
 
     def task_list(self):
         product_task = []

@@ -6,7 +6,7 @@ import random
 from threading import Thread
 from time import sleep
 
-from Greedy_implementation.SM04_Task_Planner import order
+from Greedy_implementation.SM04_Task_Planning_agent import order
 from Greedy_implementation.SM07_Robot_agent import Events, data_opcua
 
 tracemalloc.start()

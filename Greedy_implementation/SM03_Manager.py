@@ -4,11 +4,11 @@ import sys
 import tracemalloc
 from threading import Thread
 from Greedy_implementation.SM02_opcua_client import start_opcua
-from Greedy_implementation.SM04_Task_Planner import order
+from Greedy_implementation.SM04_Task_Planning_agent import order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
-from Greedy_implementation.SM07_Robot_agent import Transfer_robot, Workstation_robot, data_opcua, Events, event1, \
-    event2, event3, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_opcua, event2_opcua, \
-    event3_opcua, W_robot, T_robot, null_product, GreedyScheduler, Global_task
+from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
+    T_robot, Global_task, GreedyScheduler, Events, event1, event2, event3, event1_opcua, event2_opcua, event3_opcua, \
+    wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
@@ -56,10 +56,10 @@ for i , R in enumerate(data_opcua["rob_busy"]):
     T_robot.append(robot)
 
 
-
 ##### Initialize Task Allocator agent #########
 
-Greedy_Allocator = Task_Allocator_agent(global_task=Global_task, T_robot=T_robot)
+Greedy_Allocator = Task_Allocator_agent()
+
 
 ### Perform task creation and allocation process
 initial_allotment = GreedyScheduler.initialize_production()

@@ -3,15 +3,15 @@ import math
 from datetime import datetime
 from time import sleep
 
+from Greedy_implementation.SM04_Task_Planning_agent import Task_Planning_agent, order
 from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
-from SM04_Task_Planner import order, Task_Planning_agent
-from SM10_Product_Task import Product, Task
+from Greedy_implementation.SM10_Product_Task import Product, Task
 
-
+################################# Taken from Robot_Agent###############################################################
 #### Initialization data###############
 
 null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0,
-                       wk=0)
+                       wk=0,released=False)
 null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
 T_robot = []
 W_robot = []
@@ -85,7 +85,7 @@ Events = {
 
 
 ### instantiate order and generation of task list to that order
-test_order = Task_Planning_agent(order)
+test_order = Task_Planning_agent(input_order=order)
 generate_task = test_order.task_list()
 Product_task = generate_task[0]
 Global_task = generate_task[1]
@@ -341,8 +341,11 @@ class Workstation_robot:
 
     def prod_deassigned(self):
         print(f"Product {self.product} released from workstation {self.id}")
+        self.product.set_Release()
         self.assigned_prod = False
-        self.product = null_product
+        #self.product = null_product
+        GreedyScheduler.normalized_production(self.product)
+
 
         return self
 

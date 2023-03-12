@@ -3,8 +3,8 @@ from Greedy_implementation.SM07_Robot_agent import T_robot
 
 class Task_Allocator_agent:
 
-    def __init__(self, global_task, T_robot):
-        self.global_task = global_task
+    def __init__(self):
+        #self.global_task = global_task
         self.bid_data = []
         self.t_robot = T_robot
 
@@ -23,7 +23,7 @@ class Task_Allocator_agent:
 
 
     def bulk_allocation(self):
-        for i, task in enumerate(self.global_task):
+        for i, task in enumerate(self.t_robot):
             #### reset received bid data list for every new task ##############
             self.bid_data = []
             for j, tr in enumerate(self.t_robot):
@@ -66,3 +66,4 @@ class Task_Allocator_agent:
     def override_task(self):
 
         return None
+
