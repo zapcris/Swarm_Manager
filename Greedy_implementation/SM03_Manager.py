@@ -8,7 +8,7 @@ from Greedy_implementation.SM04_Task_Planning_agent import order
 from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
 from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
     T_robot, Global_task, GreedyScheduler, Events, event1, event2, event3, event1_opcua, event2_opcua, event3_opcua, \
-    wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10
+    wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_1, event2_1
 
 #### initialize OPCUA client to communicate to Visual Components ###################
 
@@ -88,11 +88,13 @@ async def release_task_execution():
         while True:
             try:
 
-                if Sim_step <= 2 :
+                if Sim_step <= 20 :
+                    await asyncio.sleep(3)
                     task_opcua = q_main_to_releaser.get_nowait()
                     robot_id = task_opcua["robot"] - 1
                     print(task_opcua["robot"])
-                    await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
+                    #await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
+                    T_robot[robot_id].trigger_task(task=task_opcua, execute=True)
                     print(f"Task released to robot {robot_id+1}")
 
                     q_main_to_releaser.task_done()
@@ -129,7 +131,7 @@ async def release_task_execution():
 
                 #print("Task Queue emptied")
                 for robot in T_robot:
-                    if robot.self.finished.robot != null_product:
+                    if robot.finished_product != null_product:
                         f_p = robot.finished_product
                         fin_prod.append(f_p)
                         print(f"product added to finished list")
@@ -145,7 +147,7 @@ async def release_task_execution():
                     pass
 
                 for wk in W_robot:
-                    if wk.finished.robot != null_product:
+                    if wk.done_product != null_product:
                         d_p = wk.done_product
                         done_prod.append(d_p)
                         print(f"product added to done list")
@@ -194,19 +196,19 @@ def task_released(task):
         print("Triggered event is 1 for robot 3")
 
 
-async def check_event():
-        while event1.is_set() or event2.is_set() or event3.is_set():
-            if event1.is_set() and data_opcua["rob_busy"][0] == False:
-                event1_opcua.set()
-                print("Event 2 (opcua) for Robot 1 acitivated")
-            elif event2.is_set() and data_opcua["rob_busy"][1] == False:
-                event2_opcua.set()
-                print("Event 2 (opcua) for Robot 2 acitivated")
-            elif event3.is_set() and data_opcua["rob_busy"][2] == False:
-                event3_opcua.set()
-                print("Event 2 (opcua) for Robot 3 acitivated")
-            else:
-                pass
+# async def check_event():
+#         while event1.is_set() or event2.is_set() or event3.is_set():
+#             if event1.is_set() and data_opcua["rob_busy"][0] == False:
+#                 event1_opcua.set()
+#                 print("Event 2 (opcua) for Robot 1 acitivated")
+#             elif event2.is_set() and data_opcua["rob_busy"][1] == False:
+#                 event2_opcua.set()
+#                 print("Event 2 (opcua) for Robot 2 acitivated")
+#             elif event3.is_set() and data_opcua["rob_busy"][2] == False:
+#                 event3_opcua.set()
+#                 print("Event 2 (opcua) for Robot 3 acitivated")
+#             else:
+#                 pass
 
 
 
@@ -215,12 +217,7 @@ async def main() :
     """Fetch all urls from the list of urls
 
     It is done concurrently and combined into a single coroutine"""
-    # t1 = asyncio.ensure_future(release_task_execution())
-    # t2 = asyncio.ensure_future((T_robot[0].execution_time(event1, 1)))
-    # t3 = asyncio.ensure_future((T_robot[1].execution_time(event2, 2)))
-    # t4 = asyncio.ensure_future((T_robot[2].execution_time(event3, 3)))
 
-    # tasks = [t1, t2, t3, t4]
     results = await asyncio.gather(
         #*tasks
         (T_robot[0].execution_time(event=event1, event2=event1_opcua)),
@@ -229,7 +226,9 @@ async def main() :
         (T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua)),
         (T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua)),
         (T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua)),
-
+        (T_robot[0].sendtoOPCUA(event=event1_1)),
+        (T_robot[1].sendtoOPCUA(event=event2_1)),
+        (T_robot[2].sendtoOPCUA(event=event2_1)),
         (W_robot[0].process_execution(event=wk_1)),
         (W_robot[1].process_execution(event=wk_2)),
         (W_robot[2].process_execution(event=wk_3)),

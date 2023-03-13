@@ -22,6 +22,9 @@ event3 = asyncio.Event()
 event1_opcua = asyncio.Event()
 event2_opcua = asyncio.Event()
 event3_opcua = asyncio.Event()
+event1_1 = asyncio.Event()
+event2_1 = asyncio.Event()
+event3_1 = asyncio.Event()
 wk_1 = asyncio.Event()
 wk_2 = asyncio.Event()
 wk_3 = asyncio.Event()
@@ -65,7 +68,7 @@ data_opcua = {
     "robot_pos": [[0, 0], [0, 0], [0, 0]],
     "create_part": 0,
     "mission": ["", "", "", "", "", "", "", "", "", ""],
-    "robot_exec": [False, False, False]
+
 }
 
 Events = {
@@ -128,6 +131,7 @@ class Transfer_robot:
         self.task = Task(id=0, type=0, command=[], pI=0, pV=0, allocation=False, status="null", robot=1)
         self.product = product
         self.finished_product = null_product
+        self.exec_cmd = False
 
     def __await__(self):
         async def closure():
@@ -196,43 +200,79 @@ class Transfer_robot:
     def assign_product(self, product):
         self.product = product
 
-    async def sendtoOPCUA(self, task):
-        self.Free = False
+    def trigger_task(self, task, execute, event:asyncio.Event):
+
         self.task = task
-        cmd = ["" for _ in range(2)]
-        print(f"Task {task} received from Swarm Manager for execution")
-        await asyncio.sleep(1)
+        self.exec_cmd = execute
+        event.set()
+        print(f"Task triggered to robot {self.id} and execution status is {self.exec_cmd}")
 
-        if task["command"][1] == 12:
-            c = str(task["command"][0]) + "," + str("s")
 
-        else:
-            c = str(task["command"][0]) + "," + str(task["command"][1])
-        cmd.insert((int(self.id) - 1), c)
-        if task["command"][0] == 11:
-            # sleep(3)
-            data_opcua["create_part"] = task["pV"]
-            # write_opcua(task["pV"], "create_part", None)
-            await asyncio.sleep(0.7)
-            print(f"part created for robot {self.id},", task["pV"])
-            data_opcua["create_part"] = 0
-            await asyncio.sleep(0.7)
-            data_opcua["mobile_manipulator"] = cmd
-            await asyncio.sleep(0.7)
-            data_opcua["mobile_manipulator"] = ["", "", ""]
-            print("command sent to opcuaclient", cmd)
+    # async def send_task(self):
+    #     while True:
+    #         print(f"Robot {self.id} send_task while loop is true")
+    #         if W_robot[self.task.command[1]-1].product_free  == True:
+    #             await self.sendtoOPCUA()
+    #         else:
+    #             pass
 
-        else:
-            data_opcua["mobile_manipulator"] = cmd
-            sleep(0.7)
-            data_opcua["mobile_manipulator"] = ["", "", ""]
-            data_opcua["robot_exec"][self.id - 1] = False
-            data_opcua["rob_busy"][self.id - 1] = True
 
-        # print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
-        Events["rob_execution"][self.id - 1] = True
+    async def sendtoOPCUA(self, event:asyncio.Event):
+        while True:
+            print(f"sendtoOPCUA on robot {self.id} waiting for task execution clearance")
+            #await event.wait()
+            print(f"Event cleared")
+            task = self.task
+            self.Free = False
+            cmd = ["" for _ in range(2)]
+            print(f"Task {task} received from Swarm Manager for robot {self.id} for execution")
+            await asyncio.sleep(1)
 
-        return None
+            if task["command"][1] == 12:
+                c = str(task["command"][0]) + "," + str("s")
+
+            else:
+                c = str(task["command"][0]) + "," + str(task["command"][1])
+            cmd.insert((int(self.id) - 1), c)
+            if W_robot[self.task.command[1]-1].product_free  == True:
+
+
+                if task["command"][0] == 11:
+                    # sleep(3)
+                    data_opcua["create_part"] = task["pV"]
+                    # write_opcua(task["pV"], "create_part", None)
+                    await asyncio.sleep(0.7)
+                    print(f"part created for robot {self.id},", task["pV"])
+                    data_opcua["create_part"] = 0
+                    await asyncio.sleep(0.7)
+                    data_opcua["mobile_manipulator"] = cmd
+                    await asyncio.sleep(0.7)
+                    data_opcua["mobile_manipulator"] = ["", "", ""]
+                    print("command sent to opcuaclient", cmd)
+
+                else:
+
+                    data_opcua["mobile_manipulator"] = cmd
+                    sleep(0.7)
+                    data_opcua["mobile_manipulator"] = ["", "", ""]
+                    #data_opcua["robot_exec"][self.id - 1] = False
+                    #data_opcua["rob_busy"][self.id - 1] = True
+                    W_robot[task.command[0]-1].product_clearance()
+
+
+                # print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
+                Events["rob_execution"][self.id - 1] = True
+                self.exec_cmd = False
+                event.clear()
+            else:
+                print(f"Robot {self.id} waiting for worksation to be cleared")
+                pass
+
+
+
+
+
+
 
     async def execution_time(self, event, event2):
 
@@ -270,15 +310,16 @@ class Transfer_robot:
                 a = wk_event(t[1])
                 a.set()
                 print("Triggered workstation is  is", t[1])
-                event2.clear()
-                event.clear()
                 await self.prod_deassigned()
                 print(f"The robot {self.id} free status is {self.free}")
                 await self.task_deassigned()
+
             else:
                 print(f"Product moved to sink node")
                 self.finished_product = self.product
-                #GreedyScheduler.prod_completed(self.product)
+            event2.clear()
+            event.clear()
+
 
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
         while True:
@@ -286,7 +327,7 @@ class Transfer_robot:
             await event.wait()
             if event.is_set() == True and data_opcua["rob_busy"][self.id - 1] == False:
                 event_opcua.set()
-                print(f"Event 2 (opcua) for Robot {self.id} acitivated")
+                print(f"Event 2 (opcua) for Robot {self.id} activated")
             else:
                 # print("No opcua event generated")
                 pass
@@ -305,12 +346,12 @@ class Workstation_robot:
 
     def __init__(self, wk_no, order, product):
         self.id = wk_no
-        self.free = True
+        self.process_done = True
         self.order = order
         self.assigned_prod = False
         self.product = product
         self.done_product = null_product
-
+        self.product_free = True
     def __await__(self):
         async def closure():
             # print("await")
@@ -327,6 +368,9 @@ class Workstation_robot:
         self.done_product = null_product
         return self
 
+    def product_clearance(self):
+        self.product_free = True
+        print(f"The workstation {self.id} is Product Free")
     def prod_deassigned(self):
         print(f"Product {self.product} released from workstation {self.id}")
         self.product.set_Release()
@@ -339,7 +383,8 @@ class Workstation_robot:
     async def process_execution(self, event: asyncio.Event):
         process_time = order["Process_times"][self.product.pv_Id][self.id - 1]
         await event.wait()
-        self.free = False
+        self.process_done = False
+        self.product_free = False
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
@@ -348,6 +393,6 @@ class Workstation_robot:
         GreedyScheduler.process_task_executed(self.product)
         print(f"Done workstation {self.id}")
         await self.prod_deassigned()
-        self.free = True
-        print(f"The Workstation {self.id} free status is {self.free}")
+        self.process_done = True
+        print(f"The Workstation {self.id} free status is {self.process_done}")
         event.clear()
