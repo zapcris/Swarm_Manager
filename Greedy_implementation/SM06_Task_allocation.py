@@ -1,4 +1,4 @@
-from Greedy_implementation.SM07_Robot_agent import T_robot
+from Greedy_implementation.SM07_Robot_agent import T_robot, W_robot
 
 
 class Task_Allocator_agent:
@@ -47,16 +47,23 @@ class Task_Allocator_agent:
         print(self.bid_data)
         min_val = min(self.bid_data)
         min_index = self.bid_data.index(min_val)
-        print(f"Minimum bid value found at Robot {min_index+1}")
-        task.assign(robot=min_index + 1)
-        product.to_robot(robot=min_index + 1)
-        #self.t_robot[i].task_assigned()
-        ### assigned task and product to robot agents here ####
-        T_robot[i].task_assigned(task)
-        T_robot[i].prod_assigned(product)
-        print(f"Task and Product assigned to robot {min_index+1}")
-        print("New task status", task)
-        print("New product status", product)
+        target_wk = task.command[1]
+        if min_val <= 99999999999:
+            print(f"Minimum bid value found at Robot {min_index+1}")
+            task.assign(robot=min_index + 1)
+            product.to_robot(robot=min_index + 1)
+            #self.t_robot[i].task_assigned()
+            ### assigned task and product to robot agents here ####
+            T_robot[i].task_assigned(task)
+            T_robot[i].prod_assigned(product)
+
+
+            print(f"Task and Product assigned to robot {min_index+1}")
+            print("New task status", task)
+            print("New product status", product)
+
+        else:
+            print(f"No minimum bidder found")
 
     def deassign_task(self):
         ### for future implementation

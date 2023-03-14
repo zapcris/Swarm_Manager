@@ -207,7 +207,7 @@ class Scheduling_agent:
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
             cmd = product["task_list"][0]
-            print(f"product task flow required before", product["task_list"])
+            print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product["task_list"])
             if cmd[0] == 11 or cmd[1] == 11:
                 type = 1
             elif cmd[0] == 12 or cmd[1] == 12:
