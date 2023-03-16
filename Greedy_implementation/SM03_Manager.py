@@ -13,7 +13,7 @@ from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
     event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event
+    wk_process_event, wk_proc_event, q_main_to_releaser, loop
 
 
 def task_released(task,loop):
@@ -293,11 +293,6 @@ def opcua_release(loop):
 if __name__ == "__main__":
     tracemalloc.start()
     fin_prod = []
-    q_main_to_releaser = asyncio.Queue()
-    loop = asyncio.new_event_loop()
-
-
-
 
     #########Initialization of Workstation robots###############################
     for i, type in enumerate(order["Wk_type"]):
@@ -305,11 +300,6 @@ if __name__ == "__main__":
             # print("create wk", i, pt, type)
             wr = Workstation_robot(wk_no=i, order=order, product=null_product)
             W_robot.append(wr)
-
-
-
-
-
 
     ########## Initialization of Carrier robots######################################################
     q_robot = []
@@ -320,8 +310,6 @@ if __name__ == "__main__":
         # print(i+1, R)
         robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
         T_robot.append(robot)
-
-
 
 
     ##### Initialize Task Allocator agent #########
@@ -340,15 +328,9 @@ if __name__ == "__main__":
     # q_product_done.put_nowait([p1])
 
 
-    ###########Initialization of Event Loop########################
-
-
-
-
     ##### Start OPCUA Client Thread################
     opcua_client = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
     opcua_client.start()
-
 
     ##### Start Task Release Thread################
     task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop, ))
@@ -359,14 +341,6 @@ if __name__ == "__main__":
     ##### Start done product Thread################
     done_product_thread = Thread(target=done_release, daemon=True)
     done_product_thread.start()
-
-
-
-
-
-
-
-
 
     try:
 

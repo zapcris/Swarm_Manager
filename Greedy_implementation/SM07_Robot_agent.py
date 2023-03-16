@@ -10,6 +10,8 @@ from Greedy_implementation.SM10_Product_Task import Product, Task
 
 ################################# Taken from Robot_Agent###############################################################
 #### Initialization data###############
+loop = asyncio.new_event_loop()
+q_main_to_releaser = asyncio.Queue()
 q_robot_to_opcua = asyncio.Queue()
 q_product_done = asyncio.Queue()
 
