@@ -12,7 +12,8 @@ from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot
     T_robot, Global_task, GreedyScheduler, Events, event1, event2, event3, event1_opcua, event2_opcua, event3_opcua, \
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
-    event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done
+    event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
+    wk_process_event, wk_proc_event
 
 
 def task_released(task,loop):
@@ -65,9 +66,9 @@ async def main(loop):
 
     # results = await asyncio.gather(
     # *tasks
-    loop.create_task(T_robot[0].execution_time(event=event1, event2=event1_opcua))
-    loop.create_task(T_robot[1].execution_time(event=event2, event2=event2_opcua))
-    loop.create_task(T_robot[2].execution_time(event=event3, event2=event3_opcua))
+    loop.create_task(T_robot[0].execution_time(event=event1, event2=event1_opcua, loop=loop))
+    loop.create_task(T_robot[1].execution_time(event=event2, event2=event2_opcua, loop=loop))
+    loop.create_task(T_robot[2].execution_time(event=event3, event2=event3_opcua, loop=loop))
     loop.create_task(T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua))
     loop.create_task(T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua))
     loop.create_task(T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua))
@@ -87,6 +88,9 @@ async def main(loop):
     loop.create_task(T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
     loop.create_task(T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
     loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
+
+
+
 
 
 
