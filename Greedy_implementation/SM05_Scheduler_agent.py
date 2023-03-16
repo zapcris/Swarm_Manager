@@ -29,7 +29,7 @@ class Scheduling_agent:
                 print(f"Active product list updated inside Scheduler with {prod}")
             else:
                 pass
-        return self
+
 
     def prod_completed(self, prod_list):
         for product in prod_list:

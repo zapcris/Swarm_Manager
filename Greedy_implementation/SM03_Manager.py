@@ -17,7 +17,7 @@ from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot
 
 def task_released(task,loop):
     id = task["robot"] - 1
-    print("Triggered robot id is:", id )
+    print("Triggered robot id is:", id+1 )
     if id == 0 and data_opcua["rob_busy"][0]:
         loop.call_soon_threadsafe(event1.set)
         print("Triggered event is 1 for robot 1")
@@ -58,41 +58,45 @@ def opcua_cmd_event(task,loop):
 
 
 
-async def main():
+async def main(loop):
     """Fetch all urls from the list of urls
 
     It is done concurrently and combined into a single coroutine"""
 
-    results = await asyncio.gather(
-        # *tasks
-        (T_robot[0].execution_time(event=event1, event2=event1_opcua)),
-        (T_robot[1].execution_time(event=event2, event2=event2_opcua)),
-        (T_robot[2].execution_time(event=event3, event2=event3_opcua)),
-        (T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua)),
-        (T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua)),
-        (T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua)),
-        (T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr, event_tochkpath=event1_chk_exec)),
-        (T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr, event_tochkpath=event1_chk_exec)),
-        (T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr, event_tochkpath=event1_chk_exec)),
-        (W_robot[0].process_execution(event=wk_1)),
-        (W_robot[1].process_execution(event=wk_2)),
-        (W_robot[2].process_execution(event=wk_3)),
-        (W_robot[3].process_execution(event=wk_4)),
-        (W_robot[4].process_execution(event=wk_5)),
-        (W_robot[5].process_execution(event=wk_6)),
-        (W_robot[6].process_execution(event=wk_7)),
-        (W_robot[7].process_execution(event=wk_8)),
-        (W_robot[8].process_execution(event=wk_9)),
-        (W_robot[9].process_execution(event=wk_10)),
-        (T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr)),
-        (T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr)),
-        (T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr)),
+    # results = await asyncio.gather(
+    # *tasks
+    loop.create_task(T_robot[0].execution_time(event=event1, event2=event1_opcua))
+    loop.create_task(T_robot[1].execution_time(event=event2, event2=event2_opcua))
+    loop.create_task(T_robot[2].execution_time(event=event3, event2=event3_opcua))
+    loop.create_task(T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua))
+    loop.create_task(T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua))
+    loop.create_task(T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua))
+    loop.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr, event_tochkpath=event1_chk_exec))
+    loop.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr, event_tochkpath=event1_chk_exec))
+    loop.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr, event_tochkpath=event1_chk_exec))
+    loop.create_task(W_robot[0].process_execution(event=wk_1))
+    loop.create_task(W_robot[1].process_execution(event=wk_2))
+    loop.create_task(W_robot[2].process_execution(event=wk_3))
+    loop.create_task(W_robot[3].process_execution(event=wk_4))
+    loop.create_task(W_robot[4].process_execution(event=wk_5))
+    loop.create_task(W_robot[5].process_execution(event=wk_6))
+    loop.create_task(W_robot[6].process_execution(event=wk_7))
+    loop.create_task(W_robot[7].process_execution(event=wk_8))
+    loop.create_task(W_robot[8].process_execution(event=wk_9))
+    loop.create_task(W_robot[9].process_execution(event=wk_10))
+    loop.create_task(T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
+    loop.create_task(T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
+    loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
 
 
 
-    )
-    print(results)
+        # )
+        # print(results)
 
+
+def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
 
 
 async def release_task_execution(loop):
@@ -260,7 +264,7 @@ async def release_opcua_cmd(loop):
                 #T_robot[id - 1].exec_cmd = False
 
             q_robot_to_opcua.task_done()
-            task_released(task=task,loop=loop)
+            task_released(task=task, loop=loop)
             print("Event Status", Events["rob_execution"])
             await asyncio.sleep(7)
 
@@ -363,7 +367,8 @@ if __name__ == "__main__":
     try:
 
         asyncio.set_event_loop(loop)
-        asyncio.ensure_future(main())
+        #asyncio.ensure_future(main(), loop=loop)
+        asyncio.run(main(loop), debug=True)
         loop.run_forever()
     except KeyboardInterrupt:
         pass

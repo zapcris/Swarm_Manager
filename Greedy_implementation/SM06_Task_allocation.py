@@ -54,13 +54,17 @@ class Task_Allocator_agent:
             product.to_robot(robot=min_index + 1)
             #self.t_robot[i].task_assigned()
             ### assigned task and product to robot agents here ####
-            T_robot[i].task_assign(task)
-            T_robot[i].product_assign(product)
-
-
-            print(f"Task and Product assigned to robot {min_index+1}")
-            print("New task status", task)
-            print("New product status", product)
+            #T_robot[i].task_assign(task)
+            T_robot[i].assigned_task = True
+            T_robot[i].task = task
+            T_robot[i].free = False
+            print(f"Task Allocated to robot {min_index + 1} is {task}")
+            ## assign product to robot####
+            #T_robot[i].product_assign(product)
+            T_robot[i].product = product
+            print(f"Task Allocated to robot {min_index + 1} is {product}")
+            #print("New task status", task)
+            #print("New product status", product)
 
         else:
             print(f"No minimum bidder found")

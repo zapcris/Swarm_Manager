@@ -14,9 +14,9 @@ q_robot_to_opcua = asyncio.Queue()
 q_product_done = asyncio.Queue()
 
 
-null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=0,
+null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False)
-null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=0)
+null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=99)
 T_robot = []
 W_robot = []
 
@@ -150,7 +150,7 @@ class Transfer_robot:
         self.event = asyncio.Event()
         self.task = Task(id=0, type=0, command=[], pI=0, pV=0, allocation=False, status="null", robot=1)
         self.product = product
-        self.finished_product = null_product
+        self.finished_product = Product
         self.exec_cmd = False
         self.path_clear = False
         self.wk_loc = 99 ### 99 - arbitrary position #####
@@ -202,7 +202,7 @@ class Transfer_robot:
         self.assigned_task = True
         self.task = task
         self.free = False
-        return self
+
 
     def product_assign(self, product):
         self.assigned_task = True
@@ -210,20 +210,21 @@ class Transfer_robot:
         self.free = False
 
 
-    def task_deassign(self):
-        self.assigned_task = False
-        self.task = null_Task
-        self.free = True
+    # def task_deassign(self):
+    #     self.assigned_task = False
+    #     self.task = null_Task
+    #     self.free = True
 
 
-    def product_deassign(self):
-        self.assigned_task = False
-        self.product = null_product
-        self.free = True
+    # def product_deassign(self):
+    #     self.assigned_task = False
+    #     self.product = null_product
+    #     self.free = True
 
 
-    def clr_fin_prod(self):
-        self.finished_product = null_product
+
+    # def clr_fin_prod(self):
+    #     self.finished_product = null_product
 
     def path_free_status(self):
         # if self.task.command[0] >= 11 and self.task.command[1] <= 10:
@@ -276,7 +277,7 @@ class Transfer_robot:
         while True:
             await asyncio.sleep(2)
             await event_frommain.wait()
-            print(f"OPCUA command initiated at robot {self.id}")
+            #print(f"OPCUA command initiated at robot {self.id}")
             pickup = self.task.command[0]
             drop = self.task.command[1]
             #self.path_clear = False
@@ -284,15 +285,20 @@ class Transfer_robot:
             if pickup < 11 and drop < 11:
                 if self.wk_loc == pickup and W_robot[drop - 1].product_free == True:
                     self.path_clear = True
+                    print(f" Path clearance condition 1.1 activated for robot {self.id}")
                 elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[drop - 1].robot_free == True:
                     self.path_clear = True
-            elif pickup >= 11 and drop < 11:
+                    print(f" Path clearance condition 1.2 activated for robot {self.id}")
+            elif pickup == 11 and drop < 11:
                 if W_robot[drop - 1].product_free == True:
                     self.path_clear = True
-            elif pickup < 11 and drop > 11 :
+                    print(f" Path clearance condition 2 activated for robot {self.id}")
+            elif pickup < 11 and drop == 12 :
                 if W_robot[pickup - 1].product_free == True:
                     self.path_clear = True
-
+                    print(f" Path clearance condition 3 activated for robot {self.id}")
+            else:
+                pass
 
             if event_frommain.is_set() == True and self.path_clear == True:
                 event_toopcua.set()
@@ -300,9 +306,8 @@ class Transfer_robot:
                 # await asyncio.sleep(0.2)
                 event_frommain.clear()
             else:
-                #await asyncio.sleep(3)
-                #print(f"Path blocked for robot{self.id} and path clear status is {self.path_clear}")
-
+                await asyncio.sleep(3)
+                print(f"Robot{self.id} awaiting for path to be cleared")
                 pass
 
 
@@ -364,7 +369,7 @@ class Transfer_robot:
 
 
             # # print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
-            Events["rob_execution"][self.id - 1] = True
+            #Events["rob_execution"][self.id - 1] = True
             #self.exec_cmd = False
             self.path_clear = False
             event_fromchkpath.clear()
@@ -395,7 +400,7 @@ class Transfer_robot:
             # await asyncio.sleep(time)
             start_time = datetime.now()
             print(f"Robot {self.id} started executing at {start_time}")
-            Events["rob_execution"][self.id - 1] = True
+
             # while Events["rob_execution"][id - 1] == True:
             #     if data_opcua["rob_busy"][id - 1] == True:
             #         # exec_time = (datetime.now() - start_time).total_seconds()
@@ -405,7 +410,7 @@ class Transfer_robot:
             #         Events["rob_execution"][id - 1] = False
             # flag = asyncio.Event()
             await event2.wait()
-            # Events["rob_execution"][id - 1] = False
+            Events["rob_execution"][self.id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
@@ -417,6 +422,7 @@ class Transfer_robot:
                 wk = t[1]-1
                #print(f"product on robot {self.id}", self.product)
                 W_robot[wk].assingedProduct = self.product
+                print(f"Product assigned to Workstation{t[1]} is {self.product}")
                 #print(f"product on wk {W_robot[wk].id}", W_robot[wk].product)
                 a = wk_event(t[1])
                 a.set()
@@ -425,11 +431,11 @@ class Transfer_robot:
                 #self.product_deassign()
                 ### self Product deassign ####
                 self.assigned_task = False
-                self.product = null_product
+                #self.product = null_product
                 #self.task_deassign()
                 ### self task deassign####
                 self.assigned_task = False
-                self.task = null_Task
+                #self.task = null_Task
                 self.free = True
                 print(f"The robot {self.id} is Product and Task free")
 
@@ -439,7 +445,7 @@ class Transfer_robot:
                 #self.task_deassign()
                 ### self task deassign####
                 self.assigned_task = False
-                self.task = null_Task
+                #self.task = null_Task
                 self.free = True
                 self.finished_product = self.product
             event2.clear()
@@ -466,7 +472,7 @@ class Workstation_robot:
         self.order = order
         #self.assigned_prod = False
         self.assingedProduct = product
-        self.done_product = null_product
+        self.done_product = Product
         self.product_free = True
         self.robot_free = True
     def __await__(self):
@@ -480,8 +486,8 @@ class Workstation_robot:
     #     self.assingedProduct = product
 
 
-    def clr_done_prod(self):
-        self.done_product = null_product
+    # def clr_done_prod(self):
+    #     self.done_product = null_product
 
 
     def product_clearance(self):
@@ -499,29 +505,32 @@ class Workstation_robot:
 
 
     async def process_execution(self, event: asyncio.Event):
+        await asyncio.sleep(4)
         process_time = order["Process_times"][self.assingedProduct.pv_Id][self.id - 1]
         await event.wait()
-        print("assigned product", self.assingedProduct)
+        print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
         self.process_done = False
         self.product_free = False
         print(f"Process task executing at workstation {self.id}")
         await asyncio.sleep(process_time)
         print(f"Process task on workstation {self.id} finished")
-        self.assingedProduct.remove_task()
-        GreedyScheduler.process_task_executed(self.assingedProduct)
-        await asyncio.sleep(0.5)
+        #GreedyScheduler.process_task_executed(self.assingedProduct)
+        #await asyncio.sleep(0.5)
+        #self.assingedProduct.remove_task()
+        ### Remove current from product###
+        self.assingedProduct.task_list.pop(0)
         # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
         print(f"Done workstation {self.id}")
-
         self.process_done = True
         print(f"The Workstation {self.id} free status is {self.process_done}")
         print("done product", self.done_product)
-        await asyncio.sleep(0.5)
+        #await asyncio.sleep(0.5)
         #await self.process_executed()
         self.assingedProduct.set_Release()
+        ### Remove current from product###
+        self.assingedProduct.released = True
         self.done_product = self.assingedProduct
         a = [self.done_product]
         q_product_done.put_nowait(a)
         print(f"Product {self.done_product} added into done queue")
-
         event.clear()
