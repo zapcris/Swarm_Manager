@@ -46,8 +46,8 @@ class Product:
     # def __repr__(self):
     #     return self
 
-    def __getitem__(self, pv_Id):
-        return getattr(self, pv_Id)
+    # def __getitem__(self, pv_Id):
+    #     return getattr(self, pv_Id)
 
     def remove_from_production(self):
         object.__setattr__(self, 'inProduction', False)

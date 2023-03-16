@@ -1,4 +1,4 @@
-from Greedy_implementation.SM07_Robot_agent import T_robot, W_robot
+from Greedy_implementation.SM07_Robot_agent import T_robot
 
 
 class Task_Allocator_agent:
@@ -54,8 +54,8 @@ class Task_Allocator_agent:
             product.to_robot(robot=min_index + 1)
             #self.t_robot[i].task_assigned()
             ### assigned task and product to robot agents here ####
-            T_robot[i].task_assigned(task)
-            T_robot[i].prod_assigned(product)
+            T_robot[i].task_assign(task)
+            T_robot[i].product_assign(product)
 
 
             print(f"Task and Product assigned to robot {min_index+1}")

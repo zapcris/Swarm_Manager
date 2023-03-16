@@ -137,6 +137,7 @@ async def main_function():
         # -----------------------------------------------
 
         print("create part ")
+        print("machine_pos")
         await create_new_part.write_value(5)
         time.sleep(0.7)
         await create_new_part.write_value(0)

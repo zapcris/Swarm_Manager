@@ -4,8 +4,12 @@ import threading
 import time
 from tkinter import *
 import queue
-import opcua_client
 from Greedy_implementation.SM02_opcua_client import start_opcua
+
+
+
+
+#from Greedy_implementation.SM07_Robot_agent import q_product_done, p1
 
 q1 = queue.Queue(maxsize=100)
 
@@ -42,6 +46,7 @@ class MyWindow:
         self.b4 = Button(win, text='ReleaseTask', command=self.release)
         self.b5 = Button(win, text='List Queue', command=self.enlist_q)
         self.b6 = Button(win, text='Get positions', command=self.get_pos)
+        self.b7 = Button(win, text='Enter product in queue', command=self.enque_prod)
         self.b1.place(x=300, y=50)
 
 
@@ -50,6 +55,8 @@ class MyWindow:
         self.b4.place(x=250, y=250)
         self.b5.place(x=350, y=250)
         self.b6.place(x=430, y=250)
+        self.b6.place(x=430, y=250)
+        self.b7.place(x=430, y=280)
 
     def create(self):
         #self.t3.delete(0, 'end')
@@ -73,6 +80,11 @@ class MyWindow:
         task = str(self.t3.get()) + "," + str(self.t4.get())
         task_list.insert((int(self.t2.get()) - 1), task)
         q1.put_nowait(task_list)
+
+    def enque_prod(self):
+        #q_product_done.put_nowait(p1)
+        pass
+
 
     def enlist_q(self):
         print(list(q1.queue))

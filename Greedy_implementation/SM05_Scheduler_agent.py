@@ -156,18 +156,32 @@ class Scheduling_agent:
     #
     #     return normal_allocation
 
-    def normalized_production(self, prod_list):
-        for new_prod in prod_list:
+    def normalized_production(self, product_list):
+        task_for_allocation = []
+        for new_product in product_list:
+
             for act_prod in self.active_products:
-                if act_prod.pi_Id == new_prod.pi_Id and act_prod.pv_Id == new_prod.pv_Id:
-                    act_prod = new_prod
+                if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
+                    act_prod = new_product
                     print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
                 else:
                     pass
-        tasks_for_allocation = self.task_evaluation()
 
+            cmd = new_product.task_list[0]
+            print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
+            if cmd[0] == 11 or cmd[1] == 11:
+                type = 1
+            elif cmd[0] == 12 or cmd[1] == 12:
+                type = 4
+            else:
+                type = 2
+            TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
+                                   allocation=False,
+                                   status="Pending", robot=999)
 
-        return tasks_for_allocation, self.active_products
+            task_for_allocation.append(TA)
+
+        return task_for_allocation, product_list
     # def normalized_allocation(self):
     #     try:
     #         while True:
@@ -206,15 +220,15 @@ class Scheduling_agent:
 
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
-            cmd = product["task_list"][0]
-            print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product["task_list"])
+            cmd = product.task_list[0]
+            print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if cmd[0] == 11 or cmd[1] == 11:
                 type = 1
             elif cmd[0] == 12 or cmd[1] == 12:
                 type = 4
             else:
                 type = 2
-            TA = Task(id=i + 1, type=type, command=cmd, pV=product["pv_Id"], pI=product["pi_Id"], allocation=False,
+            TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
                       status="Pending", robot=999)
             # product.dequeue()
             # print(f"product task flow required after", product["task_list"])

@@ -160,6 +160,7 @@ async def main_function(data_opcua):
             values = await machine_pos.read_value()
             split_all = values.split("d")
             for k in range(len(split_all)):
+
                 divide = split_all[k]
                 try:
                     x, y = divide.split(",")
@@ -217,6 +218,8 @@ async def main_function(data_opcua):
 def start_opcua(data_opcua):
     asyncio.run(main_function(data_opcua))
 
+
+
 if __name__ == "__main__":
 
     data_opcua = {
@@ -248,9 +251,12 @@ if __name__ == "__main__":
     data_opcua["mobile_manipulator"] = ['', '', '']
 
     while True:
-        time.sleep(1)
+        time.sleep(2)
 
         print(data_opcua["rob_busy"])
+        print(data_opcua["machine_pos"])
+        print(data_opcua["robot_pos"])
+
 
     print("all done!@!!!")
 
