@@ -14,7 +14,7 @@ from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
     event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event, q_main_to_releaser, loop
+    wk_process_event, wk_proc_event, q_main_to_releaser
 
 
 def task_released(task,loop):
