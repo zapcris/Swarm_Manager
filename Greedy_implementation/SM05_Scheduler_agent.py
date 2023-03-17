@@ -163,12 +163,12 @@ class Scheduling_agent:
             for act_prod in self.active_products:
                 if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
                     act_prod = new_product
-                    print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
+                    ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
                 else:
                     pass
 
             cmd = new_product.task_list[0]
-            print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
+            ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
             if cmd[0] == 11 or cmd[1] == 11:
                 type = 1
             elif cmd[0] == 12 or cmd[1] == 12:

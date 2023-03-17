@@ -201,13 +201,13 @@ async def main(Greedy_Allocator):
     loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
 
     # # Run forever
-    # while True:
-    #     try:
-    #         await asyncio.sleep(0.1)
-    #     except KeyboardInterrupt:
-    #         break
+    while True:
+        try:
+            await asyncio.sleep(0.1)
+        except KeyboardInterrupt:
+            break
 
-if __name__ == '_main_':
+if __name__ == "__main__":
     tracemalloc.start()
     fin_prod = []
 
@@ -243,6 +243,4 @@ if __name__ == '_main_':
     # GreedyScheduler.active_products = test_product
     # q_product_done.put_nowait([p1])
 
-
     asyncio.run(main(Greedy_Allocator))
-    loop.run_forever()

@@ -10,7 +10,7 @@ from Greedy_implementation.SM10_Product_Task import Product, Task
 
 ################################# Taken from Robot_Agent###############################################################
 #### Initialization data###############
-loop = asyncio.new_event_loop()
+
 q_main_to_releaser = asyncio.Queue()
 q_robot_to_opcua = asyncio.Queue()
 q_product_done = asyncio.Queue()
@@ -59,6 +59,7 @@ wk_10 = asyncio.Event()
 
 opc_cmd_list = []
 wk_proc_event = 99
+
 
 def wk_process_event(wk, loop: asyncio.AbstractEventLoop):
     if wk == 1:
@@ -311,9 +312,13 @@ class Transfer_robot:
                     self.path_clear = True
                     print(f" Path clearance condition 2 activated for robot {self.id}")
             elif pickup < 11 and drop == 12:
-                if W_robot[pickup - 1].product_free == True:
+                if self.wk_loc == pickup:
                     self.path_clear = True
-                    print(f" Path clearance condition 3 activated for robot {self.id}")
+                    print(f" Path clearance condition 3.1 activated for robot {self.id}")
+                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
+                    self.path_clear = True
+                    print(f" Path clearance condition 3.2 activated for robot {self.id}")
+
             else:
                 pass
 
@@ -393,12 +398,11 @@ class Transfer_robot:
         #    pass
 
     async def execution_time(self, event, event2, loop: asyncio.AbstractEventLoop):
-
         while True:
             # print(f'waiting for robot {id} for  execution')
             await event.wait()
             print(f'Robot {self.id} execution tim'
-                  f'er has started')
+                f'er has started')
             # if self.id ==1 :
             #     time = 15
             # elif self.id ==2 :
@@ -424,17 +428,17 @@ class Transfer_robot:
             t = self.task.command
             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             self.wk_loc = t[1]
+            print(f"Robot {self.id} is at {self.wk_loc}")
             if t[1] <= 11:  ### checking for sink node commmand#####
 
                 print("Triggered workstation is ", t[1])
                 wk = t[1] - 1
                 # print(f"product on robot {self.id}", self.product)
                 W_robot[wk].assingedProduct = self.product
-                print(f"Product assigned to Workstation{t[1]} is {self.product}")
+                print(f"Robot {self.id} assigned product to Workstation{t[1]} is {self.product}")
                 # print(f"product on wk {W_robot[wk].id}", W_robot[wk].product)
                 # a = wk_process_event(t[1])
                 # a.set()
-                wk_process_event(wk=t[1], loop=loop)
                 # await asyncio.sleep(0.5)
                 # self.product.remove_task()
                 # self.product_deassign()
@@ -447,6 +451,9 @@ class Transfer_robot:
                 # self.task = null_Task
                 self.free = True
                 print(f"The robot {self.id} is Product and Task free")
+                # wk_process_event(wk=t[1], loop=loop)
+                print(f"Product in the robot ")
+                await W_robot[wk].process_execution()
 
             else:
                 print(f"Product moved to sink node")
@@ -457,6 +464,7 @@ class Transfer_robot:
                 # self.task = null_Task
                 self.free = True
                 self.finished_product = self.product
+
             event2.clear()
             event.clear()
 
@@ -507,35 +515,37 @@ class Workstation_robot:
     #     self.assingedProduct.set_Release()
     #     self.done_product = self.assingedProduct
 
-    async def process_execution(self, event: asyncio.Event):
-        while True:
+    async def process_execution(self):
+        # while True:
 
-            print(f"Workstation {self.id} execution task re-initialized")
-            await event.wait()
-            process_time = order["Process_times"][self.assingedProduct.pv_Id][self.id - 1]
-            print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
-            self.process_done = False
-            self.product_free = False
-            print(f"Process task executing at workstation {self.id}")
-            await asyncio.sleep(process_time)
-            print(f"Process task on workstation {self.id} finished")
-            # GreedyScheduler.process_task_executed(self.assingedProduct)
-            # await asyncio.sleep(0.5)
-            # self.assingedProduct.remove_task()
-            ### Remove current from product###
-            self.assingedProduct.task_list.pop(0)
-            # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
-            print(f"Done workstation {self.id}")
-            self.process_done = True
-            print(f"The Workstation {self.id} free status is {self.process_done}")
-            print("done product", self.done_product)
-            # await asyncio.sleep(0.5)
-            # await self.process_executed()
-            self.assingedProduct.released = True
-            ### Remove current from product###
-            self.assingedProduct.released = True
-            self.done_product = self.assingedProduct
-            a = [self.done_product]
-            q_product_done.put_nowait(a)
-            print(f"Product {self.done_product} added into done queue")
-            event.clear()
+        print(f"Workstation {self.id} execution task re-initialized")
+        # await event.wait()
+        print(f" Workstation ID {self.id}")
+        process_time = order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
+        # process_time = 20
+        print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
+        self.process_done = False
+        self.product_free = False
+        print(f"Process task executing at workstation {self.id}")
+        await asyncio.sleep(process_time)
+        print(f"Process task on workstation {self.id} finished")
+        # GreedyScheduler.process_task_executed(self.assingedProduct)
+        # await asyncio.sleep(0.5)
+        # self.assingedProduct.remove_task()
+        ### Remove current from product###
+        self.assingedProduct.task_list.pop(0)
+        # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
+        print(f"Done workstation {self.id}")
+        self.process_done = True
+        print(f"The Workstation {self.id} free status is {self.process_done}")
+        print("done product", self.done_product)
+        # await asyncio.sleep(0.5)
+        # await self.process_executed()
+        self.assingedProduct.released = True
+        ### Remove current from product###
+        self.assingedProduct.released = True
+        self.done_product = self.assingedProduct
+        a = [self.done_product]
+        q_product_done.put_nowait(a)
+        print(f"Product {self.done_product} added into done queue")
+        # event.clear()

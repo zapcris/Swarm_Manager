@@ -37,7 +37,7 @@ class Task_Allocator_agent:
 
     def broadcast_bid(self, i, task):
         bid = self.t_robot[i].bid(task)
-        print(f"{bid} Bid Received from Robot {i+1} for task {task}")
+        ###print(f"{bid} Bid Received from Robot {i+1} for task {task}")
         self.bid_data.append(bid)
         return self.bid_data
 
@@ -49,20 +49,20 @@ class Task_Allocator_agent:
         min_index = self.bid_data.index(min_val)
         target_wk = task.command[1]
         if min_val <= 99999999999:
-            print(f"Minimum bid value found at Robot {min_index+1}")
+            ###print(f"Minimum bid value found at Robot {min_index+1}")
             task.assign(robot=min_index + 1)
             product.to_robot(robot=min_index + 1)
             #self.t_robot[i].task_assigned()
             ### assigned task and product to robot agents here ####
             #T_robot[i].task_assign(task)
-            T_robot[i].assigned_task = True
-            T_robot[i].task = task
-            T_robot[i].free = False
+            T_robot[min_index].assigned_task = True
+            T_robot[min_index].task = task
+            T_robot[min_index].free = False
             print(f"Task Allocated to robot {min_index + 1} is {task}")
             ## assign product to robot####
             #T_robot[i].product_assign(product)
-            T_robot[i].product = product
-            print(f"Task Allocated to robot {min_index + 1} is {product}")
+            T_robot[min_index].product = product
+            print(f"Product Allocated to robot {min_index + 1} is {product}")
             #print("New task status", task)
             #print("New product status", product)
 
