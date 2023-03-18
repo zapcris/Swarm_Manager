@@ -251,39 +251,39 @@ class Transfer_robot:
 
     # def clr_fin_prod(self):
     #     self.finished_product = null_product
-
-    def path_free_status(self):
-        # if self.task.command[0] >= 11 and self.task.command[1] <= 10:
-        #     self.path_clear = W_robot[self.task.command[1] - 1].product_free
-        # elif self.task.command[0] <= 10 and self.task.command[1] >= 11:
-        #     self.path_clear = W_robot[self.task.command[0] - 1].product_free
-        # else:
-        #     self.path_clear = W_robot[self.task.command[0] - 1].product_free and W_robot[
-        #         self.task.command[1] - 1].product_free
-        pickup = self.task.command[0]
-        drop = self.task.command[1]
-
-        if pickup != 11 and drop != 12:
-            rob_pos = data_opcua["robot_pos"][self.id - 1]
-            pickup_pos = data_opcua["machine_pos"][pickup]
-            drop_pos = data_opcua["machine_pos"][drop]
-            dist = distance.euclidean(rob_pos, pickup_pos)
-            if dist <= 1000:
-                ## check only for drop wk free status ###
-                self.path_clear = W_robot[drop - 1].product_free
-                print(f"Path clear robot {self.id} condition 1")
-            elif dist > 1000:
-                self.path_clear = W_robot[drop - 1].product_free and W_robot[pickup - 1].product_free
-                print(f"Path clear robot {self.id} condition 2")
-
-        elif pickup == 11 and drop != 12:
-            ## check only for drop wk free status ###
-            self.path_clear = W_robot[drop - 1].product_free
-            # print(f"Path clear robot {self.id} condition 3")
-        elif pickup != 11 and drop == 12:
-            ## check only for pickup wk free status ###
-            self.path_clear = W_robot[pickup - 1].product_free
-            # print(f"Path clear robot {self.id} condition 4")
+    ### removed function#####
+    # def path_free_status(self):
+    #     # if self.task.command[0] >= 11 and self.task.command[1] <= 10:
+    #     #     self.path_clear = W_robot[self.task.command[1] - 1].product_free
+    #     # elif self.task.command[0] <= 10 and self.task.command[1] >= 11:
+    #     #     self.path_clear = W_robot[self.task.command[0] - 1].product_free
+    #     # else:
+    #     #     self.path_clear = W_robot[self.task.command[0] - 1].product_free and W_robot[
+    #     #         self.task.command[1] - 1].product_free
+    #     pickup = self.task.command[0]
+    #     drop = self.task.command[1]
+    #
+    #     if pickup != 11 and drop != 12:
+    #         rob_pos = data_opcua["robot_pos"][self.id - 1]
+    #         pickup_pos = data_opcua["machine_pos"][pickup]
+    #         drop_pos = data_opcua["machine_pos"][drop]
+    #         dist = distance.euclidean(rob_pos, pickup_pos)
+    #         if dist <= 1000:
+    #             ## check only for drop wk free status ###
+    #             self.path_clear = W_robot[drop - 1].product_free
+    #             print(f"Path clear robot {self.id} condition 1")
+    #         elif dist > 1000:
+    #             self.path_clear = W_robot[drop - 1].product_free and W_robot[pickup - 1].product_free
+    #             print(f"Path clear robot {self.id} condition 2")
+    #
+    #     elif pickup == 11 and drop != 12:
+    #         ## check only for drop wk free status ###
+    #         self.path_clear = W_robot[drop - 1].product_free
+    #         # print(f"Path clear robot {self.id} condition 3")
+    #     elif pickup != 11 and drop == 12:
+    #         ## check only for pickup wk free status ###
+    #         self.path_clear = W_robot[pickup - 1].product_free
+    #         # print(f"Path clear robot {self.id} condition 4")
 
     def trigger_task(self, task, execute):
         self.task = task
@@ -322,6 +322,31 @@ class Transfer_robot:
 
             else:
                 pass
+
+            if pickup < 11 and drop < 11:
+                if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
+                    self.path_clear = True
+                    print(f" Path clearance condition 1.1 activated for robot {self.id}")
+                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
+                    drop - 1].booked == False:
+                    self.path_clear = True
+                    print(f" Path clearance condition 1.2 activated for robot {self.id}")
+            elif pickup == 11 and drop < 11:
+                if W_robot[drop - 1].booked == False:
+                    self.path_clear = True
+                    print(f" Path clearance condition 2 activated for robot {self.id}")
+            elif pickup < 11 and drop == 12:
+                if self.wk_loc == pickup:
+                    self.path_clear = True
+                    print(f" Path clearance condition 3.1 activated for robot {self.id}")
+                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
+                    self.path_clear = True
+                    print(f" Path clearance condition 3.2 activated for robot {self.id}")
+
+            else:
+                pass
+
+
 
             if event_frommain.is_set() == True and self.path_clear == True:
                 event_toopcua.set()
@@ -404,13 +429,6 @@ class Transfer_robot:
             await event.wait()
             print(f'Robot {self.id} execution tim'
                 f'er has started')
-            # if self.id ==1 :
-            #     time = 15
-            # elif self.id ==2 :
-            #     time = 5
-            # else:
-            #     time = 5
-            # await asyncio.sleep(time)
             start_time = datetime.now()
             print(f"Robot {self.id} started executing at {start_time}")
             while event.is_set() == True:
@@ -419,14 +437,6 @@ class Transfer_robot:
                     break
                 else:
                     continue
-            # while Events["rob_execution"][id - 1] == True:
-            #     if data_opcua["rob_busy"][id - 1] == True:
-            #         # exec_time = (datetime.now() - start_time).total_seconds()
-            #         # print(f"Robot {id} is running")
-            #         pass
-            #     elif data_opcua["rob_busy"][id - 1] == False:
-            #         Events["rob_execution"][id - 1] = False
-            # flag = asyncio.Event()
             #await event2.wait()
             Events["rob_execution"][self.id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
@@ -443,12 +453,6 @@ class Transfer_robot:
                 # print(f"product on robot {self.id}", self.product)
                 W_robot[wk].assingedProduct = self.product
                 print(f"Robot {self.id} assigned product to Workstation{t[1]} is {self.product}")
-                # print(f"product on wk {W_robot[wk].id}", W_robot[wk].product)
-                # a = wk_process_event(t[1])
-                # a.set()
-                # await asyncio.sleep(0.5)
-                # self.product.remove_task()
-                # self.product_deassign()
                 ### self Product deassign ####
                 self.assigned_task = False
                 # self.product = null_product
@@ -483,17 +487,17 @@ class Transfer_robot:
                         cmd = ['', '', 'm,-2745,6752,0']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
-                    await asyncio.sleep(0.7)
+                    await asyncio.sleep(2)
                     data_opcua["mobile_manipulator"] = ["", "", ""]
                 else:
                     print(f"Robot moving to Base Station")
                     self.base_move = False
+                    W_robot[t[1]-1].product_clearance()
                     #event2.clear()
                     event.clear()
 
 
-            #event2.clear()
-            #event.clear()
+
 
     ###3 Redundant async task to check if robot busy status is False while executing#####
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
