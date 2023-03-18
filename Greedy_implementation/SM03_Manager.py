@@ -217,6 +217,8 @@ async def release_opcua_cmd(loop):
                 await asyncio.sleep(0.7)
                 data_opcua["mobile_manipulator"] = ["", "", ""]
                 print("command sent to opcuaclient", cmd)
+                await asyncio.sleep(0.5)
+                W_robot[task.command[1] - 1].booked = True
                 await asyncio.sleep(5)
 
             else:
@@ -227,8 +229,8 @@ async def release_opcua_cmd(loop):
                 W_robot[task.command[0] - 1].product_clearance()
                 print(f"Workstation {task.command[0]} is Product FREE")
                 await asyncio.sleep(0.5)
-                W_robot[task.command[1] - 1].product_free = False
-                W_robot[task.command[1] - 1].robot_free = False
+                #W_robot[task.command[1] - 1].product_free = False
+                #W_robot[task.command[1] - 1].robot_free = False
                 W_robot[task.command[1] - 1].booked = True
                 print(f"Workstation {task.command[1]} is BOOKED")
 
@@ -267,9 +269,9 @@ async def concurrent_tasks(loop):
     loop.create_task(T_robot[0].execution_time(event=event1_exectime, loop=loop))
     loop.create_task(T_robot[1].execution_time(event=event2_exectime, loop=loop))
     loop.create_task(T_robot[2].execution_time(event=event3_exectime, loop=loop))
-    loop.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr, event_tochkpath=event1_chk_exec))
-    loop.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr, event_tochkpath=event1_chk_exec))
-    loop.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr, event_tochkpath=event1_chk_exec))
+    loop.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr))
+    loop.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr))
+    loop.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr))
     loop.create_task(W_robot[0].process_execution(event=wk_1))
     loop.create_task(W_robot[1].process_execution(event=wk_2))
     loop.create_task(W_robot[2].process_execution(event=wk_3))

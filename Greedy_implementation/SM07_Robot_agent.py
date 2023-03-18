@@ -293,80 +293,110 @@ class Transfer_robot:
 
     async def check_path_clear(self, event_frommain: asyncio.Event, event_toopcua: asyncio.Event):
         while True:
-            await asyncio.sleep(2)
+
             await event_frommain.wait()
             # print(f"OPCUA command initiated at robot {self.id}")
             pickup = self.task.command[0]
             drop = self.task.command[1]
             # self.path_clear = False
 
-            if pickup < 11 and drop < 11:
+            # if pickup < 11 and drop < 11:
+            #     if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 1.1 activated for robot {self.id}")
+            #     elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
+            #         drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 1.2 activated for robot {self.id}")
+            # elif pickup == 11 and drop < 11:
+            #     if W_robot[drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 2 activated for robot {self.id}")
+            # elif pickup < 11 and drop == 12:
+            #     if self.wk_loc == pickup:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 3.1 activated for robot {self.id}")
+            #     elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 3.2 activated for robot {self.id}")
+            #
+            # else:
+            #     pass
+
+            if pickup < 11 and event_toopcua.is_set() == False:
                 if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
                     self.path_clear = True
-                    print(f" Path clearance condition 1.1 activated for robot {self.id}")
+                    print(f" Path clearance condition 1.1 activated for robot {self.id} for task{self.task.command}")
                 elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
                     drop - 1].booked == False:
                     self.path_clear = True
-                    print(f" Path clearance condition 1.2 activated for robot {self.id}")
-            elif pickup == 11 and drop < 11:
+                    print(f" Path clearance condition 1.2 activated for robot {self.id} for task{self.task.command}")
+            elif pickup == 11 and event_toopcua.is_set() == False:
                 if W_robot[drop - 1].booked == False:
                     self.path_clear = True
-                    print(f" Path clearance condition 2 activated for robot {self.id}")
-            elif pickup < 11 and drop == 12:
-                if self.wk_loc == pickup:
-                    self.path_clear = True
-                    print(f" Path clearance condition 3.1 activated for robot {self.id}")
-                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
-                    self.path_clear = True
-                    print(f" Path clearance condition 3.2 activated for robot {self.id}")
+                    print(f" Path clearance condition 2 activated for robot {self.id} for task{self.task.command}")
 
             else:
                 pass
-
-            if pickup < 11 and drop < 11:
-                if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
-                    self.path_clear = True
-                    print(f" Path clearance condition 1.1 activated for robot {self.id}")
-                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
-                    drop - 1].booked == False:
-                    self.path_clear = True
-                    print(f" Path clearance condition 1.2 activated for robot {self.id}")
-            elif pickup == 11 and drop < 11:
-                if W_robot[drop - 1].booked == False:
-                    self.path_clear = True
-                    print(f" Path clearance condition 2 activated for robot {self.id}")
-            elif pickup < 11 and drop == 12:
-                if self.wk_loc == pickup:
-                    self.path_clear = True
-                    print(f" Path clearance condition 3.1 activated for robot {self.id}")
-                elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
-                    self.path_clear = True
-                    print(f" Path clearance condition 3.2 activated for robot {self.id}")
-
-            else:
-                pass
-
-
 
             if event_frommain.is_set() == True and self.path_clear == True:
                 event_toopcua.set()
+                #await asyncio.sleep(1)
                 self.exec_cmd = False
+                self.path_clear = False
                 # await asyncio.sleep(0.2)
                 event_frommain.clear()
+
             else:
-                await asyncio.sleep(3)
-                print(f"Robot{self.id} awaiting for path to be cleared")
+
+                print(f"Robot{self.id} awaiting for path to be cleared for task {self.task.command}")
+                await asyncio.sleep(4)
                 pass
 
-    async def sendtoOPCUA(self, event_fromchkpath: asyncio.Event, event_tochkpath: asyncio.Event):
+    async def sendtoOPCUA(self, event_fromchkpath: asyncio.Event):
         while True:
             # print(f"sendtoOPCUA on robot {self.id} waiting for task execution clearance and exec status is {self.exec_cmd}")
             # if self.exec_cmd == True:
             # print(f"Robot execute command initiated")
-            await asyncio.sleep(2)
+            #await asyncio.sleep(2)
             # await event_tochkpath.wait()
             # self.path_free_status()
             await event_fromchkpath.wait()
+            #await event_tochkpath.wait()
+            pickup = self.task.command[0]
+            drop = self.task.command[1]
+            # while event_tochkpath_is
+            # if pickup < 11:
+            #     if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 1.1 activated for robot {self.id} for task{self.task.command}")
+            #     elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
+            #         drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 1.2 activated for robot {self.id} for task{self.task.command}")
+            # elif pickup == 11:
+            #     if W_robot[drop - 1].booked == False:
+            #         self.path_clear = True
+            #         print(f" Path clearance condition 2 activated for robot {self.id} for task{self.task.command}")
+            #
+            # else:
+            #     pass
+            #
+            # if event_frommain.is_set() == True and self.path_clear == True:
+            #     event_toopcua.set()
+            #     await asyncio.sleep(1)
+            #     self.exec_cmd = False
+            #     # await asyncio.sleep(0.2)
+            #     event_frommain.clear()
+            #
+            # else:
+            #
+            #     print(f"Robot{self.id} awaiting for path to be cleared")
+            #     await asyncio.sleep(2)
+            #     pass
+
+
+
             task = self.task
             self.Free = False
             data = [task, self.id]
@@ -414,14 +444,11 @@ class Transfer_robot:
             # # print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
             # Events["rob_execution"][self.id - 1] = True
             # self.exec_cmd = False
-            self.path_clear = False
+            #self.path_clear = False
             event_fromchkpath.clear()
 
-            event_tochkpath.clear()
+            #event_tochkpath.clear()
 
-        # else:
-        #
-        #    pass
 
     async def execution_time(self, event, loop: asyncio.AbstractEventLoop):
         while True:
@@ -445,6 +472,8 @@ class Transfer_robot:
             #print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             self.wk_loc = t[1]
             print(f"Robot {self.id} is at {self.wk_loc}")
+            W_robot[t[1] - 1].product_free = False
+            W_robot[t[1] - 1].robot_free = False
             if t[1] <= 11:  ### checking for sink node commmand#####
                 print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
                 print(f"Robot {self.id} is at {self.wk_loc}")
@@ -489,9 +518,11 @@ class Transfer_robot:
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
                     data_opcua["mobile_manipulator"] = ["", "", ""]
-                else:
                     print(f"Robot moving to Base Station")
+                elif self.base_move == True:
+                    print(f"Robot reached Base Station")
                     self.base_move = False
+                    self.wk_loc = 99 ### 0 --> Base/arbitrary location for
                     W_robot[t[1]-1].product_clearance()
                     #event2.clear()
                     event.clear()
