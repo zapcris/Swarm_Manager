@@ -42,33 +42,45 @@ print("Robot positions", data_opcua["robot_pos"])
 
 print("Robot positions", data_opcua["rob_busy"])
 
-while True:
-    ######### between workstation 3 and 4 ################
-    sleep(4)
-    # task_cost1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["machine_pos"][4])
-    # marginal_cost_1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1])
-    # marginal_cost_2 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2])
-    # total_c1 = task_cost1 + marginal_cost_1
-    # total_c2 = task_cost1 + marginal_cost_2
-    #
-    # print("Task (3,5)  robot 2", marginal_cost_1)
-    # print("Task (3,5)  robot 3", marginal_cost_2)
-    #
-    # task_cost2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["machine_pos"][3])
-    # marginal_cost_1_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][1])
-    # marginal_cost_2_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][2])
-    # total_c1_2 = task_cost2 + marginal_cost_1_2
-    # total_c2_2 = task_cost2 + marginal_cost_2_2
-    #
-    # print("Task (2,4)  robot 2", marginal_cost_1_2)
-    # print("Task (2,4)  robot 3", marginal_cost_2_2)
+# while True:
+#     ######### between workstation 3 and 4 ################
+#     sleep(4)
+#     # task_cost1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["machine_pos"][4])
+#     # marginal_cost_1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1])
+#     # marginal_cost_2 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2])
+#     # total_c1 = task_cost1 + marginal_cost_1
+#     # total_c2 = task_cost1 + marginal_cost_2
+#     #
+#     # print("Task (3,5)  robot 2", marginal_cost_1)
+#     # print("Task (3,5)  robot 3", marginal_cost_2)
+#     #
+#     # task_cost2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["machine_pos"][3])
+#     # marginal_cost_1_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][1])
+#     # marginal_cost_2_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][2])
+#     # total_c1_2 = task_cost2 + marginal_cost_1_2
+#     # total_c2_2 = task_cost2 + marginal_cost_2_2
+#     #
+#     # print("Task (2,4)  robot 2", marginal_cost_1_2)
+#     # print("Task (2,4)  robot 3", marginal_cost_2_2)
+#
+#
+#     print(f"Distance between robot 2 and workstation 3:",
+#           distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1]))
+#
+#     print(f"Distance between robot 3 and workstation 3:",
+#           distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2]))
+#
+#     for pos in data_opcua["machine_pos"]:
+#         print(pos)
+
+id = 1
+cmd = ["" for _ in range(3)]
+if id == 1:
+    c = ['m,0,-2675,-3081', '', '']
+elif id == 2:
+    c = ['', 'm,0,-2772,2293', '']
+else :
+    c = ['', '', 'm,-2745,6752,0']
 
 
-    print(f"Distance between robot 2 and workstation 3:",
-          distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1]))
-
-    print(f"Distance between robot 3 and workstation 3:",
-          distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2]))
-
-    for pos in data_opcua["machine_pos"]:
-        print(pos)
+print(c)

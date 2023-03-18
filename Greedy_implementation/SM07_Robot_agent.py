@@ -34,9 +34,9 @@ test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, st
 
 test_product = [p1, p2, p3]
 #################################### Robot agent code ################################################
-event1 = asyncio.Event()
-event2 = asyncio.Event()
-event3 = asyncio.Event()
+event1_exectime = asyncio.Event()
+event2_exectime = asyncio.Event()
+event3_exectime = asyncio.Event()
 event1_opcua = asyncio.Event()
 event2_opcua = asyncio.Event()
 event3_opcua = asyncio.Event()
@@ -187,6 +187,7 @@ class Transfer_robot:
         self.exec_cmd = False
         self.path_clear = False
         self.wk_loc = 99  ### 99 - arbitrary position #####
+        self.base_move = False
 
     def __await__(self):
         async def closure():
@@ -300,15 +301,15 @@ class Transfer_robot:
             # self.path_clear = False
 
             if pickup < 11 and drop < 11:
-                if self.wk_loc == pickup and W_robot[drop - 1].product_free == True:
+                if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
                     self.path_clear = True
                     print(f" Path clearance condition 1.1 activated for robot {self.id}")
                 elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
-                    drop - 1].robot_free == True:
+                    drop - 1].booked == False:
                     self.path_clear = True
                     print(f" Path clearance condition 1.2 activated for robot {self.id}")
             elif pickup == 11 and drop < 11:
-                if W_robot[drop - 1].product_free == True:
+                if W_robot[drop - 1].booked == False:
                     self.path_clear = True
                     print(f" Path clearance condition 2 activated for robot {self.id}")
             elif pickup < 11 and drop == 12:
@@ -397,7 +398,7 @@ class Transfer_robot:
         #
         #    pass
 
-    async def execution_time(self, event, event2, loop: asyncio.AbstractEventLoop):
+    async def execution_time(self, event, loop: asyncio.AbstractEventLoop):
         while True:
             # print(f'waiting for robot {id} for  execution')
             await event.wait()
@@ -412,7 +413,12 @@ class Transfer_robot:
             # await asyncio.sleep(time)
             start_time = datetime.now()
             print(f"Robot {self.id} started executing at {start_time}")
-
+            while event.is_set() == True:
+                await asyncio.sleep(1)
+                if data_opcua["rob_busy"][self.id - 1] == False:
+                    break
+                else:
+                    continue
             # while Events["rob_execution"][id - 1] == True:
             #     if data_opcua["rob_busy"][id - 1] == True:
             #         # exec_time = (datetime.now() - start_time).total_seconds()
@@ -421,17 +427,18 @@ class Transfer_robot:
             #     elif data_opcua["rob_busy"][id - 1] == False:
             #         Events["rob_execution"][id - 1] = False
             # flag = asyncio.Event()
-            await event2.wait()
+            #await event2.wait()
             Events["rob_execution"][self.id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
             t = self.task.command
-            print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
+            #print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             self.wk_loc = t[1]
             print(f"Robot {self.id} is at {self.wk_loc}")
             if t[1] <= 11:  ### checking for sink node commmand#####
-
-                print("Triggered workstation is ", t[1])
+                print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
+                print(f"Robot {self.id} is at {self.wk_loc}")
+                #print("Triggered workstation is ", t[1])
                 wk = t[1] - 1
                 # print(f"product on robot {self.id}", self.product)
                 W_robot[wk].assingedProduct = self.product
@@ -453,20 +460,42 @@ class Transfer_robot:
                 print(f"The robot {self.id} is Product and Task free")
                 wk_process_event(wk=t[1], loop=loop)
                 #await W_robot[wk].process_execution()
+                #event2.clear()
+                event.clear()
 
             else:
                 print(f"Product moved to sink node")
                 # self.product.remove_task()
                 # self.task_deassign()
                 ### self task deassign####
-                self.assigned_task = False
-                # self.task = null_Task
-                self.free = True
-                self.finished_product = self.product
+                if self.base_move == False:
+                    self.assigned_task = False
+                    #self.task = null_Task
+                    self.free = True
+                    self.finished_product = self.product
+                    self.base_move = True
+                    cmd = []
+                    if self.id == 1:
+                        cmd = ['m,0,-2675,-3081', '', '']
+                    elif self.id == 2:
+                        cmd = ['', 'm,0,-2772,2293', '']
+                    else:
+                        cmd = ['', '', 'm,-2745,6752,0']
+                    ### move to base station #####
+                    data_opcua["mobile_manipulator"] = cmd
+                    await asyncio.sleep(0.7)
+                    data_opcua["mobile_manipulator"] = ["", "", ""]
+                else:
+                    print(f"Robot moving to Base Station")
+                    self.base_move = False
+                    #event2.clear()
+                    event.clear()
 
-            event2.clear()
-            event.clear()
 
+            #event2.clear()
+            #event.clear()
+
+    ###3 Redundant async task to check if robot busy status is False while executing#####
     async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
         while True:
             await asyncio.sleep(2)
@@ -491,6 +520,7 @@ class Workstation_robot:
         self.done_product = Product
         self.product_free = True
         self.robot_free = True
+        self.booked = False
 
     def __await__(self):
         async def closure():
@@ -508,6 +538,7 @@ class Workstation_robot:
     def product_clearance(self):
         self.product_free = True
         self.robot_free = True
+        self.booked = False
         print(f"The workstation {self.id} is Product Free")
 
     # async def process_executed(self):
