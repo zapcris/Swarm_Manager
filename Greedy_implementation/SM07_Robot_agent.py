@@ -506,14 +506,16 @@ class Transfer_robot:
                     #self.task = null_Task
                     self.free = True
                     self.finished_product = self.product
+                    W_robot[11].sink_station(self.product)
+                    print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,-2675,-3081', '', '']
+                        cmd = ['m,0,-2772,-3081', '', '']
                     elif self.id == 2:
                         cmd = ['', 'm,0,-2772,2293', '']
                     else:
-                        cmd = ['', '', 'm,-2745,6752,0']
+                        cmd = ['', '', 'm,0,-2772,6752']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
@@ -523,7 +525,7 @@ class Transfer_robot:
                     print(f"Robot reached Base Station")
                     self.base_move = False
                     self.wk_loc = 99 ### 0 --> Base/arbitrary location for
-                    W_robot[t[1]-1].product_clearance()
+                    W_robot[11].product_clearance()
                     #event2.clear()
                     event.clear()
 
@@ -531,17 +533,17 @@ class Transfer_robot:
 
 
     ###3 Redundant async task to check if robot busy status is False while executing#####
-    async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
-        while True:
-            await asyncio.sleep(2)
-            await event.wait()
-            await asyncio.sleep(2)
-            if event.is_set() == True and data_opcua["rob_busy"][self.id - 1] == False:
-                event_opcua.set()
-                # print(f"Event 2 (opcua) for Robot {self.id} activated")
-            else:
-                # print("No opcua event generated")
-                pass
+    # async def check_rob_done(self, event: asyncio.Event, event_opcua: asyncio.Event):
+    #     while True:
+    #         await asyncio.sleep(2)
+    #         await event.wait()
+    #         await asyncio.sleep(2)
+    #         if event.is_set() == True and data_opcua["rob_busy"][self.id - 1] == False:
+    #             event_opcua.set()
+    #             # print(f"Event 2 (opcua) for Robot {self.id} activated")
+    #         else:
+    #             # print("No opcua event generated")
+    #             pass
 
 
 class Workstation_robot:
@@ -569,6 +571,11 @@ class Workstation_robot:
 
     # def clr_done_prod(self):
     #     self.done_product = null_product
+    def source_station(self):
+        return None
+    def sink_station(self, product):
+
+        return None
 
     def product_clearance(self):
         self.product_free = True
