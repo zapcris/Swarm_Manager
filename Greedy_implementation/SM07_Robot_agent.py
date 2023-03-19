@@ -1,12 +1,65 @@
 import asyncio
-import math
 from datetime import datetime
-
 from scipy.spatial import distance
-
-from Greedy_implementation.SM04_Task_Planning_agent import Task_Planning_agent, order
+from Greedy_implementation.SM04_Task_Planning_agent import Task_Planning_agent, generate_task
 from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
 from Greedy_implementation.SM10_Product_Task import Product, Task
+
+#### Data Initialization ################
+
+production_order = {
+    "Name": "Test",
+    "PV": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "sequence": [[11, 1, 7, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
+                 [11, 2, 4, 6, 8, 12],
+                 [11, 3, 5, 6, 8, 9, 7, 12],
+                 [11, 5, 7, 8, 9, 12],
+                 [11, 1, 4, 5, 7, 8, 9, 12],
+                 [11, 2, 5, 6, 8, 3, 12],
+                 [11, 3, 6, 8, 2, 4, 3, 12],
+                 [11, 4, 5, 6, 8, 7, 12],
+                 [11, 3, 4, 6, 1, 8, 9, 12],
+                 [11, 2, 4, 6, 8, 5, 7, 9, 12]
+                 ],
+
+    "PI": [4, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+    "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      ]
+}
+
+
+data_opcua = {
+    "brand": "Ford",
+    "mobile_manipulator": ["", "", ""],
+    "rob_busy": [False, False, False],
+    "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
+    "robot_pos": [[0, 0], [0, 0], [0, 0]],
+    "create_part": 0,
+    "mission": ["", "", "", "", "", "", "", "", "", ""],
+
+}
+
+Events = {
+    "brand": "Ford",
+    "rob_execution": [False, False, False],
+    "rob_mission": ["", "", ""],
+    "rob_product": [[int, int], [int, int], [int, int]],
+    "machine_status": [False for stat in range(10)],
+    "machine_product": [[int, int] for product in range(10)],
+    "elapsed_time": [int for et in range(10)],
+    "Product_finished": []
+
+}
 
 ################################# Taken from Robot_Agent###############################################################
 #### Initialization data###############
@@ -114,43 +167,25 @@ def wk_process_event(wk, loop: asyncio.AbstractEventLoop):
         # return wk_10
 
 
-data_opcua = {
-    "brand": "Ford",
-    "mobile_manipulator": ["", "", ""],
-    "rob_busy": [False, False, False],
-    "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
-    "robot_pos": [[0, 0], [0, 0], [0, 0]],
-    "create_part": 0,
-    "mission": ["", "", "", "", "", "", "", "", "", ""],
 
-}
-
-Events = {
-    "brand": "Ford",
-    "rob_execution": [False, False, False],
-    "rob_mission": ["", "", ""],
-    "rob_product": [[int, int], [int, int], [int, int]],
-    "machine_status": [False for stat in range(10)],
-    "machine_product": [[int, int] for product in range(10)],
-    "elapsed_time": [int for et in range(10)],
-    "Product_finished": []
-
-}
 
 ### instantiate order and generation of task list to that order
-test_order = Task_Planning_agent(input_order=order)
-generate_task = test_order.task_list()
-Product_task = generate_task[0]
-Global_task = generate_task[1]
-Task_Queue = generate_task[2]
-product_tList = [[11, 1], [1, 3], [3, 5], [5, 7], [7, 9], [9, 12]]
+test_order = Task_Planning_agent(input_order=production_order)
+generated_task = test_order.task_list()
+Product_task = generated_task[0]
+Global_task = generated_task[1]
+Task_Queue = generated_task[2]
+# product_tList = [[[11, 1], [1, 3], [3, 5], [5, 7], [7, 9], [9, 12]],
+#                  [[11, 1], [1, 3], [3, 5], [5, 7], [7, 9], [9, 12]]
+#                  ]
+
 
 # for a in Product_task:
 #     print(a)
 
 ### Initialize Reactive Scheduler
 GreedyScheduler = Scheduling_agent(
-    order=order,
+    order=production_order,
     product_task=Product_task,
     T_robot=T_robot
 
@@ -572,7 +607,9 @@ class Workstation_robot:
         return None
 
     def sink_station(self, product):
-        new_product = GreedyScheduler.prod_completed(product=product, product_tList=product_tList)
+        new_task_list = generate_task(order=production_order)
+        print("Generated TASK from new function", new_task_list)
+        new_product = GreedyScheduler.prod_completed(product=product, product_tList=new_task_list)
         q_product_done.put_nowait([new_product])
 
     def product_clearance(self):
@@ -592,7 +629,7 @@ class Workstation_robot:
             print(f"Workstation {self.id} execution task re-initialized")
             await event.wait()
             print(f" Workstation ID {self.id}")
-            process_time = order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
+            process_time = production_order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
             # process_time = 20
             print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
             self.process_done = False

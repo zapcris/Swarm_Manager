@@ -1,86 +1,67 @@
-import asyncio
-from datetime import time
-from threading import Thread
-from time import sleep
 
-from Greedy_implementation.SM02_opcua_client import start_opcua
-from Greedy_implementation.SM04_Task_Planning_agent import order
-from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
-from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
-from Greedy_implementation.SM07_Robot_agent import T_robot, Product_task, data_opcua
 from Greedy_implementation.SM10_Product_Task import Task, Product
-from scipy.spatial import distance
 
 
-a = [10, 20 ,30, 40]
-b = []
-event = asyncio.Event()
-if b:
-    print("list has elements")
-else:
-    print("list is empty")
+production_order = {
+    "Name": "Test",
+    "PV": [1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    "sequence": [[11, 1, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
+                 [11, 2, 4, 6, 8, 12],
+                 [11, 3, 5, 6, 8, 9, 7, 12],
+                 [11, 5, 7, 8, 9, 12],
+                 [11, 1, 4, 5, 7, 8, 9, 12],
+                 [11, 2, 5, 6, 8, 3, 12],
+                 [11, 3, 6, 8, 2, 4, 3, 12],
+                 [11, 4, 5, 6, 8, 7, 12],
+                 [11, 3, 4, 6, 1, 8, 9, 12],
+                 [11, 2, 4, 6, 8, 5, 7, 9, 12]
+                 ],
 
-q = asyncio.Queue()
-
-task = Task(id=1, allocation=True, command=[1,2], robot=1, type=1, pV=1, pI=1,status="New")
-id = 1
-
-data = [task, id, event]
-q.put_nowait(data)
-q.put_nowait(data)
-
-
-
-##### Start OPCUA Client Thread################
-opcua_client = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
-opcua_client.start()
-
-
-print("Workstation positions", data_opcua["machine_pos"])
-
-print("Robot positions", data_opcua["robot_pos"])
-
-print("Robot positions", data_opcua["rob_busy"])
-
-# while True:
-#     ######### between workstation 3 and 4 ################
-#     sleep(4)
-#     # task_cost1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["machine_pos"][4])
-#     # marginal_cost_1 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1])
-#     # marginal_cost_2 = distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2])
-#     # total_c1 = task_cost1 + marginal_cost_1
-#     # total_c2 = task_cost1 + marginal_cost_2
-#     #
-#     # print("Task (3,5)  robot 2", marginal_cost_1)
-#     # print("Task (3,5)  robot 3", marginal_cost_2)
-#     #
-#     # task_cost2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["machine_pos"][3])
-#     # marginal_cost_1_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][1])
-#     # marginal_cost_2_2 = distance.euclidean(data_opcua["machine_pos"][1], data_opcua["robot_pos"][2])
-#     # total_c1_2 = task_cost2 + marginal_cost_1_2
-#     # total_c2_2 = task_cost2 + marginal_cost_2_2
-#     #
-#     # print("Task (2,4)  robot 2", marginal_cost_1_2)
-#     # print("Task (2,4)  robot 3", marginal_cost_2_2)
-#
-#
-#     print(f"Distance between robot 2 and workstation 3:",
-#           distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][1]))
-#
-#     print(f"Distance between robot 3 and workstation 3:",
-#           distance.euclidean(data_opcua["machine_pos"][2], data_opcua["robot_pos"][2]))
-#
-#     for pos in data_opcua["machine_pos"]:
-#         print(pos)
-
-id = 1
-cmd = ["" for _ in range(3)]
-if id == 1:
-    c = ['m,0,-2675,-3081', '', '']
-elif id == 2:
-    c = ['', 'm,0,-2772,2293', '']
-else :
-    c = ['', '', 'm,-2745,6752,0']
+    "PI": [2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+    "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      ]
+}
 
 
-print(c)
+def initialize_production(self_order):
+    self_robots = [100,200,300]
+    remaining_order = []
+    active_products = []
+    for i, pv in enumerate(self_order["PV"]):
+        if pv == 1:
+            remaining_order.append(i+1)
+    print("Remaining order list", remaining_order)
+
+    #### Initialization of Products based on total available robots ######
+    if len(remaining_order) >= len(self_robots):
+        for i, r in enumerate(self_robots):
+            ########### encapsulated task sequence object for every product instance #######
+            variant = remaining_order.pop(0)
+            p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
+                        last_instance=1, robot=0, wk=0, released=False)
+            print(f"First instance of product type {variant} and product {p} generated for production")
+            active_products.append(p)
+
+    else:  ###### if total robots greater than product variants############
+        iterate_order = remaining_order
+        for i in range(len(iterate_order)):
+            variant = remaining_order.pop(0)
+            p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
+                        last_instance=1, robot=0, wk=0, released=False)
+            print(f"First instance of product type {variant} and product {p} generated for production")
+            active_products.append(p)
+    print("Finally remaining List", remaining_order)
+
+
+initialize_production(production_order)
+

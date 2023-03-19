@@ -1,20 +1,17 @@
 import asyncio
-import concurrent.futures
 import queue
 import sys
 import tracemalloc
 from threading import Thread
-from time import sleep
-
-from Greedy_implementation.SM02_opcua_client import start_opcua, main_function
-from Greedy_implementation.SM04_Task_Planning_agent import order
+from Greedy_implementation.SM02_opcua_client import start_opcua
 from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
 from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
-    T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, event2_opcua, event3_opcua, \
+    T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, \
+    event2_opcua, event3_opcua, \
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
     event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event, q_main_to_releaser
+    wk_process_event, wk_proc_event, q_main_to_releaser, production_order
 
 
 def task_released(task,loop):
@@ -315,12 +312,12 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     #########Initialization of Workstation robots###############################
-    sink_station = Workstation_robot(wk_no=12, order=order, product=null_product)
-    source_station = Workstation_robot(wk_no=11, order=order, product=null_product)
-    for i, type in enumerate(order["Wk_type"]):
+    sink_station = Workstation_robot(wk_no=12, order=production_order, product=null_product)
+    source_station = Workstation_robot(wk_no=11, order=production_order, product=null_product)
+    for i, type in enumerate(production_order["Wk_type"]):
         if type == 1 or type == 2:
             # print("create wk", i, pt, type)
-            wr = Workstation_robot(wk_no=i, order=order, product=null_product)
+            wr = Workstation_robot(wk_no=i, order=production_order, product=null_product)
             W_robot.append(wr)
     W_robot.append(source_station)
     W_robot.append(sink_station)
