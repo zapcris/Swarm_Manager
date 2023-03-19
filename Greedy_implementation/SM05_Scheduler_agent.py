@@ -30,7 +30,7 @@ class Scheduling_agent:
             else:
                 pass
 
-    def prod_completed(self, product):
+    def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
         new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False)
@@ -45,7 +45,7 @@ class Scheduling_agent:
                     print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
                     self.active_products.pop(index)
                     print(f"The product variant {del_pv} deleted from the Scheduler")
-                    new_product = self.add_new_variant(del_pv)
+                    new_product = self.add_new_variant(del_pv,product_tList)
                     #### added new product variant if product was last instance#####
                 else:
                     e = self.remaining_order[del_pv - 1]
@@ -53,14 +53,14 @@ class Scheduling_agent:
                     print(f"The product instance reduced in remaining order list inside Scheduler")
                     self.active_products.pop(index)
                     print(f"The product Instance {del_pi} deleted from the Scheduler")
-                    new_product = self.add_new_instance(del_pv, del_pi)
+                    new_product = self.add_new_instance(del_pv, del_pi,product_tList)
                     #### added new instance if product wasn't the last one#####
             else:
                 print("The product to be deleted not found in the active product list inside scheduler")
 
         return new_product
 
-    def add_new_variant(self, pv_Id):
+    def add_new_variant(self, pv_Id,product_List):
         print(f"Remaining order {self.remaining_order}")
         if self.remaining_order[pv_Id - 1] == 0:
             new_active_list = self.active_products
@@ -78,10 +78,10 @@ class Scheduling_agent:
 
         return None
 
-    def add_new_instance(self, pv_Id, pi_Id):
+    def add_new_instance(self, pv_Id, pi_Id,produc_tList):
         new_Inst = pi_Id + 1
         ## new task list injected into the current product object ########
-        product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id - 1], inProduction=True,
+        product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=produc_tList[pv_Id - 1], inProduction=True,
                           finished=False,
                           last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False)
         self.active_products.append(product)
@@ -113,46 +113,7 @@ class Scheduling_agent:
 
         return initial_allocation, self.active_products
 
-    ######### Triggered after initial production queue is executed in Execution Thread###########
-    # def normal_production(self):
-    #     for i, product in enumerate(self.active_products):
-    #
-    #         if product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] == product[
-    #             "last_instance"]:
-    #             print(f"Product variant has been completed and to be deleted", product["pv_Id"])
-    #             product.remove_from_production()
-    #             product.pfinished()
-    #             self.finished_product.append(product)
-    #             print(self.product_seq_ID)
-    #             self.product_seq_ID.remove(product["pv_Id"])
-    #             self.active_products.remove(product)
-    #             sleep(0.2)
-    #             print("Adding new product variant to active production list")
-    #             p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=1, task_list=self.product_task[self.pCount - 1],
-    #                         inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
-    #                         wk=0,released=False)
-    #             self.active_products.append(p)
-    #
-    #         elif product["inProduction"] == True and len(product["task_list"]) == 0 and product["pi_Id"] != product[
-    #             "last_instance"]:
-    #             print("Product instance upgraded and changed for same product variant")
-    #             product.remove_from_production()
-    #             product.pfinished()
-    #             old_pi = product["pi_Id"]
-    #             self.finished_product.append(product)
-    #             self.active_products.remove(product)
-    #             sleep(0.2)
-    #             print("Adding new product instance of same variant to active production list")
-    #             p = SM10_Product_Task.Product(pv_Id=self.pCount, pi_Id=old_pi + 1, task_list=self.product_task[self.pCount - 1],
-    #                         inProduction=True, finished=False, last_instance=self.order["PI"][self.pCount - 1], robot=0,
-    #                         wk=0,released=False)
-    #             self.active_products.append(p)
-    #
-    #         else:
-    #             print("Continue with same product variant and instance resp.", product["pv_Id"], product["pi_Id"])
-    #     normal_allocation = self.initial_allocation()
-    #
-    #     return normal_allocation
+
 
     def normalized_production(self, product_list):
         task_for_allocation = []
@@ -181,34 +142,7 @@ class Scheduling_agent:
 
         return task_for_allocation, product_list
 
-    # def normalized_allocation(self):
-    #     try:
-    #         while True:
-    #             Task_List = []
-    #             Product_List = []
-    #             product = self.q.get(block=False)
-    #             done = False
-    #             while not done:
-    #                 try:
-    #                     cmd = product.task_list[0]
-    #                     print(f"product task flow required before", product.task_list)
-    #                     if cmd[0] == 11 or cmd[1] == 11:
-    #                         type = 1
-    #                     elif cmd[0] == 12 or cmd[1] == 12:
-    #                         type = 4
-    #                     else:
-    #                         type = 2
-    #                     TA = Task(id=1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
-    #                               status="Pending", robot=999)
-    #                     Task_List.append(TA)
-    #                     Product_List.append(product)
-    #                     #Greedy_Allocator.step_allocation(TA,product_obj=Product_List)
-    #                     done = True
-    #                 except Exception as e:
-    #                     pass  # just try again to do stuff
-    #             self.q.task_done()
-    #     except:
-    #         pass  # no more items
+
 
     ######## Dispatch Task to Task Allocator for broadcasting ###################
     def task_evaluation(self):

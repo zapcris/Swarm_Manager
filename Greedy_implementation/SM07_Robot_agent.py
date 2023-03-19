@@ -143,6 +143,7 @@ generate_task = test_order.task_list()
 Product_task = generate_task[0]
 Global_task = generate_task[1]
 Task_Queue = generate_task[2]
+product_tList = [[11, 1], [1, 3], [3, 5], [5, 7], [7, 9], [9, 12]]
 
 # for a in Product_task:
 #     print(a)
@@ -495,6 +496,7 @@ class Transfer_robot:
 
             else:
                 print(f"Product moved to sink node")
+                #self.product.task_list.pop(0)
                 # self.product.remove_task()
                 # self.task_deassign()
                 ### self task deassign####
@@ -503,7 +505,7 @@ class Transfer_robot:
                     # self.task = null_Task
                     self.free = True
                     self.finished_product = self.product
-                    W_robot[11].sink_station(self.product)
+                    #W_robot[11].sink_station(self.product)
                     print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
                     self.base_move = True
                     cmd = []
@@ -570,7 +572,7 @@ class Workstation_robot:
         return None
 
     def sink_station(self, product):
-        new_product = GreedyScheduler.prod_completed(product)
+        new_product = GreedyScheduler.prod_completed(product=product, product_tList=product_tList)
         q_product_done.put_nowait([new_product])
 
     def product_clearance(self):
