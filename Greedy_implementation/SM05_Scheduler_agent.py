@@ -30,38 +30,35 @@ class Scheduling_agent:
             else:
                 pass
 
-
-    def prod_completed(self, prod_list):
-        for product in prod_list:
-            self.finished_product.append(product)
-            for old_prod in self.active_products:
-                if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
-                    del_pv = product.pv_Id
-                    del_pi = product.pi_Id
-                    index = self.active_products.index(old_prod)
-                    if product.pi_Id == product.last_instance:
-                        e = self.remaining_order[del_pv - 1]
-                        self.remaining_order[del_pv - 1] = 0
-                        print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
-                        self.active_products.pop(index)
-                        print(f"The product variant {del_pv} deleted from the Scheduler")
-                        self.add_new_variant(del_pv)
-                        #### added new product variant if product was last instance#####
-                    else:
-                        e = self.remaining_order[del_pv - 1]
-                        self.remaining_order[del_pv - 1] = e - 1
-                        print(f"The product instance reduced in remaining order list inside Scheduler")
-                        self.active_products.pop(index)
-                        print(f"The product Instance {del_pi} deleted from the Scheduler")
-                        self.add_new_instance(del_pv, del_pi)
-                        #### added new instance if product wasn't the last one#####
+    def prod_completed(self, product):
+        self.finished_product.append(product)
+        new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
+                       wk=0, released=False)
+        for old_prod in self.active_products:
+            if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
+                del_pv = product.pv_Id
+                del_pi = product.pi_Id
+                index = self.active_products.index(old_prod)
+                if product.pi_Id == product.last_instance:
+                    e = self.remaining_order[del_pv - 1]
+                    self.remaining_order[del_pv - 1] = 0
+                    print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
+                    self.active_products.pop(index)
+                    print(f"The product variant {del_pv} deleted from the Scheduler")
+                    new_product = self.add_new_variant(del_pv)
+                    #### added new product variant if product was last instance#####
                 else:
-                    print("The product to be deleted not found in the active product list inside scheduler")
+                    e = self.remaining_order[del_pv - 1]
+                    self.remaining_order[del_pv - 1] = e - 1
+                    print(f"The product instance reduced in remaining order list inside Scheduler")
+                    self.active_products.pop(index)
+                    print(f"The product Instance {del_pi} deleted from the Scheduler")
+                    new_product = self.add_new_instance(del_pv, del_pi)
+                    #### added new instance if product wasn't the last one#####
+            else:
+                print("The product to be deleted not found in the active product list inside scheduler")
 
-        tasks_for_allocation = self.task_evaluation()
-
-
-        return tasks_for_allocation, self.active_products
+        return new_product
 
     def add_new_variant(self, pv_Id):
         print(f"Remaining order {self.remaining_order}")
@@ -79,17 +76,18 @@ class Scheduling_agent:
         else:
             print(f"The product variant {pv_Id} was not finished in the remaining order list")
 
-
         return None
 
     def add_new_instance(self, pv_Id, pi_Id):
-        new_Inst = pi_Id+1
+        new_Inst = pi_Id + 1
         ## new task list injected into the current product object ########
-        product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id-1], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][pv_Id-1], robot=0, wk=0, released=False)
+        product = Product(pv_Id=pv_Id, pi_Id=new_Inst, task_list=self.product_task[pv_Id - 1], inProduction=True,
+                          finished=False,
+                          last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False)
         self.active_products.append(product)
         print(f"New Product instance {new_Inst} from Product variant {pv_Id} added to active list")
 
+        return product
 
     def initialize_production(self):
 
@@ -98,7 +96,7 @@ class Scheduling_agent:
             for i, r in enumerate(self.robots):
                 ########### encapsulated task sequence object for every product instance #######
                 p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0,released=False)
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
 
                 print(f"First instance of products Variant {i + 1} generated for production")
                 self.active_products.append(p)
@@ -106,7 +104,7 @@ class Scheduling_agent:
         else:  ###### if total robots greater than product variants############
             for i in range(self.order["PV"]):
                 p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0,released=False)
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
                 print(f"First instance of products Variant {i + 1} generated for production")
                 self.active_products.append(p)
                 self.pCount = i + 1
@@ -176,12 +174,13 @@ class Scheduling_agent:
             else:
                 type = 2
             TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
-                                   allocation=False,
-                                   status="Pending", robot=999)
+                      allocation=False,
+                      status="Pending", robot=999)
 
             task_for_allocation.append(TA)
 
         return task_for_allocation, product_list
+
     # def normalized_allocation(self):
     #     try:
     #         while True:
@@ -211,9 +210,6 @@ class Scheduling_agent:
     #     except:
     #         pass  # no more items
 
-
-
-
     ######## Dispatch Task to Task Allocator for broadcasting ###################
     def task_evaluation(self):
         task_for_allocation = []
@@ -235,7 +231,3 @@ class Scheduling_agent:
             task_for_allocation.append(TA)
 
         return task_for_allocation
-
-
-
-
