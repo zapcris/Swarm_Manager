@@ -557,6 +557,8 @@ class Transfer_robot:
                     print(f"Robot moving to Base Station")
                 elif self.base_move == True:
                     print(f"Robot reached Base Station")
+                    await asyncio.sleep(15)
+                    self.free = True
                     self.base_move = False
                     self.wk_loc = 99  ### 0 --> Base/arbitrary location for
                     W_robot[11].product_clearance()

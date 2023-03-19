@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -75,3 +76,82 @@ class Product:
             self.task_list.pop(0)
 
         return self
+
+
+@dataclass
+class Transfer_time:
+    start_time: datetime
+    stop_time: datetime
+    start_point: int
+    stop_point: int
+    variant: int
+    instance: int
+    robot: int
+    travel_time: float
+    step: int
+
+    def start_timer(self):
+        self.start_time = datetime.now()
+
+    def stop_timer(self):
+        self.stop_time = datetime.now()
+
+    def calc_time(self):
+        self.travel_time = (self.stop_time - self.start_time).total_seconds()
+
+
+@dataclass
+class Process_time:
+    start_time: datetime
+    stop_time: datetime
+    Workstation: int
+    step: int
+    variant: int
+    instance: int
+    process_time: float
+
+    def start_timer(self):
+        self.start_time = datetime.now()
+
+    def stop_timer(self):
+        self.stop_time = datetime.now()
+
+    def calc_time(self):
+        self.process_time = (self.stop_time - self.start_time).total_seconds()
+
+@dataclass
+class Waiting_time:
+    variant: int
+    instance: int
+    step: int
+    start_time: datetime
+    stop_time: datetime
+    wait_time: float
+    robot: int
+
+
+    def start_timer(self):
+        self.start_time = datetime.now()
+
+    def stop_timer(self):
+        self.stop_time = datetime.now()
+
+    def calc_time(self):
+        self.wait_time = (self.stop_time - self.start_time).total_seconds()
+
+@dataclass
+class Source_Sink:
+    variant: int
+    instance: int
+    start_time: datetime
+    stop_time: datetime
+    cycle_time: float
+
+    def start_timer(self):
+        self.start_time = datetime.now()
+
+    def stop_timer(self):
+        self.stop_time = datetime.now()
+
+    def cycle_time(self):
+        self.cycle_time = (self.stop_time - self.start_time).total_seconds()
