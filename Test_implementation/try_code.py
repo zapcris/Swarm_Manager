@@ -1,69 +1,31 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 
+m = pd.DataFrame({'newvalue': np.random.randint(10, 20, 4), 'name': [*'ABDE']})
+j = pd.DataFrame({'newvalue': np.random.randint(10, 20, 4), 'name': [*'ACEF']})
+h = pd.DataFrame({'newvalue': np.random.randint(10, 20, 4), 'name': [*'BDEG']})
+x = pd.DataFrame({'newvalue': np.random.randint(10, 20, 4), 'name': [*'ABCE']})
 
+# let colors be a list of unique colors, at least one for each name
+colors = plt.get_cmap('tab10').colors
+# make a set of all the names
+all_names = {*m.name, *j.name, *h.name, *x.name}
+# map each of the unique names to a color
+name_to_color = {name: color for name, color in zip(all_names, colors)}
 
-production_order = {
-    "Name": "Test",
-    "PV": [1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-    "sequence": [[11, 1, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
-                 [11, 2, 4, 6, 8, 12],
-                 [11, 3, 5, 6, 8, 9, 7, 12],
-                 [11, 5, 7, 8, 9, 12],
-                 [11, 1, 4, 5, 7, 8, 9, 12],
-                 [11, 2, 5, 6, 8, 3, 12],
-                 [11, 3, 6, 8, 2, 4, 3, 12],
-                 [11, 4, 5, 6, 8, 7, 12],
-                 [11, 3, 4, 6, 1, 8, 9, 12],
-                 [11, 2, 4, 6, 8, 5, 7, 9, 12]
-                 ],
+fig, axs = plt.subplots(2, 2, figsize=(9, 12), dpi=100, facecolor='w', edgecolor='k')
+axs[0, 0].pie(m.newvalue, labels=m.name, labeldistance=None, colors=m.name.map(name_to_color))
+axs[0, 0].set_title('Axis [0, 0]')
+axs[0, 1].pie(j.newvalue, labels=j.name, labeldistance=None, colors=j.name.map(name_to_color))
+axs[0, 1].set_title('Axis [0, 1]')
+axs[1, 0].pie(h.newvalue, labels=h.name, labeldistance=None, colors=h.name.map(name_to_color))
+axs[1, 0].set_title('Axis [1, 0]')
+axs[1, 1].pie(x.newvalue, labels=x.name, labeldistance=None, colors=x.name.map(name_to_color))
+axs[1, 1].set_title('Axis [1, 1]')
 
-    "PI": [2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-    "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      ]
-}
+handles = [plt.Rectangle((0, 0), 0, 0, color=name_to_color[name], label=name) for name in name_to_color]
+axs[0, 0].legend(handles=handles, bbox_to_anchor=(0.2, 1.1), loc='lower left')
 
-#
-# def initialize_production(self_order):
-#     self_robots = [100,200,300]
-#     remaining_order = []
-#     active_products = []
-#     for i, pv in enumerate(self_order["PV"]):
-#         if pv == 1:
-#             remaining_order.append(i+1)
-#     print("Remaining order list", remaining_order)
-#
-#     #### Initialization of Products based on total available robots ######
-#     if len(remaining_order) >= len(self_robots):
-#         for i, r in enumerate(self_robots):
-#             ########### encapsulated task sequence object for every product instance #######
-#             variant = remaining_order.pop(0)
-#             p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
-#                         last_instance=1, robot=0, wk=0, released=False)
-#             print(f"First instance of product type {variant} and product {p} generated for production")
-#             active_products.append(p)
-#
-#     else:  ###### if total robots greater than product variants############
-#         iterate_order = remaining_order
-#         for i in range(len(iterate_order)):
-#             variant = remaining_order.pop(0)
-#             p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
-#                         last_instance=1, robot=0, wk=0, released=False)
-#             print(f"First instance of product type {variant} and product {p} generated for production")
-#             active_products.append(p)
-#     print("Finally remaining List", remaining_order)
-
-
-# initialize_production(production_order)
-x  = 10
-title = f"Total Batch product time {x}"
-
-print(title)
+plt.tight_layout()
+plt.show()

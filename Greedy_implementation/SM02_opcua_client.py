@@ -245,20 +245,20 @@ if __name__ == "__main__":
     time.sleep(2)
     #
     #data_opcua["mobile_manipulator"] = ['11,7','','']
-    #data_opcua["mobile_manipulator"] = ['m,10000,-5000,0', '', '']
-    data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    #data_opcua["mobile_manipulator"] = ['s,7', '', '']
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 
-    while True:
-        time.sleep(2)
-
-        print(data_opcua["rob_busy"])
-        print(data_opcua["machine_pos"])
-        print(data_opcua["robot_pos"])
-
-
-    print("all done!@!!!")
+    # while True:
+    #     time.sleep(2)
+    #
+    #     print(data_opcua["rob_busy"])
+    #     print(data_opcua["machine_pos"])
+    #     print(data_opcua["robot_pos"])
+    #
+    #
+    # print("all done!@!!!")
 
 
     """
