@@ -572,12 +572,12 @@ class Transfer_robot:
                     data_opcua["mobile_manipulator"] = ["", "", ""]
                     print(f"Robot moving to Base Station")
                 elif self.base_move == True:
-                    await asyncio.sleep(15)
+                    W_robot[11].product_clearance()
+                    await asyncio.sleep(5)
                     print(f"Robot reached Base Station")
                     self.free = True
                     self.base_move = False
                     self.wk_loc = 99  ### 0 --> Base/arbitrary location for
-                    W_robot[11].product_clearance()
                     W_robot[11].sink_station(self.product)
                     # event2.clear()
                     event.clear()

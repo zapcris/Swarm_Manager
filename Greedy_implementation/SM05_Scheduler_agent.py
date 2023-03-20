@@ -2,6 +2,7 @@ from queue import Queue
 from Greedy_implementation.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
 
+
 class Scheduling_agent:
 
     def __init__(self, order, product_task, T_robot):
@@ -13,11 +14,12 @@ class Scheduling_agent:
         self.product_task = product_task
         self.finished_product = []
         self.product_seq_ID = []
-        #self.seq_order()
+        # self.seq_order()
         self.pCount = 0
         self.running_task = []
         self.finished_variant = []
         self.q = Queue()
+        self.planned_batch = int
 
     # def seq_order(self):
     #     for i in range(self.order["PV"]):
@@ -33,8 +35,9 @@ class Scheduling_agent:
 
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
-        new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
-                       wk=0, released=False,tracking=[])
+        new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0,
+                              robot=99,
+                              wk=0, released=False, tracking=[])
         for old_prod in self.active_products:
             if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
                 fin_pv = product.pv_Id
@@ -68,30 +71,29 @@ class Scheduling_agent:
         print(f"Remaining variants in production: {self.remaining_variant}")
         if len(self.remaining_variant) > 0:
             new_variant = self.remaining_variant.pop(0)
-            new_prod_var = Product(pv_Id=new_variant, pi_Id=1, task_list=product_tList[new_variant-1], inProduction=True,
-                           finished=False,
-                           last_instance=self.order["PI"][new_variant-1], robot=0, wk=0, released=False,tracking=[])
+            new_prod_var = Product(pv_Id=new_variant, pi_Id=1, task_list=product_tList[new_variant - 1],
+                                   inProduction=True,
+                                   finished=False,
+                                   last_instance=self.order["PI"][new_variant - 1], robot=0, wk=0, released=False,
+                                   tracking=[])
             ct = Source(tstamp=datetime.now())
             new_prod_var.tracking.append(ct)
 
             self.active_products.append(new_prod_var)
             print(f"New Product Variant {new_variant} and {new_prod_var}  added to active list")
             return new_prod_var
-        elif len(self.remaining_variant) <= 0:
+        elif len(self.finished_product) == self.planned_batch:
             print("Production completed")
             for i, product in enumerate(self.finished_product):
-
                 print(f"Finished product {i} is {product}")
                 print(f"It's tracking details are {product.tracking}")
-
-
 
     def add_new_instance(self, pv_Id, pi_Id, product_tList):
         ## new task list injected into the current product object ########
         print("TASK LIST ", product_tList)
-        new_instance = Product(pv_Id=pv_Id, pi_Id=pi_Id+1, task_list=product_tList[pv_Id-1], inProduction=True,
-                          finished=False,
-                          last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False, tracking=[])
+        new_instance = Product(pv_Id=pv_Id, pi_Id=pi_Id + 1, task_list=product_tList[pv_Id - 1], inProduction=True,
+                               finished=False,
+                               last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False, tracking=[])
         ct = Source(tstamp=datetime.now())
         new_instance.tracking.append(ct)
         self.active_products.append(new_instance)
@@ -101,6 +103,12 @@ class Scheduling_agent:
 
     def initialize_production(self):
         print(self.order["PV"])
+        self.planned_batch = 0
+        for pv, pi in zip(self.order["PV"], self.order["PI"]):
+            c = pv * pi
+            self.planned_batch += c
+        # print("Total batch size", self.planned_batch)
+
         for i, pv in enumerate(self.order["PV"]):
             if pv == 1:
                 self.remaining_variant.append(i + 1)
@@ -111,29 +119,28 @@ class Scheduling_agent:
                 ########### encapsulated task sequence object for every product instance #######
                 variant = self.remaining_variant.pop(0)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False,tracking=[])
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
                 ct = Source(tstamp=datetime.now())
                 p.tracking.append(ct)
 
                 print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
-                #self.pCount = i + 1
+                # self.pCount = i + 1
         else:  ###### if total robots greater than product variants############
             iterate_order = self.remaining_variant
             for i in range(len(iterate_order)):
                 variant = self.remaining_variant.pop(0)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False,tracking=[])
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
                 ct = Source(tstamp=datetime.now())
                 p.tracking.append(ct)
                 print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
-                #self.pCount = i + 1
+                # self.pCount = i + 1
 
         initial_allocation = self.task_evaluation()
 
         return initial_allocation, self.active_products
-
 
     ## Copy of working old initialization logic#####
     # def initialize_production(self):
@@ -186,8 +193,6 @@ class Scheduling_agent:
             task_for_allocation.append(TA)
 
         return task_for_allocation, product_list
-
-
 
     ######## Dispatch Task to Task Allocator for broadcasting ###################
     def task_evaluation(self):
