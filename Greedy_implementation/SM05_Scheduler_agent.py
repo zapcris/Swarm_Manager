@@ -79,6 +79,10 @@ class Scheduling_agent:
             return new_prod_var
         elif len(self.remaining_variant) <= 0:
             print("Production completed")
+            for i, product in enumerate(self.finished_product):
+
+                print(f"Finished product {i} is {product}")
+                print(f"It's tracking details are {product.tracking}")
 
 
 

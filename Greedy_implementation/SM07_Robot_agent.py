@@ -653,7 +653,7 @@ class Workstation_robot:
             self.process_done = False
             self.product_free = False
             print(f"Process task executing at workstation {self.id}")
-            pt = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
+            pt = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=self.id)
             await asyncio.sleep(process_time)
             print(f"Process task on workstation {self.id} finished")
             # GreedyScheduler.process_task_executed(self.assingedProduct)
@@ -666,6 +666,7 @@ class Workstation_robot:
             self.process_done = True
             print(f"The Workstation {self.id} free status is {self.process_done}")
             print("done product", self.done_product)
+            pt.calc_time()
             self.assingedProduct.tracking.append(pt)
             # await asyncio.sleep(0.5)
             # await self.process_executed()
