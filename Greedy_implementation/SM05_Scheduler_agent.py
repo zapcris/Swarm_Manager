@@ -1,6 +1,6 @@
 from queue import Queue
-from Greedy_implementation.SM10_Product_Task import Product, Task
-
+from Greedy_implementation.SM10_Product_Task import Product, Task, Source
+from datetime import datetime
 
 class Scheduling_agent:
 
@@ -34,7 +34,7 @@ class Scheduling_agent:
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
         new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
-                       wk=0, released=False)
+                       wk=0, released=False,tracking=[])
         for old_prod in self.active_products:
             if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
                 fin_pv = product.pv_Id
@@ -70,12 +70,14 @@ class Scheduling_agent:
             new_variant = self.remaining_variant.pop(0)
             new_prod_var = Product(pv_Id=new_variant, pi_Id=1, task_list=product_tList[new_variant-1], inProduction=True,
                            finished=False,
-                           last_instance=self.order["PI"][new_variant-1], robot=0, wk=0, released=False)
+                           last_instance=self.order["PI"][new_variant-1], robot=0, wk=0, released=False,tracking=[])
+            ct = Source(tstamp=datetime.now())
+            new_prod_var.tracking.append(ct)
 
             self.active_products.append(new_prod_var)
             print(f"New Product Variant {new_variant} and {new_prod_var}  added to active list")
             return new_prod_var
-        else:
+        elif len(self.remaining_variant) <= 0:
             print("Production completed")
 
 
@@ -85,7 +87,9 @@ class Scheduling_agent:
         print("TASK LIST ", product_tList)
         new_instance = Product(pv_Id=pv_Id, pi_Id=pi_Id+1, task_list=product_tList[pv_Id-1], inProduction=True,
                           finished=False,
-                          last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False)
+                          last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False, tracking=[])
+        ct = Source(tstamp=datetime.now())
+        new_instance.tracking.append(ct)
         self.active_products.append(new_instance)
         print(f"New Product {new_instance}  added to active list")
 
@@ -103,7 +107,9 @@ class Scheduling_agent:
                 ########### encapsulated task sequence object for every product instance #######
                 variant = self.remaining_variant.pop(0)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False,tracking=[])
+                ct = Source(tstamp=datetime.now())
+                p.tracking.append(ct)
 
                 print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
@@ -113,7 +119,9 @@ class Scheduling_agent:
             for i in range(len(iterate_order)):
                 variant = self.remaining_variant.pop(0)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False,tracking=[])
+                ct = Source(tstamp=datetime.now())
+                p.tracking.append(ct)
                 print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
                 #self.pCount = i + 1

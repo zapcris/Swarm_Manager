@@ -14,9 +14,10 @@ from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot
     wk_process_event, wk_proc_event, q_main_to_releaser, production_order
 
 
-def task_released(task,loop):
+
+def task_released(task, loop):
     id = task["robot"] - 1
-    print("Triggered robot id is:", id+1 )
+    print("Triggered robot id is:", id + 1)
     if id == 0 and data_opcua["rob_busy"][0]:
         loop.call_soon_threadsafe(event1_exectime.set)
         print("Triggered event is 1 for robot 1")
@@ -27,16 +28,17 @@ def task_released(task,loop):
         loop.call_soon_threadsafe(event3_exectime.set)
         print("Triggered event is 1 for robot 3")
 
-def opcua_cmd_event(task,loop):
+
+def opcua_cmd_event(task, loop):
     id = task.robot
     print("Triggered opcua robot id is:", id)
-    if id == 1 and T_robot[id-1].exec_cmd == True:
+    if id == 1 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event1_chk_exec.set)
         print("Triggered event is 1 for robot 1")
-    elif id == 2 and T_robot[id-1].exec_cmd == True:
+    elif id == 2 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event2_chk_exec.set)
         print("Triggered event is 1 for robot 2")
-    elif id == 3 and T_robot[id-1].exec_cmd == True:
+    elif id == 3 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event3_chk_exec.set)
         print("Triggered event is 1 for robot 3")
 
@@ -52,13 +54,6 @@ def opcua_cmd_event(task,loop):
 #         loop.call_soon_threadsafe(event3.set)
 
 
-
-
-
-
-
-
-
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
@@ -71,7 +66,7 @@ async def release_task_execution(loop):
     while True:
         try:
 
-            if Sim_step < 20:
+            if Sim_step < 100:
                 await asyncio.sleep(3)
                 task_opcua = q_main_to_releaser.get_nowait()
                 robot_id = task_opcua["robot"] - 1
@@ -89,14 +84,6 @@ async def release_task_execution(loop):
 
                 Sim_step += 1
                 print(f"Simulation step incremented to {Sim_step}")
-
-
-
-
-
-
-
-
 
 
 
@@ -143,11 +130,6 @@ async def release_task_execution(loop):
             # else:
             #     pass
 
-
-
-
-
-
             pass
 
 
@@ -158,7 +140,6 @@ def main_release(loop):
 async def release_done_products():
     while True:
         try:
-
 
             done_prod = q_product_done.get_nowait()
             ###print("product retrieved from queue",done_prod)
@@ -183,9 +164,11 @@ async def release_done_products():
 def done_release():
     asyncio.run(release_done_products())
 
+
 def insert_opc_queue(data):
     q_robot_to_opcua.put_nowait(data)
     print(f"Task entered into the queue")
+
 
 async def release_opcua_cmd(loop):
     while True:
@@ -226,8 +209,8 @@ async def release_opcua_cmd(loop):
                 W_robot[task.command[0] - 1].product_clearance()
                 print(f"Workstation {task.command[0]} is Product FREE")
                 await asyncio.sleep(0.5)
-                #W_robot[task.command[1] - 1].product_free = False
-                #W_robot[task.command[1] - 1].robot_free = False
+                # W_robot[task.command[1] - 1].product_free = False
+                # W_robot[task.command[1] - 1].robot_free = False
                 W_robot[task.command[1] - 1].booked = True
                 print(f"Workstation {task.command[1]} is BOOKED")
 
@@ -235,7 +218,7 @@ async def release_opcua_cmd(loop):
                 ### wait for robot busy flag status to update###
                 await asyncio.sleep(3)
                 Events["rob_execution"][id - 1] = True
-                #T_robot[id - 1].exec_cmd = False
+                # T_robot[id - 1].exec_cmd = False
 
             q_robot_to_opcua.task_done()
             task_released(task=task, loop=loop)
@@ -288,18 +271,12 @@ async def concurrent_tasks(loop):
     # loop.create_task(release_task_execution(loop))
     # loop.create_task(release_done_products())
     # loop.create_task(release_opcua_cmd(loop))
-    #loop.create_task(T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua))
-    #loop.create_task(T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua))
-    #loop.create_task(T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua))
+    # loop.create_task(T_robot[0].check_rob_done(event=event1, event_opcua=event1_opcua))
+    # loop.create_task(T_robot[1].check_rob_done(event=event2, event_opcua=event2_opcua))
+    # loop.create_task(T_robot[2].check_rob_done(event=event3, event_opcua=event3_opcua))
 
-
-
-
-
-
-        # )
-        # print(results)
-
+    # )
+    # print(results)
 
 
 ####### Main Thread ######
@@ -332,7 +309,6 @@ if __name__ == "__main__":
         robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
         T_robot.append(robot)
 
-
     ##### Initialize Task Allocator agent #########
     Greedy_Allocator = Task_Allocator_agent()
 
@@ -348,16 +324,15 @@ if __name__ == "__main__":
     # GreedyScheduler.active_products = test_product
     # q_product_done.put_nowait([p1])
 
-
     ##### Start OPCUA Client Thread################
     opcua_client = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
     opcua_client.start()
 
     ##### Start Task Release Thread################
-    task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop, ))
+    task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop,))
     task_releaser_thread.start()
     ##### Start OPCUA Command Thread################
-    opcuacmd_thread = Thread(target=opcua_release, daemon=True, args=(loop, ))
+    opcuacmd_thread = Thread(target=opcua_release, daemon=True, args=(loop,))
     opcuacmd_thread.start()
     ##### Start done product Thread################
     done_product_thread = Thread(target=done_release, daemon=True)
@@ -369,7 +344,7 @@ if __name__ == "__main__":
         #         pool, blocking_io)
         #     print('custom thread pool', result)
 
-        #asyncio.ensure_future(main(), loop=loop)
+        # asyncio.ensure_future(main(), loop=loop)
         asyncio.run(concurrent_tasks(loop), debug=True)
         loop.run_forever()
     except KeyboardInterrupt:
@@ -377,17 +352,6 @@ if __name__ == "__main__":
     finally:
         print("Closing Loop")
         loop.close()
-
-
-
-
-
-
-
-
-
-
-
 
 # async def release_task_execution():
 #     global Sim_step
@@ -576,6 +540,3 @@ if __name__ == "__main__":
 # finally:
 #     print("Closing Loop")
 #     loop.close()
-
-
-

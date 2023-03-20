@@ -3,13 +3,13 @@ from datetime import datetime
 from scipy.spatial import distance
 from Greedy_implementation.SM04_Task_Planning_agent import Task_Planning_agent, generate_task
 from Greedy_implementation.SM05_Scheduler_agent import Scheduling_agent
-from Greedy_implementation.SM10_Product_Task import Product, Task
+from Greedy_implementation.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
 #### Data Initialization ################
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "PV": [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 7, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
                  [11, 2, 4, 6, 8, 12],
                  [11, 3, 5, 6, 8, 9, 7, 12],
@@ -22,7 +22,7 @@ production_order = {
                  [11, 2, 4, 6, 8, 5, 7, 9, 12]
                  ],
 
-    "PI": [4, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "PI": [2, 2, 1, 1, 1, 1, 1, 1, 1, 1],
     "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
     "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
@@ -69,20 +69,20 @@ q_robot_to_opcua = asyncio.Queue()
 q_product_done = asyncio.Queue()
 
 null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
-                       wk=0, released=False)
+                       wk=0, released=False, tracking=[])
 null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=99)
 T_robot = []
 W_robot = []
 
 p1 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 1], [2, 5]], inProduction=False, finished=False, last_instance=1,
              robot=0,
-             wk=0, released=False)
+             wk=0, released=False, tracking=[])
 p2 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 2], [2, 8]], inProduction=False, finished=False, last_instance=1,
              robot=0,
-             wk=0, released=False)
+             wk=0, released=False, tracking=[])
 p3 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 3], [3, 6]], inProduction=False, finished=False, last_instance=1,
              robot=0,
-             wk=0, released=False)
+             wk=0, released=False, tracking=[])
 test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, status="null", robot=1)
 
 test_product = [p1, p2, p3]
@@ -224,6 +224,7 @@ class Transfer_robot:
         self.path_clear = False
         self.wk_loc = 99  ### 99 - arbitrary position #####
         self.base_move = False
+        self.wait = False
 
     def __await__(self):
         async def closure():
@@ -381,12 +382,22 @@ class Transfer_robot:
                 self.exec_cmd = False
                 self.path_clear = False
                 # await asyncio.sleep(0.2)
+                if self.wait == True:
+                    wTime.calc_time()
+                    self.product.tracking.append(wTime)
+                    self.wait = False
+                else:
+                    pass
                 event_frommain.clear()
 
             else:
 
                 print(f"Robot{self.id} awaiting for path to be cleared for task {self.task.command}")
+                self.wait = True
+                wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
+                                     tr_no=self.id)
                 await asyncio.sleep(4)
+                wTime.stop_timer()
                 pass
 
     async def sendtoOPCUA(self, event_fromchkpath: asyncio.Event):
@@ -490,6 +501,7 @@ class Transfer_robot:
             print(f'Robot {self.id} execution tim'
                   f'er has started')
             start_time = datetime.now()
+            tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0], drop=self.task.command[1], tr_no=self.id)
             print(f"Robot {self.id} started executing at {start_time}")
             while event.is_set() == True:
                 await asyncio.sleep(1)
@@ -507,7 +519,7 @@ class Transfer_robot:
             print(f"Robot {self.id} is at {self.wk_loc}")
             W_robot[t[1] - 1].product_free = False
             W_robot[t[1] - 1].robot_free = False
-            if t[1] <= 11:  ### checking for sink node commmand#####
+            if t[1] <= 11:  ### if Task for normal workstation#####
                 print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
                 print(f"Robot {self.id} is at {self.wk_loc}")
                 # print("Triggered workstation is ", t[1])
@@ -524,13 +536,17 @@ class Transfer_robot:
                 # self.task = null_Task
                 self.free = True
                 print(f"The robot {self.id} is Product and Task free")
+                tTime.calc_time()
+                self.product.tracking.append(tTime)
                 wk_process_event(wk=t[1], loop=loop)
                 # await W_robot[wk].process_execution()
                 # event2.clear()
                 event.clear()
 
-            else:
+            else: ### If task for Sink node#####
                 print(f"Product moved to sink node")
+                st = Sink(tstamp=datetime.now())
+                self.product.tracking.append(st)
                 #self.product.task_list.pop(0)
                 # self.product.remove_task()
                 # self.task_deassign()
@@ -545,19 +561,19 @@ class Transfer_robot:
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,-2772,-3081', '', '']
+                        cmd = ['m,0,-1436,107', '', '']
                     elif self.id == 2:
-                        cmd = ['', 'm,0,-2772,2293', '']
+                        cmd = ['', 'm,0,-1567,1480', '']
                     else:
-                        cmd = ['', '', 'm,0,-2772,6752']
+                        cmd = ['', '', 'm,0,-1478,2963']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
                     data_opcua["mobile_manipulator"] = ["", "", ""]
                     print(f"Robot moving to Base Station")
                 elif self.base_move == True:
-                    print(f"Robot reached Base Station")
                     await asyncio.sleep(15)
+                    print(f"Robot reached Base Station")
                     self.free = True
                     self.base_move = False
                     self.wk_loc = 99  ### 0 --> Base/arbitrary location for
@@ -637,6 +653,7 @@ class Workstation_robot:
             self.process_done = False
             self.product_free = False
             print(f"Process task executing at workstation {self.id}")
+            pt = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
             await asyncio.sleep(process_time)
             print(f"Process task on workstation {self.id} finished")
             # GreedyScheduler.process_task_executed(self.assingedProduct)
@@ -649,6 +666,7 @@ class Workstation_robot:
             self.process_done = True
             print(f"The Workstation {self.id} free status is {self.process_done}")
             print("done product", self.done_product)
+            self.assingedProduct.tracking.append(pt)
             # await asyncio.sleep(0.5)
             # await self.process_executed()
             self.assingedProduct.released = True

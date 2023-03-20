@@ -1,5 +1,5 @@
 
-from Greedy_implementation.SM10_Product_Task import Task, Product
+from Greedy_implementation.SM10_Product_Task import  Product
 
 
 production_order = {
@@ -32,36 +32,39 @@ production_order = {
                       ]
 }
 
+#
+# def initialize_production(self_order):
+#     self_robots = [100,200,300]
+#     remaining_order = []
+#     active_products = []
+#     for i, pv in enumerate(self_order["PV"]):
+#         if pv == 1:
+#             remaining_order.append(i+1)
+#     print("Remaining order list", remaining_order)
+#
+#     #### Initialization of Products based on total available robots ######
+#     if len(remaining_order) >= len(self_robots):
+#         for i, r in enumerate(self_robots):
+#             ########### encapsulated task sequence object for every product instance #######
+#             variant = remaining_order.pop(0)
+#             p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
+#                         last_instance=1, robot=0, wk=0, released=False)
+#             print(f"First instance of product type {variant} and product {p} generated for production")
+#             active_products.append(p)
+#
+#     else:  ###### if total robots greater than product variants############
+#         iterate_order = remaining_order
+#         for i in range(len(iterate_order)):
+#             variant = remaining_order.pop(0)
+#             p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
+#                         last_instance=1, robot=0, wk=0, released=False)
+#             print(f"First instance of product type {variant} and product {p} generated for production")
+#             active_products.append(p)
+#     print("Finally remaining List", remaining_order)
 
-def initialize_production(self_order):
-    self_robots = [100,200,300]
-    remaining_order = []
-    active_products = []
-    for i, pv in enumerate(self_order["PV"]):
-        if pv == 1:
-            remaining_order.append(i+1)
-    print("Remaining order list", remaining_order)
 
-    #### Initialization of Products based on total available robots ######
-    if len(remaining_order) >= len(self_robots):
-        for i, r in enumerate(self_robots):
-            ########### encapsulated task sequence object for every product instance #######
-            variant = remaining_order.pop(0)
-            p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
-                        last_instance=1, robot=0, wk=0, released=False)
-            print(f"First instance of product type {variant} and product {p} generated for production")
-            active_products.append(p)
+# initialize_production(production_order)
 
-    else:  ###### if total robots greater than product variants############
-        iterate_order = remaining_order
-        for i in range(len(iterate_order)):
-            variant = remaining_order.pop(0)
-            p = Product(pv_Id=variant, pi_Id=1, task_list=[], inProduction=True, finished=False,
-                        last_instance=1, robot=0, wk=0, released=False)
-            print(f"First instance of product type {variant} and product {p} generated for production")
-            active_products.append(p)
-    print("Finally remaining List", remaining_order)
+a = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3]
 
-
-initialize_production(production_order)
-
+print(a[-1])

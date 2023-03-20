@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from time import sleep
 
 
 @dataclass
@@ -39,6 +40,7 @@ class Product:
     robot: int
     wk: int
     released: bool
+    tracking: []
 
     # def __str__(self):
     #     return f'The product instance is {self.pi}'
@@ -79,79 +81,68 @@ class Product:
 
 
 @dataclass
-class Transfer_time:
-    start_time: datetime
-    stop_time: datetime
-    start_point: int
-    stop_point: int
-    variant: int
-    instance: int
-    robot: int
-    travel_time: float
-    step: int
+class Base1:
+    stime: datetime
+    etime: datetime
+    dtime: float
 
     def start_timer(self):
-        self.start_time = datetime.now()
+        self.stime = datetime.now()
 
     def stop_timer(self):
-        self.stop_time = datetime.now()
+        self.etime = datetime.now()
 
     def calc_time(self):
-        self.travel_time = (self.stop_time - self.start_time).total_seconds()
+        self.etime = datetime.now()
+        self.dtime = (self.etime - self.stime).total_seconds()
 
 
 @dataclass
-class Process_time:
-    start_time: datetime
-    stop_time: datetime
-    Workstation: int
-    step: int
-    variant: int
-    instance: int
-    process_time: float
+class Base2:
+    tr_no: int
+    pickup: int
+    drop: int
 
-    def start_timer(self):
-        self.start_time = datetime.now()
-
-    def stop_timer(self):
-        self.stop_time = datetime.now()
-
-    def calc_time(self):
-        self.process_time = (self.stop_time - self.start_time).total_seconds()
 
 @dataclass
-class Waiting_time:
-    variant: int
-    instance: int
-    step: int
-    start_time: datetime
-    stop_time: datetime
-    wait_time: float
-    robot: int
+class Transfer_time(Base1, Base2):
+    sts: str = "Transfer"
 
-
-    def start_timer(self):
-        self.start_time = datetime.now()
-
-    def stop_timer(self):
-        self.stop_time = datetime.now()
-
-    def calc_time(self):
-        self.wait_time = (self.stop_time - self.start_time).total_seconds()
 
 @dataclass
-class Source_Sink:
-    variant: int
-    instance: int
-    start_time: datetime
-    stop_time: datetime
-    cycle_time: float
+class Process_time(Base1):
+    wk_no: int
+    sts: str = "Process"
 
-    def start_timer(self):
-        self.start_time = datetime.now()
 
-    def stop_timer(self):
-        self.stop_time = datetime.now()
+@dataclass
+class Waiting_time(Base1, Base2):
+    sts: str = "Wait"
 
-    def cycle_time(self):
-        self.cycle_time = (self.stop_time - self.start_time).total_seconds()
+
+@dataclass
+class Source:
+    tstamp: datetime
+    sts: str = "Source"
+
+
+@dataclass
+class Sink:
+    tstamp: datetime
+    sts: str = "Sink"
+
+
+
+# a = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=0, drop=0, tr_no=1)
+# b = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
+# c = Source(tstamp=datetime.now())
+#
+# sleep(5)
+# a.calc_time()
+# b.calc_time()
+# d = Sink(tstamp=datetime.now())
+#
+# print(a.sts, a.dtime)
+# print(b.sts, b.dtime)
+# print(c.sts, c.tstamp)
+# print(c.sts, d.tstamp)
