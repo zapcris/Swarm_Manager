@@ -1,7 +1,4 @@
-from time import sleep
 
-from Greedy_implementation.SM08_Manual_task_release import data_opcua
-from Greedy_implementation.SM10_Product_Task import  Product
 
 
 production_order = {
@@ -66,6 +63,7 @@ production_order = {
 
 
 # initialize_production(production_order)
-while True:
-    sleep(4)
-    print(data_opcua["robot_busy"])
+x  = 10
+title = f"Total Batch product time {x}"
+
+print(title)

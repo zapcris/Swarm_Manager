@@ -561,23 +561,23 @@ class Transfer_robot:
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,-1436,107', '', '']
+                        cmd = ['m,0,-1644,-3211', '', '']
                     elif self.id == 2:
-                        cmd = ['', 'm,0,-1567,1480', '']
-                    else:
-                        cmd = ['', '', 'm,0,-1478,2963']
+                        cmd = ['', 'm,0,-1575,455', '']
+                    elif self.id == 3:
+                        cmd = ['', '', 'm,0,-1711,5033']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
                     data_opcua["mobile_manipulator"] = ["", "", ""]
                     print(f"Robot moving to Base Station")
                 elif self.base_move == True:
+                    W_robot[11].product_clearance()
                     await asyncio.sleep(15)
                     print(f"Robot reached Base Station")
                     self.free = True
                     self.base_move = False
                     self.wk_loc = 99  ### 0 --> Base/arbitrary location for
-                    W_robot[11].product_clearance()
                     W_robot[11].sink_station(self.product)
                     # event2.clear()
                     event.clear()

@@ -2,6 +2,8 @@ from queue import Queue
 from Greedy_implementation.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
 
+#from Greedy_implementation.SM11_Dashboard import production_time
+
 
 class Scheduling_agent:
 
@@ -87,6 +89,7 @@ class Scheduling_agent:
             for i, product in enumerate(self.finished_product):
                 print(f"Finished product {i} is {product}")
                 print(f"It's tracking details are {product.tracking}")
+            #production_time(self.finished_product)
 
     def add_new_instance(self, pv_Id, pi_Id, product_tList):
         ## new task list injected into the current product object ########

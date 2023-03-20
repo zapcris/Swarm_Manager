@@ -192,8 +192,8 @@ async def release_opcua_cmd(loop):
                 data_opcua["create_part"] = task.pV
                 # write_opcua(task["pV"], "create_part", None)
                 await asyncio.sleep(0.7)
-                print(f"part created for robot {id},", task.pV)
                 data_opcua["create_part"] = 0
+                print(f"part created for robot {id},", task.pV)
                 await asyncio.sleep(0.7)
                 data_opcua["mobile_manipulator"] = cmd
                 await asyncio.sleep(0.7)
