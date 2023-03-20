@@ -23,7 +23,7 @@ production_order = {
                  ],
 
     "PI": [2, 2, 1, 1, 1, 1, 1, 1, 1, 1],
-    "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+    "Wk_type": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
                       [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
@@ -244,11 +244,11 @@ class Transfer_robot:
         if start_loc == 11:  ## if source node
             start_pos = [0, -1000]
         else:
-            start_pos = data_opcua["machine_pos"][start_loc]
+            start_pos = data_opcua["machine_pos"][start_loc-1]
         if end_loc == 12:  ## if source node or sink node
-            end_pos = [500, 500]
+            end_pos = [32394, 2936]
         else:
-            end_pos = data_opcua["machine_pos"][end_loc]
+            end_pos = data_opcua["machine_pos"][end_loc-1]
         ### Euclidean distance for cost calculation ##########
         # task_cost = math.sqrt(math.pow(end_pos[0] - start_pos[0], 2) + math.pow(
         #     end_pos[1] - start_pos[1], 2) * 1.0)
@@ -561,11 +561,11 @@ class Transfer_robot:
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,-1436,107', '', '']
+                        cmd = ['m,0,31095,5768', '', '']
                     elif self.id == 2:
-                        cmd = ['', 'm,0,-1567,1480', '']
+                        cmd = ['', 'm,0,32190,-658', '']
                     else:
-                        cmd = ['', '', 'm,0,-1478,2963']
+                        cmd = ['', '', 'm,0,30368,-9550']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)

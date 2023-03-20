@@ -176,13 +176,15 @@ async def release_opcua_cmd(loop):
             data = q_robot_to_opcua.get_nowait()
             task = data[0]
             id = data[1]
-            cmd = ["" for _ in range(len(T_robot))]
+            cmd = ["" for _ in range(2)]
             print(f"Task {task} received from Swarm Manager for robot {id} for execution")
             await asyncio.sleep(1)
             if task.command[1] == 12:
-                c = str("s") + "," + str(task.command[0])
+                c = str("s") + "," + str(task.command[0] - 1)
+            elif task.command[0] == 11:
+                c = str(task.command[0]) + "," + str(task.command[1] - 1)
             else:
-                c = str(task.command[0]) + "," + str(task.command[1])
+                c = str(task.command[0] - 1) + "," + str(task.command[1] - 1)
             cmd.insert((int(id) - 1), c)
 
             if task.command[0] == 11:
