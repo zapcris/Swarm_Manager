@@ -1,4 +1,6 @@
+from time import sleep
 
+from Greedy_implementation.SM08_Manual_task_release import data_opcua
 from Greedy_implementation.SM10_Product_Task import  Product
 
 
@@ -64,7 +66,6 @@ production_order = {
 
 
 # initialize_production(production_order)
-
-a = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3]
-
-print(a[-1])
+while True:
+    sleep(4)
+    print(data_opcua["robot_busy"])

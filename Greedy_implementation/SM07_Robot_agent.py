@@ -246,7 +246,7 @@ class Transfer_robot:
         else:
             start_pos = data_opcua["machine_pos"][start_loc-1]
         if end_loc == 12:  ## if source node or sink node
-            end_pos = [32394, 2936]
+            end_pos = [30850, 3556]
         else:
             end_pos = data_opcua["machine_pos"][end_loc-1]
         ### Euclidean distance for cost calculation ##########
@@ -561,23 +561,23 @@ class Transfer_robot:
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,31095,5768', '', '']
+                        cmd = ['m,0,-1436,107', '', '']
                     elif self.id == 2:
-                        cmd = ['', 'm,0,32190,-658', '']
+                        cmd = ['', 'm,0,-1567,1480', '']
                     else:
-                        cmd = ['', '', 'm,0,30368,-9550']
+                        cmd = ['', '', 'm,0,-1478,2963']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
                     data_opcua["mobile_manipulator"] = ["", "", ""]
                     print(f"Robot moving to Base Station")
                 elif self.base_move == True:
-                    W_robot[11].product_clearance()
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(15)
                     print(f"Robot reached Base Station")
                     self.free = True
                     self.base_move = False
                     self.wk_loc = 99  ### 0 --> Base/arbitrary location for
+                    W_robot[11].product_clearance()
                     W_robot[11].sink_station(self.product)
                     # event2.clear()
                     event.clear()
