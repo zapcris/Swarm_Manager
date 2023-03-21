@@ -146,30 +146,6 @@ class Scheduling_agent:
 
         return initial_allocation, self.active_products
 
-    ## Copy of working old initialization logic#####
-    # def initialize_production(self):
-    #
-    #     #### Initialization of Products based on total available robots ######
-    #     if self.order["PV"] >= len(self.robots):
-    #         for i, r in enumerate(self.robots):
-    #             ########### encapsulated task sequence object for every product instance #######
-    #             p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-    #                         last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
-    #
-    #             print(f"First instance of product type {i+1} and product {p} generated for production")
-    #             self.active_products.append(p)
-    #             self.pCount = i + 1
-    #     else:  ###### if total robots greater than product variants############
-    #         for i in range(self.order["PV"]):
-    #             p = Product(pv_Id=i + 1, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-    #                         last_instance=self.order["PI"][i], robot=0, wk=0, released=False)
-    #             print(f"First instance of product type {i+1} and product {p} generated for production")
-    #             self.active_products.append(p)
-    #             self.pCount = i + 1
-    #
-    #     initial_allocation = self.task_evaluation()
-    #
-    #     return initial_allocation, self.active_products
 
     def normalized_production(self, product_list):
         task_for_allocation = []

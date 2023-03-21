@@ -133,16 +133,4 @@ class Sink:
 
 
 
-# a = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=0, drop=0, tr_no=1)
-# b = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
-# c = Source(tstamp=datetime.now())
-#
-# sleep(5)
-# a.calc_time()
-# b.calc_time()
-# d = Sink(tstamp=datetime.now())
-#
-# print(a.sts, a.dtime)
-# print(b.sts, b.dtime)
-# print(c.sts, c.tstamp)
-# print(c.sts, d.tstamp)
+

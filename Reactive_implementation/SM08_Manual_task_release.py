@@ -7,10 +7,6 @@ import queue
 from Reactive_implementation.SM02_opcua_client import start_opcua
 
 
-
-
-#from Greedy_implementation.SM07_Robot_agent import q_product_done, p1
-
 q1 = queue.Queue(maxsize=100)
 
 
@@ -70,10 +66,6 @@ class MyWindow:
         print("Part Created!!!")
 
 
-    # def sub(self, event):
-    #     self.t3.delete(0, 'end')
-    #     #self.t3.clear()
-    #     self.t3.insert(END, str(self.t3))
 
     def queue(self):
         task_list = ["" for _ in range(2)]
