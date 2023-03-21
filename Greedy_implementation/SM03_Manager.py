@@ -4,6 +4,7 @@ import sys
 import tracemalloc
 from threading import Thread
 from Greedy_implementation.SM02_opcua_client import start_opcua
+from Greedy_implementation.SM05_Scheduler_agent import app_close
 from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
 from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
     T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, \
@@ -240,6 +241,13 @@ async def release_opcua_cmd(loop):
 def opcua_release(loop):
     asyncio.run(release_opcua_cmd(loop))
 
+def close_application():
+    print("Closing Loop")
+    loop.close()
+    opcua_client.join()
+    task_releaser_thread.join()
+    opcuacmd_thread.join()
+    done_product_thread.join()
 
 async def concurrent_tasks(loop):
     """Fetch all urls from the list of urls
@@ -339,6 +347,14 @@ if __name__ == "__main__":
     ##### Start done product Thread################
     done_product_thread = Thread(target=done_release, daemon=True)
     done_product_thread.start()
+    if app_close.is_set()==True:
+        print("Closing Loop and Threads")
+        loop.close()
+        opcua_client.join()
+        task_releaser_thread.join()
+        opcuacmd_thread.join()
+        done_product_thread.join()
+
 
     try:
         # with concurrent.futures.ThreadPoolExecutor() as pool:

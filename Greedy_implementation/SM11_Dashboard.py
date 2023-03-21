@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from Greedy_implementation.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
 
+
 def display_cycletime():
     return None
 
@@ -19,6 +20,7 @@ def production_time(Finished_products):
     batch_time = timedelta(seconds=b_time)
     production_legend = []
     product_sts = []
+
 
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######
