@@ -9,7 +9,7 @@ from Greedy_implementation.SM10_Product_Task import Product, Task, Transfer_time
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "PV": [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 7, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
                  [11, 2, 4, 6, 8, 12],
                  [11, 3, 5, 6, 8, 9, 7, 12],
@@ -22,8 +22,8 @@ production_order = {
                  [11, 2, 4, 6, 8, 5, 7, 9, 12]
                  ],
 
-    "PI": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "Wk_type": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+    "PI": [2, 2, 1, 1, 1, 1, 1, 1, 1, 1],
+    "Wk_type": [1, 1, 1, 2, 2, 1, 1, 2, 1, 1],
     "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
                       [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
@@ -561,11 +561,11 @@ class Transfer_robot:
                     self.base_move = True
                     cmd = []
                     if self.id == 1:
-                        cmd = ['m,0,-1644,-3211', '', '']
+                        cmd = ['m,-1644,-3211,0', '', '']
                     elif self.id == 2:
-                        cmd = ['', 'm,0,-1575,455', '']
+                        cmd = ['', 'm,-1575,455,0', '']
                     elif self.id == 3:
-                        cmd = ['', '', 'm,0,-1711,5033']
+                        cmd = ['', '', 'm,-1711,5033,0']
                     ### move to base station #####
                     data_opcua["mobile_manipulator"] = cmd
                     await asyncio.sleep(2)
@@ -594,7 +594,31 @@ class Transfer_robot:
     #         else:
     #             # print("No opcua event generated")
     #             pass
+    async def direct_exec_channel(self,task,product,cmd):
+        if task["command"][1] == 12:
+            c = str(task["command"][0]) + "," + str("s")
+        else:
+            c = str(task["command"][0]) + "," + str(task["command"][1])
+        cmd.insert((int(self.id) - 1), c)
 
+        if task["command"][0] == 11:
+            data_opcua["create_part"] = task["pV"]
+            # write_opcua(task["pV"], "create_part", None)
+            await asyncio.sleep(0.7)
+            print(f"part created for robot {self.id},", task["pV"])
+            data_opcua["create_part"] = 0
+            await asyncio.sleep(0.7)
+            data_opcua["mobile_manipulator"] = cmd
+            await asyncio.sleep(0.7)
+            data_opcua["mobile_manipulator"] = ["", "", ""]
+            print("command sent to opcuaclient", cmd)
+        else:
+            data_opcua["mobile_manipulator"] = cmd
+            await asyncio.sleep(0.7)
+            data_opcua["mobile_manipulator"] = ["", "", ""]
+            #data_opcua["robot_exec"][self.id - 1] = False
+            #data_opcua["rob_busy"][self.id - 1] = True
+            W_robot[task.command[0]-1].product_clearance()
 
 class Workstation_robot:
 
