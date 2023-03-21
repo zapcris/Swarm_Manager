@@ -276,30 +276,7 @@ class Transfer_robot:
             # print(f"OPCUA command initiated at robot {self.id}")
             pickup = self.task.command[0]
             drop = self.task.command[1]
-            # self.path_clear = False
 
-            # if pickup < 11 and drop < 11:
-            #     if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
-            #         self.path_clear = True
-            #         print(f" Path clearance condition 1.1 activated for robot {self.id}")
-            #     elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True and W_robot[
-            #         drop - 1].booked == False:
-            #         self.path_clear = True
-            #         print(f" Path clearance condition 1.2 activated for robot {self.id}")
-            # elif pickup == 11 and drop < 11:
-            #     if W_robot[drop - 1].booked == False:
-            #         self.path_clear = True
-            #         print(f" Path clearance condition 2 activated for robot {self.id}")
-            # elif pickup < 11 and drop == 12:
-            #     if self.wk_loc == pickup:
-            #         self.path_clear = True
-            #         print(f" Path clearance condition 3.1 activated for robot {self.id}")
-            #     elif self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True:
-            #         self.path_clear = True
-            #         print(f" Path clearance condition 3.2 activated for robot {self.id}")
-            #
-            # else:
-            #     pass
 
             if pickup < 11 and event_toopcua.is_set() == False:
                 if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
