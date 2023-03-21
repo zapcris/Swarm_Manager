@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from Greedy_implementation.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
 
-
 def display_cycletime():
     return None
 
@@ -21,11 +20,10 @@ def production_time(Finished_products):
     production_legend = []
     product_sts = []
 
-
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######
         # l = "P_variant:" + str(product.pv_Id) + "," + "P_instance:" + str(product.pi_Id)
-        l = f"var:{product.pv_Id} inst:{product.pi_Id}"
+        l = f"var:{product.pv_Id}inst:{product.pi_Id}"
         labels.append(l)
         wait_time = 0
         travel_time = 0
@@ -64,7 +62,7 @@ def production_time(Finished_products):
     pie_chart(elements=production_legend, title=main_title)
 
     #### Create pie chart for product overview###
-    for i, (status, label,times) in enumerate(zip(product_times, labels, product_sts)):
+    for i, (status, label, times) in enumerate(zip(product_times, labels, product_sts)):
         product_legend = []
         title = f"Product {label} time for {status} seconds"
         print(title)
@@ -103,7 +101,9 @@ def pie_chart(elements, title):
     ax.legend(wedges, times,
               title="Legend",
               loc="center left",
-              bbox_to_anchor=(1, 0, 0.5, 1))
+              bbox_to_anchor=(1, 0, 0.5, 1),
+              fontsize="x-small",
+              )
 
     plt.setp(autotexts, size=8, weight="bold")
 
