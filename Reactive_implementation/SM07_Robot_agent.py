@@ -9,8 +9,8 @@ from Reactive_implementation.SM10_Product_Task import Product, Task, Transfer_ti
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-    "sequence": [[11, 1, 7, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
+    "PV": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    "sequence": [[11, 1, 7, 12],  # [11, 1, 7, 5, 6, 8, 9, 12]
                  [11, 2, 4, 6, 8, 12],
                  [11, 3, 5, 6, 8, 9, 7, 12],
                  [11, 5, 7, 8, 9, 12],
@@ -22,11 +22,11 @@ production_order = {
                  [11, 2, 4, 6, 8, 5, 7, 9, 12]
                  ],
 
-    "PI": [2, 2, 1, 1, 1, 1, 1, 1, 1, 1],
+    "PI": [2, 2, 1, 1, 2, 1, 1, 4, 5, 1],
     "Wk_type": [1, 1, 1, 2, 2, 1, 1, 2, 1, 1],
-    "Process_times": [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], #[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+    "Process_times": [[30, 30, 20, 30, 45, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [30, 30, 20, 30, 45, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [25, 30, 20, 30, 45, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
@@ -36,7 +36,6 @@ production_order = {
                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       ]
 }
-
 
 data_opcua = {
     "brand": "Ford",
@@ -67,6 +66,7 @@ Events = {
 q_main_to_releaser = asyncio.Queue()
 q_robot_to_opcua = asyncio.Queue()
 q_product_done = asyncio.Queue()
+q_task_wait = asyncio.Queue()
 
 null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False, tracking=[])
@@ -167,8 +167,6 @@ def wk_process_event(wk, loop: asyncio.AbstractEventLoop):
         # return wk_10
 
 
-
-
 ### instantiate order and generation of task list to that order
 test_order = Task_Planning_agent(input_order=production_order)
 generated_task = test_order.task_list()
@@ -183,6 +181,7 @@ GreedyScheduler = Scheduling_agent(
     T_robot=T_robot
 
 )
+
 
 async def bg_tsk(flag, condn):
     while True:
@@ -236,11 +235,11 @@ class Transfer_robot:
         if start_loc == 11:  ## if source node
             start_pos = [0, -1000]
         else:
-            start_pos = data_opcua["machine_pos"][start_loc-1]
+            start_pos = data_opcua["machine_pos"][start_loc - 1]
         if end_loc == 12:  ## if source node or sink node
             end_pos = [30850, 3556]
         else:
-            end_pos = data_opcua["machine_pos"][end_loc-1]
+            end_pos = data_opcua["machine_pos"][end_loc - 1]
         task_cost = distance.euclidean(start_pos, end_pos)
 
         # if self.data_opcua["rob_busy"][self.id-1] == False :
@@ -262,7 +261,6 @@ class Transfer_robot:
         self.product = product
         self.free = False
 
-
     def trigger_task(self, task, execute):
         self.task = task
         self.exec_cmd = execute
@@ -276,7 +274,6 @@ class Transfer_robot:
             # print(f"OPCUA command initiated at robot {self.id}")
             pickup = self.task.command[0]
             drop = self.task.command[1]
-
 
             if pickup < 11 and event_toopcua.is_set() == False:
                 if self.wk_loc == pickup and W_robot[drop - 1].booked == False:
@@ -320,7 +317,6 @@ class Transfer_robot:
 
     async def sendtoOPCUA(self, event_fromchkpath: asyncio.Event):
         while True:
-
             await event_fromchkpath.wait()
             # await event_tochkpath.wait()
             pickup = self.task.command[0]
@@ -344,7 +340,8 @@ class Transfer_robot:
             print(f'Robot {self.id} execution tim'
                   f'er has started')
             start_time = datetime.now()
-            tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0], drop=self.task.command[1], tr_no=self.id)
+            tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0],
+                                  drop=self.task.command[1], tr_no=self.id)
             print(f"Robot {self.id} started executing at {start_time}")
             while event.is_set() == True:
                 await asyncio.sleep(1)
@@ -382,13 +379,21 @@ class Transfer_robot:
                 wk_process_event(wk=t[1], loop=loop)
                 # await W_robot[wk].process_execution()
                 # event2.clear()
+                ##NEW implementation for saturating products####
+                new_task_list = generate_task(order=production_order)
+                print("Generated TASK from new function", new_task_list)
+                new_product = GreedyScheduler.robot_done(product=self.product, product_tList=new_task_list)
+                if new_product != None:
+                    q_product_done.put_nowait([new_product])
+                else:
+                    pass
                 event.clear()
 
-            else: ### If task for Sink node#####
+            else:  ### If task for Sink node#####
                 print(f"Product moved to sink node")
                 st = Sink(tstamp=datetime.now())
                 self.product.tracking.append(st)
-                #self.product.task_list.pop(0)
+                # self.product.task_list.pop(0)
                 # self.product.remove_task()
                 # self.task_deassign()
                 ### self task deassign####
@@ -397,7 +402,7 @@ class Transfer_robot:
                     # self.task = null_Task
                     self.free = True
                     self.finished_product = self.product
-                    #W_robot[11].sink_station(self.product)
+                    # W_robot[11].sink_station(self.product)
                     print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
                     self.base_move = True
                     cmd = []
@@ -423,8 +428,7 @@ class Transfer_robot:
                     # event2.clear()
                     event.clear()
 
-
-    async def direct_exec_channel(self,task,product,cmd):
+    async def direct_exec_channel(self, task, product, cmd):
         if task["command"][1] == 12:
             c = str(task["command"][0]) + "," + str("s")
         else:
@@ -446,9 +450,10 @@ class Transfer_robot:
             data_opcua["mobile_manipulator"] = cmd
             await asyncio.sleep(0.7)
             data_opcua["mobile_manipulator"] = ["", "", ""]
-            #data_opcua["robot_exec"][self.id - 1] = False
-            #data_opcua["rob_busy"][self.id - 1] = True
-            W_robot[task.command[0]-1].product_clearance()
+            # data_opcua["robot_exec"][self.id - 1] = False
+            # data_opcua["rob_busy"][self.id - 1] = True
+            W_robot[task.command[0] - 1].product_clearance()
+
 
 class Workstation_robot:
 
@@ -470,7 +475,6 @@ class Workstation_robot:
 
         return closure().__await__()
 
-
     def source_station(self):
         return None
 
@@ -485,8 +489,6 @@ class Workstation_robot:
         self.robot_free = True
         self.booked = False
         print(f"The workstation {self.id} is Product Free")
-
-
 
     async def process_execution(self, event):
         while True:

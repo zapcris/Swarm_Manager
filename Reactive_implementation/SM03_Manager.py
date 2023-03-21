@@ -6,14 +6,14 @@ from threading import Thread
 from Reactive_implementation.SM02_opcua_client import start_opcua
 from Reactive_implementation.SM05_Scheduler_agent import app_close
 from Reactive_implementation.SM06_Task_allocation import Task_Allocator_agent
-from Reactive_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
+from Reactive_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, \
+    Transfer_robot, \
     T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, \
     event2_opcua, event3_opcua, \
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
     event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event, q_main_to_releaser, production_order
-
+    wk_process_event, wk_proc_event, q_main_to_releaser, production_order, q_task_wait
 
 
 def task_released(task, loop):
@@ -88,6 +88,29 @@ async def release_task_execution(loop):
 def main_release(loop):
     asyncio.run(release_task_execution(loop))
 
+async def task_wait_queue():
+    while True:
+        try:
+            awaited_task, awaited_product = q_task_wait.get_nowait()
+            await asyncio.sleep(10)
+            wait_alloted_task = Greedy_Allocator.step_allocation(awaited_task, awaited_product)
+            for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
+                if task.robot != 999:
+                    print(f"tasks entered in the queue:", task)
+                    q_main_to_releaser.put_nowait(task)
+                    print("Task released to Main Releaser")
+                    q_product_done.task_done()
+                else:
+                    q_task_wait.put_nowait((task, product))
+                    print("Task queued in waiting list")
+
+
+        except:
+
+            pass
+
+def task_wait():
+    asyncio.run(task_wait_queue())
 
 async def release_done_products():
     while True:
@@ -98,11 +121,18 @@ async def release_done_products():
             normal_allotment = GreedyScheduler.normalized_production(done_prod)
             ###print("normal allotment", normal_allotment)
             alloted_normal_task = Greedy_Allocator.step_allocation(normal_allotment[0], normal_allotment[1])
-            for task in alloted_normal_task[0]:
-                print(f"tasks entered in the queue:", task)
-                q_main_to_releaser.put_nowait(task)
-                print("Task released to Main Releaser")
-                q_product_done.task_done()
+
+            for task, product in zip(alloted_normal_task[0],alloted_normal_task[1]):
+                if task.robot != 999:
+                    print(f"tasks entered in the queue:", task)
+                    q_main_to_releaser.put_nowait(task)
+                    print("Task released to Main Releaser")
+                    q_product_done.task_done()
+                else:
+                    q_task_wait.put_nowait((task,product))
+                    print("Task queued in waiting list")
+
+
         except:
 
             pass
@@ -141,7 +171,7 @@ async def release_opcua_cmd(loop):
                 await asyncio.sleep(0.7)
                 data_opcua["create_part"] = 0
                 print(f"part created for robot {id},", task.pV)
-                await asyncio.sleep(0.7)
+                await asyncio.sleep(1.5)
                 data_opcua["mobile_manipulator"] = cmd
                 await asyncio.sleep(0.7)
                 data_opcua["mobile_manipulator"] = ["", "", ""]
@@ -275,10 +305,12 @@ if __name__ == "__main__":
     ##### Start OPCUA Client Thread################
     opcua_client = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
     opcua_client.start()
-
     ##### Start Task Release Thread################
     task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop,))
     task_releaser_thread.start()
+    ##### Task waiting Thread ################
+    task_waiting_thread = Thread(target=task_wait, daemon=True)
+    task_waiting_thread.start()
     ##### Start OPCUA Command Thread################
     opcuacmd_thread = Thread(target=opcua_release, daemon=True, args=(loop,))
     opcuacmd_thread.start()
@@ -292,11 +324,9 @@ if __name__ == "__main__":
         task_releaser_thread.join()
         opcuacmd_thread.join()
         done_product_thread.join()
-
+        task_waiting_thread.join()
 
     try:
-
-
         # asyncio.ensure_future(main(), loop=loop)
         asyncio.run(concurrent_tasks(loop), debug=True)
         loop.run_forever()

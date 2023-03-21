@@ -5,6 +5,8 @@ from datetime import datetime
 from Reactive_implementation.SM11_Dashboard import production_time
 
 app_close = threading.Event()
+
+
 class Scheduling_agent:
 
     def __init__(self, order, product_task, T_robot):
@@ -53,7 +55,7 @@ class Scheduling_agent:
                     # print(f"The product variant {del_pv} removed from remaining order list inside Scheduler")
                     self.active_products.pop(index)
                     print(f"The product variant {fin_pv} deleted from the Scheduler Active product list")
-                    new_product = self.add_new_variant(fin_pv, product_tList)
+                    new_product = self.add_new_variant(product_tList)
                     #### added new product variant if product was last instance#####
                 elif product.pi_Id < product.last_instance:
                     # e = self.remaining_order[del_pv - 1]
@@ -69,7 +71,19 @@ class Scheduling_agent:
 
         return new_product
 
-    def add_new_variant(self, pv_Id, product_tList):
+    def robot_done(self, product, product_tList):
+        if len(self.remaining_variant) > 0:
+            new_product = self.add_new_variant(product_tList)
+            return new_product
+        elif len(self.remaining_variant) == 0 and product.pi_Id < product.last_instance:
+            new_product = self.add_new_instance(product.pv_Id, product.pi_Id, product_tList)
+            return new_product
+        else:
+            print("No product to be added in the production")
+            return None
+
+
+    def add_new_variant(self, product_tList):
         print(f"Remaining variants in production: {self.remaining_variant}")
         if len(self.remaining_variant) > 0:
             new_variant = self.remaining_variant.pop(0)
@@ -145,7 +159,6 @@ class Scheduling_agent:
         initial_allocation = self.task_evaluation()
 
         return initial_allocation, self.active_products
-
 
     def normalized_production(self, product_list):
         task_for_allocation = []
