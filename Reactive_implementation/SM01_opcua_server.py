@@ -92,6 +92,11 @@ async def main():
     rob3_busy = await Moble_manipulator_busy.add_variable(idx, "rob3_busy", False)
     rob4_busy = await Moble_manipulator_busy.add_variable(idx, "rob4_busy", False)
     rob5_busy = await Moble_manipulator_busy.add_variable(idx, "rob5_busy", False)
+    rob6_busy = await Moble_manipulator_busy.add_variable(idx, "rob6_busy", False)
+    rob7_busy = await Moble_manipulator_busy.add_variable(idx, "rob7_busy", False)
+    rob8_busy = await Moble_manipulator_busy.add_variable(idx, "rob8_busy", False)
+    rob9_busy = await Moble_manipulator_busy.add_variable(idx, "rob9_busy", False)
+    rob10_busy = await Moble_manipulator_busy.add_variable(idx, "rob10_busy", False)
 
     # Set MyVariable to be writable by clients
     await rob1_busy.set_writable()
@@ -99,6 +104,12 @@ async def main():
     await rob3_busy.set_writable()
     await rob4_busy.set_writable()
     await rob5_busy.set_writable()
+    await rob6_busy.set_writable()
+    await rob7_busy.set_writable()
+    await rob8_busy.set_writable()
+    await rob9_busy.set_writable()
+    await rob10_busy.set_writable()
+
 
     ###################################################################
     positions = await server.nodes.objects.add_object(idx, "Positions")
@@ -108,6 +119,41 @@ async def main():
     # Set MyVariable to be writable by clients
     await machine_pos.set_writable()
     await robot_pos.set_writable()
+
+    ###################################################################
+    reconfiguration = await server.nodes.objects.add_object(idx, "reconfiguration")
+    all_machine_position_reconfiguraion = await reconfiguration.add_variable(idx, "all_machine_position_reconfiguraion", "")
+    recongure_now = await reconfiguration.add_variable(idx, "recongure_now", False)
+
+    # Set MyVariable to be writable by clients
+    await all_machine_position_reconfiguraion.set_writable()
+    await recongure_now.set_writable()
+
+    ###################################################################
+    task_time = await server.nodes.objects.add_object(idx, "task_time")
+    task_time_rob1 = await task_time.add_variable(idx, "task_time_rob1", "")
+    task_time_rob2 = await task_time.add_variable(idx, "task_time_rob2", "")
+    task_time_rob3 = await task_time.add_variable(idx, "task_time_rob3", "")
+    task_time_rob4 = await task_time.add_variable(idx, "task_time_rob4", "")
+    task_time_rob5 = await task_time.add_variable(idx, "task_time_rob5", "")
+    task_time_rob6 = await task_time.add_variable(idx, "task_time_rob6", "")
+    task_time_rob7 = await task_time.add_variable(idx, "task_time_rob7", "")
+    task_time_rob8 = await task_time.add_variable(idx, "task_time_rob8", "")
+    task_time_rob9 = await task_time.add_variable(idx, "task_time_rob9", "")
+    task_time_rob10 = await task_time.add_variable(idx, "task_time_rob10", "")
+
+
+    # Set MyVariable to be writable by clients
+    await task_time_rob1.set_writable()
+    await task_time_rob2.set_writable()
+    await task_time_rob3.set_writable()
+    await task_time_rob4.set_writable()
+    await task_time_rob5.set_writable()
+    await task_time_rob6.set_writable()
+    await task_time_rob7.set_writable()
+    await task_time_rob8.set_writable()
+    await task_time_rob9.set_writable()
+    await task_time_rob10.set_writable()
 
 
     async with server:

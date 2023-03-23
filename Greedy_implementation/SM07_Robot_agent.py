@@ -9,7 +9,7 @@ from Greedy_implementation.SM10_Product_Task import Product, Task, Transfer_time
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+    "PV": [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 7, 12], #[11, 1, 7, 5, 6, 8, 9, 12]
                  [11, 2, 4, 6, 8, 12],
                  [11, 3, 5, 6, 8, 9, 7, 12],

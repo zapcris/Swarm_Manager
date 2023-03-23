@@ -3,6 +3,8 @@ import time
 from asyncua import Client, Node, ua
 import threading
 
+from scipy.spatial import distance
+
 
 async def main_function(data_opcua):
     full_path = "opc.tcp://127.0.0.1:4840/freeopcua/server/"
@@ -261,14 +263,16 @@ if __name__ == "__main__":
     # print("all done!@!!!")
 
 
-    """
+
     while(True):
 
         time.sleep(0.5)
         print(data_opcua["machine_pos"])
         print(data_opcua["robot_pos"])
         print("####################################")
-    """
+        dist = distance.euclidean(data_opcua["machine_pos"][0], data_opcua["robot_pos"][0])
+        print(dist)
+
     # new code under:
 
 

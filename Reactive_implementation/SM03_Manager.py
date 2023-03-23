@@ -59,7 +59,11 @@ async def release_task_execution(loop):
         try:
 
             if Sim_step < 100:
-                await asyncio.sleep(3)
+                if Sim_step == 0:
+                    t = 7
+                elif Sim_step > 0:
+                    t = 3
+                await asyncio.sleep(t)
                 task_opcua = q_main_to_releaser.get_nowait()
                 robot_id = task_opcua["robot"] - 1
                 print(task_opcua["robot"])
@@ -91,19 +95,21 @@ def main_release(loop):
 async def task_wait_queue():
     while True:
         try:
-            awaited_task, awaited_product = q_task_wait.get_nowait()
-            await asyncio.sleep(10)
-            wait_alloted_task = Greedy_Allocator.step_allocation(awaited_task, awaited_product)
+            awaited_task = q_task_wait.get_nowait()
+            print("Task found in the waiting queue", awaited_task[0])
+            #await asyncio.sleep(10)
+            wait_alloted_task = Greedy_Allocator.step_allocation(awaited_task[0], awaited_task[1])
             for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
-                if task.robot != 999:
-                    print(f"tasks entered in the queue:", task)
+                if task.allocation == True:
+
+                    print(f"task alloted while in the waiting queue:", task)
                     q_main_to_releaser.put_nowait(task)
                     print("Task released to Main Releaser")
                     q_product_done.task_done()
-                else:
-                    q_task_wait.put_nowait((task, product))
-                    print("Task queued in waiting list")
-
+                elif task.allocation == False:
+                    print("Task again queued in waiting list")
+                    await asyncio.sleep(10)
+                    q_task_wait.put_nowait([task, product])
 
         except:
 
@@ -122,14 +128,16 @@ async def release_done_products():
             ###print("normal allotment", normal_allotment)
             alloted_normal_task = Greedy_Allocator.step_allocation(normal_allotment[0], normal_allotment[1])
 
-            for task, product in zip(alloted_normal_task[0],alloted_normal_task[1]):
-                if task.robot != 999:
+            for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
+                if task.allocation == True:
                     print(f"tasks entered in the queue:", task)
                     q_main_to_releaser.put_nowait(task)
                     print("Task released to Main Releaser")
                     q_product_done.task_done()
-                else:
-                    q_task_wait.put_nowait((task,product))
+                elif task.allocation == False:
+                    print("Task again queued in waiting list")
+                    await asyncio.sleep(10)
+                    q_task_wait.put_nowait([task, product])
                     print("Task queued in waiting list")
 
 
@@ -170,15 +178,19 @@ async def release_opcua_cmd(loop):
                 # write_opcua(task["pV"], "create_part", None)
                 await asyncio.sleep(0.7)
                 data_opcua["create_part"] = 0
+                W_robot[10].booked = True
+                #print("command sent to opcuaclient", task.pV)
                 print(f"part created for robot {id},", task.pV)
                 await asyncio.sleep(1.5)
                 data_opcua["mobile_manipulator"] = cmd
                 await asyncio.sleep(0.7)
                 data_opcua["mobile_manipulator"] = ["", "", ""]
                 print("command sent to opcuaclient", cmd)
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
                 W_robot[task.command[1] - 1].booked = True
+                W_robot[10].product_clearance()
                 await asyncio.sleep(5)
+
 
             else:
                 data_opcua["mobile_manipulator"] = cmd
@@ -186,6 +198,9 @@ async def release_opcua_cmd(loop):
                 data_opcua["mobile_manipulator"] = ["", "", ""]
                 print("command sent to opcuaclient", cmd)
                 W_robot[task.command[0] - 1].product_clearance()
+                #W_robot[task.command[0] - 1].product_free = True
+                #W_robot[task.command[0] - 1].robot_free = True
+                #W_robot[task.command[0] - 1].booked = False
                 print(f"Workstation {task.command[0]} is Product FREE")
                 await asyncio.sleep(0.5)
                 # W_robot[task.command[1] - 1].product_free = False
@@ -273,7 +288,7 @@ if __name__ == "__main__":
     for i, type in enumerate(production_order["Wk_type"]):
         if type == 1 or type == 2:
             # print("create wk", i, pt, type)
-            wr = Workstation_robot(wk_no=i, order=production_order, product=null_product)
+            wr = Workstation_robot(wk_no=i+1, order=production_order, product=null_product)
             W_robot.append(wr)
     W_robot.append(source_station)
     W_robot.append(sink_station)

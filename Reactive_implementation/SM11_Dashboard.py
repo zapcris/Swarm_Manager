@@ -58,13 +58,13 @@ def production_time(Finished_products):
     for l, p in zip(labels, product_times):
         d = f"{p} sec {l}"
         production_legend.append(d)
-    main_title = f"Production Runtime for: {batch_time}"
+    main_title = f"Greedy2-Production Runtime for: {batch_time}"
     pie_chart(elements=production_legend, title=main_title)
 
     #### Create pie chart for product overview###
     for i, (status, label, times) in enumerate(zip(product_times, labels, product_sts)):
         product_legend = []
-        title = f"Product {label} time for {status} seconds"
+        title = f"Greedy2-Product {label} time for {status} seconds"
         print(title)
         d1 = f"{times[0]} Transfer"
         d2 = f"{times[1]} Wait"

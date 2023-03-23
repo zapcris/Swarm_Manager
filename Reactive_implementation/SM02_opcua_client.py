@@ -238,38 +238,43 @@ if __name__ == "__main__":
 
     # time.sleep(2)
     #
-    #data_opcua["create_part"] = 9
-    #time.sleep(0.7)
-    #data_opcua["create_part"] = 0
+
+    data_opcua["create_part"] = 8
+    time.sleep(0.7)
+    data_opcua["create_part"] = 0
     #
-    time.sleep(2)
-    #
-    #data_opcua["mobile_manipulator"] = ['11,7','','']
-    data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    time.sleep(1)
+
+
+
+
+    #data_opcua["mobile_manipulator"] = ['','a,17','']
+    data_opcua["mobile_manipulator"] = ['a,17','','']
+    #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
     #data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    #data_opcua["mobile_manipulator"] = ['q,11,1000,1000,10', '', '']
+
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 
-    # while True:
-    #     time.sleep(2)
-    #
-    #     print(data_opcua["rob_busy"])
-    #     print(data_opcua["machine_pos"])
-    #     print(data_opcua["robot_pos"])
-    #
-    #
-    # print("all done!@!!!")
+    time.sleep(7)
 
+    #data_opcua["mobile_manipulator"] = ['', 'b,3', '']
+    data_opcua["mobile_manipulator"] = ['b,0', '', '']
+    #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    #data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    #data_opcua["mobile_manipulator"] = ['q,11,1000,1000,10', '', '']
 
-    """
-    while(True):
+    time.sleep(0.7)
+    data_opcua["mobile_manipulator"] = ['', '', '']
 
-        time.sleep(0.5)
-        print(data_opcua["machine_pos"])
-        print(data_opcua["robot_pos"])
-        print("####################################")
-    """
-    # new code under:
+    time.sleep(25)
 
+    #data_opcua["mobile_manipulator"] = ['', 'a,3', '']
+    data_opcua["mobile_manipulator"] = ['a,0', '', '']
+    #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    #data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    #data_opcua["mobile_manipulator"] = ['q,11,1000,1000,10', '', '']
 
-
+    time.sleep(0.7)
+    data_opcua["mobile_manipulator"] = ['', '', '']

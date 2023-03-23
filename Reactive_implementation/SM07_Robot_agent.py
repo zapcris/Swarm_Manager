@@ -11,10 +11,10 @@ production_order = {
     "Name": "Test",
     "PV": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 7, 12],  # [11, 1, 7, 5, 6, 8, 9, 12]
-                 [11, 2, 4, 6, 8, 12],
-                 [11, 3, 5, 6, 8, 9, 7, 12],
-                 [11, 5, 7, 8, 9, 12],
-                 [11, 1, 4, 5, 7, 8, 9, 12],
+                 [11, 2, 6, 12],  # [11, 2, 6, 6, 8, 12]
+                 [11, 3, 9, 12],
+                 [11, 4, 8, 12], #[11, 4, 8, 12, 9, 12]
+                 [11, 10, 9, 12],
                  [11, 2, 5, 6, 8, 3, 12],
                  [11, 3, 6, 8, 2, 4, 3, 12],
                  [11, 4, 5, 6, 8, 7, 12],
@@ -22,7 +22,7 @@ production_order = {
                  [11, 2, 4, 6, 8, 5, 7, 9, 12]
                  ],
 
-    "PI": [2, 2, 1, 1, 2, 1, 1, 4, 5, 1],
+    "PI": [1, 1, 1, 1, 1, 1, 1, 4, 5, 1],
     "Wk_type": [1, 1, 1, 2, 2, 1, 1, 2, 1, 1],
     "Process_times": [[30, 30, 20, 30, 45, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [30, 30, 20, 30, 45, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
@@ -312,6 +312,9 @@ class Transfer_robot:
                 wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
                                      tr_no=self.id)
                 await asyncio.sleep(4)
+
+                for wk in W_robot:
+                    print(f"WK{wk.id}, booking {wk.booked}")
                 wTime.stop_timer()
                 pass
 
@@ -337,12 +340,16 @@ class Transfer_robot:
         while True:
             # print(f'waiting for robot {id} for  execution')
             await event.wait()
+            t = self.task.command
             print(f'Robot {self.id} execution tim'
                   f'er has started')
             start_time = datetime.now()
             tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0],
                                   drop=self.task.command[1], tr_no=self.id)
             print(f"Robot {self.id} started executing at {start_time}")
+            # W_robot[t[0]-1].booked = False
+            # W_robot[t[0]-1].robot_free = False
+
             while event.is_set() == True:
                 await asyncio.sleep(1)
                 if data_opcua["rob_busy"][self.id - 1] == False:
@@ -353,10 +360,18 @@ class Transfer_robot:
             Events["rob_execution"][self.id - 1] = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
-            t = self.task.command
+            await asyncio.sleep(1)
             # print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
-            self.wk_loc = t[1]
-            print(f"Robot {self.id} is at {self.wk_loc}")
+            for wk, wk_loc in enumerate(data_opcua["machine_pos"]):
+                dist = distance.euclidean(wk_loc, data_opcua["robot_pos"][self.id-1])
+                print("Distance to target position is:", dist)
+                if dist <= 800:
+                    self.wk_loc = wk+1
+                elif dist > 800:
+                    self.wk_loc = 99
+                    print("Error: Robot at unknown position")
+            #self.wk_loc = t[1]
+            print(f"Robot {self.id} is at Workstation {self.wk_loc}")
             W_robot[t[1] - 1].product_free = False
             W_robot[t[1] - 1].robot_free = False
             if t[1] <= 11:  ### if Task for normal workstation#####
