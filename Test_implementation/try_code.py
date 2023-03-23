@@ -1,7 +1,33 @@
+
+
+
+
 import asyncio
+import sys
 from threading import Thread
 from time import sleep
 
+
+
+
+step =10
+
+match step:
+    case 0:
+        print("Step 1")
+
+    case 1:
+        print("Step2")
+
+    case 10:
+        print("Step10")
+        step = 11
+
+    case 11:
+        print("step11")
+
+print(step)
+sys.exit()
 q1 = asyncio.Queue()
 
 
