@@ -6,8 +6,8 @@ import random
 from threading import Thread
 from time import sleep
 
-from Greedy_implementation.SM04_Task_Planning_agent import order
-from Greedy_implementation.SM07_Robot_agent import Events, data_opcua
+
+from Greedy_implementation.SM07_Robot_agent import Events, data_opcua,production_order
 
 tracemalloc.start()
 
@@ -201,7 +201,7 @@ async def execution_time(flag, id):
         return None
 
 async def process_execution(event, wk, product_pv):
-    process_time = order["Process_times"][product_pv][wk-1]
+    process_time = production_order["Process_times"][product_pv][wk-1]
     await event.wait()
     print(f"Process task executing at workstation {wk}")
     await asyncio.sleep(process_time)
