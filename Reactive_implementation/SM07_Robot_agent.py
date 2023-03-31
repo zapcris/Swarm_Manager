@@ -363,7 +363,7 @@ class Transfer_robot:
             await asyncio.sleep(1)
             # print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
             for wk, wk_loc in enumerate(data_opcua["machine_pos"]):
-                dist = distance.euclidean(wk_loc, data_opcua["robot_pos"][self.id-1])
+
                 print("Distance to target position is:", dist)
                 if dist <= 800:
                     self.wk_loc = wk+1

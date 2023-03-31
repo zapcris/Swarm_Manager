@@ -1,6 +1,7 @@
 import asyncio
 import queue
 import sys
+import time
 import tracemalloc
 from threading import Thread
 from Reactive_majorversion2.SM02_opcua_client import start_opcua
@@ -13,35 +14,33 @@ from Reactive_majorversion2.SM07_Robot_agent import data_opcua, Workstation_robo
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
     event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event, q_main_to_releaser, production_order, q_task_wait, capabilities
+    wk_process_event, wk_proc_event, q_main_to_releaser, production_order, q_task_wait, capabilities, Ax_station, \
+    Auxillary_station, opcua_cmd_event
 
 
-def task_released(task, loop):
-    id = task["robot"] - 1
-    print("Triggered robot id is:", id + 1)
-    if id == 0 and data_opcua["rob_busy"][0]:
+def reconfigure_topology():
+    #reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
+    reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    data_opcua["reconfiguration_machine_pos"] = reconfig
+    time.sleep(0.5)
+    data_opcua["do_reconfiguration"] = True
+    time.sleep(1)
+    data_opcua["do_reconfiguration"] = False
+def task_released(robot_id, loop):
+    #id = robot_id - 1
+    #print("Triggered robot id is:", id + 1)
+    if robot_id == 1 and data_opcua["rob_busy"][0]:
         loop.call_soon_threadsafe(event1_exectime.set)
-        print("Triggered event is 1 for robot 1")
-    elif id == 1 and data_opcua["rob_busy"][1]:
+        print("Triggered execution_timer event for robot 1")
+    elif robot_id == 2 and data_opcua["rob_busy"][1]:
         loop.call_soon_threadsafe(event2_exectime.set)
-        print("Triggered event is 1 for robot 2 ")
-    elif id == 2 and data_opcua["rob_busy"][2]:
+        print("Triggered execution_timer event for robot 2 ")
+    elif robot_id == 3 and data_opcua["rob_busy"][2]:
         loop.call_soon_threadsafe(event3_exectime.set)
-        print("Triggered event is 1 for robot 3")
+        print("Triggered execution_timer event for robot 3")
 
 
-def opcua_cmd_event(task, loop):
-    id = task.robot
-    print("Triggered opcua robot id is:", id)
-    if id == 1 and T_robot[id - 1].exec_cmd == True:
-        loop.call_soon_threadsafe(event1_chk_exec.set)
-        print("Triggered event is 1 for robot 1")
-    elif id == 2 and T_robot[id - 1].exec_cmd == True:
-        loop.call_soon_threadsafe(event2_chk_exec.set)
-        print("Triggered event is 1 for robot 2")
-    elif id == 3 and T_robot[id - 1].exec_cmd == True:
-        loop.call_soon_threadsafe(event3_chk_exec.set)
-        print("Triggered event is 1 for robot 3")
+
 
 
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -58,19 +57,19 @@ async def release_task_execution(loop):
 
             if Sim_step < 100:
                 if Sim_step == 0:
-                    t = 7
+                    t = 15
                 elif Sim_step > 0:
                     t = 3
                 await asyncio.sleep(t)
                 task_opcua = q_main_to_releaser.get_nowait()
-                robot_id = task_opcua["robot"] - 1
+                robot_id = task_opcua["robot"]
                 print(task_opcua["robot"])
                 # await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
                 a = True
                 await asyncio.sleep(1)
-                T_robot[robot_id].trigger_task(task=task_opcua, execute=a)
-                opcua_cmd_event(task=task_opcua, loop=loop)
-                print(f"Task released to robot {robot_id + 1}")
+                T_robot[robot_id-1].trigger_task(task=task_opcua, execute=a)
+                opcua_cmd_event(id=robot_id, loop=loop)
+                print(f"Task released to robot {robot_id}")
 
                 q_main_to_releaser.task_done()
                 # done()
@@ -119,7 +118,7 @@ def task_wait():
     asyncio.run(task_wait_queue())
 
 
-async def release_done_products():
+async def release_products():
     while True:
         try:
 
@@ -148,7 +147,7 @@ async def release_done_products():
 
 
 def done_release():
-    asyncio.run(release_done_products())
+    asyncio.run(release_products())
 
 
 def insert_opc_queue(data):
@@ -161,70 +160,71 @@ async def release_opcua_cmd(loop):
         try:
             data = q_robot_to_opcua.get_nowait()
             sub_task = data[0]
+            target = int(sub_task[1])
             id = data[1]
-            cmd = ["" for _ in range(2)]
+            product = data[2]
+            cmd = ["" for _ in range(3)]
             print(f"Task {sub_task} received from Swarm Manager for robot {id} for execution")
-            # await asyncio.sleep(1)
-            if sub_task[0] == "pick":
-                c = "a" + "," + sub_task[1]
-            elif sub_task[0] == "queue":
-                c = "n" + "," + sub_task[1]
-            elif sub_task[0] == "drop":
-                c = "b" + "," + sub_task[1]
-            elif sub_task[0] == "sink":
-                c = "s" + "," + sub_task[1]
+            await asyncio.sleep(1)
+            match sub_task[0]:
+                case 'pick':
+                    #print("case1 activated")
+                    c = "a" + "," + sub_task[1]
+                    cmd.insert((int(id) - 1), c)
+                    #print("command to opcua", cmd)
+                    #print("id", id)
+                    #print("target station", sub_task[1])
+                    #print("part to be created", product)
+                    if 10<=target<=19:
+                        data_opcua["create_part"] = product
+                        # write_opcua(task["pV"], "create_part", None)
+                        await asyncio.sleep(3)
+                        data_opcua["create_part"] = 0
+                        print(f"part created for robot {id},", product)
+                        #Ax_station[target-10].booked = True
+                        await asyncio.sleep(0.5)
 
-            else:
-                c = str(task.command[0] - 1) + "," + str(task.command[1] - 1)
-            cmd.insert((int(id) - 1), c)
+                        # # data_opcua["mobile_manipulator"] = cmd
+                        # data_opcua["mobile_manipulator"] = ['a,10', '', '']
+                        # await asyncio.sleep(3)
+                        # data_opcua["mobile_manipulator"] = ['', '', '']
+                        # print("command sent to opcuaclient", cmd)
+                        # await asyncio.sleep(1)
+                        # # W_robot[task.command[1] - 1].booked = True
+                        # # W_robot[10].product_clearance()
+                        # await asyncio.sleep(2)
+                        # # W_robot[target].product_clearance()
+                        # # W_robot[target].booked = True
+                        # print(f"Workstation {sub_task[1]} is BOOKED")
+                        # q_robot_to_opcua.task_done()
+                        # task_released(robot_id=id, loop=loop)
+                        # print("Event Status", Events["rob_execution"])
+                case "queue":
+                    c = "n" + "," + sub_task[1]
+                    cmd.insert((int(id) - 1), c)
+                case "drop":
+                    c = "b" + "," + sub_task[1]
+                    cmd.insert((int(id) - 1), c)
+                case "sink":
+                    c = "b" + "," + sub_task[1]
+                    cmd.insert((int(id) - 1), c)
+                    Ax_station[11].booked = True
 
-            if task.command[0] == 11:
-                # sleep(3)
-                data_opcua["create_part"] = task.pV
-                # write_opcua(task["pV"], "create_part", None)
-                await asyncio.sleep(0.7)
-                data_opcua["create_part"] = 0
-                W_robot[10].booked = True
-                # print("command sent to opcuaclient", task.pV)
-                print(f"part created for robot {id},", task.pV)
-                await asyncio.sleep(1.5)
-                data_opcua["mobile_manipulator"] = cmd
-                await asyncio.sleep(0.7)
-                data_opcua["mobile_manipulator"] = ["", "", ""]
-                print("command sent to opcuaclient", cmd)
-                await asyncio.sleep(1)
-                W_robot[task.command[1] - 1].booked = True
-                W_robot[10].product_clearance()
-                await asyncio.sleep(5)
 
-
-            else:
-                data_opcua["mobile_manipulator"] = cmd
-                await asyncio.sleep(0.7)
-                data_opcua["mobile_manipulator"] = ["", "", ""]
-                print("command sent to opcuaclient", cmd)
-                W_robot[task.command[0] - 1].product_clearance()
-                # W_robot[task.command[0] - 1].product_free = True
-                # W_robot[task.command[0] - 1].robot_free = True
-                # W_robot[task.command[0] - 1].booked = False
-                print(f"Workstation {task.command[0]} is Product FREE")
-                await asyncio.sleep(0.5)
-                # W_robot[task.command[1] - 1].product_free = False
-                # W_robot[task.command[1] - 1].robot_free = False
-                W_robot[task.command[1] - 1].booked = True
-                print(f"Workstation {task.command[1]} is BOOKED")
-
-                # print(f"robot {self.id} busy status is ", data_opcua["rob_busy"][self.id-1])
-                ### wait for robot busy flag status to update###
-                await asyncio.sleep(3)
-                Events["rob_execution"][id - 1] = True
-                # T_robot[id - 1].exec_cmd = False
-
+            #data_opcua["mobile_manipulator"] = cmd
+            data_opcua["mobile_manipulator"] = ['a,10','','']
+            await asyncio.sleep(3)
+            data_opcua["mobile_manipulator"] = ['', '', '']
+            print("command sent to opcuaclient", cmd)
+            #await asyncio.sleep(1)
+            #W_robot[task.command[1] - 1].booked = True
+            #W_robot[10].product_clearance()
+            #await asyncio.sleep(2)
+            #W_robot[target].product_clearance()
+            #W_robot[target].booked = True
             q_robot_to_opcua.task_done()
-            task_released(task=task, loop=loop)
+            task_released(robot_id=id, loop=loop)
             print("Event Status", Events["rob_execution"])
-
-
 
 
 
@@ -255,12 +255,15 @@ async def concurrent_tasks(loop):
 
     # results = await asyncio.gather(
     # *tasks
-    loop.create_task(T_robot[0].execution_time(event=event1_exectime, loop=loop))
-    loop.create_task(T_robot[1].execution_time(event=event2_exectime, loop=loop))
-    loop.create_task(T_robot[2].execution_time(event=event3_exectime, loop=loop))
+    loop.create_task(T_robot[0].initiate_task(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
+    loop.create_task(T_robot[1].initiate_task(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
+    loop.create_task(T_robot[2].initiate_task(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
     loop.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr))
     loop.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr))
     loop.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr))
+    loop.create_task(T_robot[0].execution_timer(event_main=event1_exectime, event_init_task=event1_chk_exec, loop=loop))
+    loop.create_task(T_robot[1].execution_timer(event_main=event2_exectime, event_init_task=event2_chk_exec, loop=loop))
+    loop.create_task(T_robot[2].execution_timer(event_main=event3_exectime, event_init_task=event3_chk_exec, loop=loop))
     loop.create_task(W_robot[0].process_execution(event=wk_1))
     loop.create_task(W_robot[1].process_execution(event=wk_2))
     loop.create_task(W_robot[2].process_execution(event=wk_3))
@@ -271,9 +274,7 @@ async def concurrent_tasks(loop):
     loop.create_task(W_robot[7].process_execution(event=wk_8))
     loop.create_task(W_robot[8].process_execution(event=wk_9))
     loop.create_task(W_robot[9].process_execution(event=wk_10))
-    loop.create_task(T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
-    loop.create_task(T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
-    loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
+
 
     # )
     # print(results)
@@ -288,16 +289,27 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
+    ##### Initialization of auxiliary stations#######
+    for i in range(10):
+        source = Auxillary_station(stn_no=i+10, order=production_order, product=null_product)
+        Ax_station.append(source)
+    sink_station = Auxillary_station(stn_no=40, order=production_order, product=null_product)
+    Ax_station.append(sink_station)
+
+
     #########Initialization of Workstation robots###############################
-    sink_station = Workstation_robot(wk_no=12, order=production_order, product=null_product)
-    source_station = Workstation_robot(wk_no=11, order=production_order, product=null_product)
+    ##### Start OPCUA Client Thread################
+    opcua_client = Thread(target=start_opcua, args=(data_opcua,))
+    opcua_client.start()
+
+
     for i, type in enumerate(production_order["Wk_type"]):
         if type == 1 or type == 2:
             # print("create wk", i, pt, type)
             wr = Workstation_robot(wk_no=i + 1, order=production_order, product=null_product)
             W_robot.append(wr)
-    W_robot.append(source_station)
-    W_robot.append(sink_station)
+    #W_robot.append(source_station)
+    #W_robot.append(sink_station)
 
     ########## Initialization of Carrier robots######################################################
     q_robot = []
@@ -322,9 +334,7 @@ if __name__ == "__main__":
         print(f"tasks in the queue:", task)
         q_main_to_releaser.put_nowait(task)
 
-    ##### Start OPCUA Client Thread################
-    opcua_client = Thread(target=start_opcua, daemon=True, args=(data_opcua,))
-    opcua_client.start()
+
     ##### Start Task Release Thread################
     task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop,))
     task_releaser_thread.start()
@@ -337,6 +347,7 @@ if __name__ == "__main__":
     ##### Start done product Thread################
     done_product_thread = Thread(target=done_release, daemon=True)
     done_product_thread.start()
+
     if app_close.is_set() == True:
         print("Closing Loop and Threads")
         loop.close()

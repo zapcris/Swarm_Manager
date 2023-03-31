@@ -1,14 +1,11 @@
-
-
-
-
 import asyncio
 import sys
 from threading import Thread
 from time import sleep
+import numpy as np
+from scipy.spatial import distance
 
-
-
+from Greedy_implementation.SM07_Robot_agent import data_opcua
 
 step =10
 
@@ -27,7 +24,7 @@ match step:
         print("step11")
 
 print(step)
-sys.exit()
+
 q1 = asyncio.Queue()
 
 
@@ -57,15 +54,28 @@ task_waiting_thread = Thread(target=run_queue, daemon=True, args=(q1, ))
 task_waiting_thread.start()
 
 count = 0
+wk_loc = [900, 100]
+wk_loc2 = [200, 200]
+id = 1
 
-while True:
-    a = 0
+def rising_edge(data, threshold):
+    sign = data >= threshold
+    pos = np.where(np.convolve(sign, [1, -1]) == 1)
+    return pos
 
-    sleep(4)
-    if a == 0 and count ==0 :
-        q1.put_nowait((a,100))
-        print("Data entered")
-        count += 1
-
-    else:
-        pass
+data = np.array([0])
+trigger = rising_edge(data, 0.3)
+print(trigger)
+# while True:
+#     a = 0
+#     dist = distance.euclidean(wk_loc, data_opcua["robot_pos"][id-1])
+#     print(dist)
+#     sleep(4)
+#     # if a == 0 and count ==0 :
+#     #     q1.put_nowait((a,100))
+#     #     print("Data entered")
+#     #     count += 1
+#
+#
+#     # else:
+#     #     pass
