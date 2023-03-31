@@ -272,9 +272,9 @@ async def concurrent_tasks(loop):
     loop.create_task(W_robot[7].process_execution(event=wk_8))
     loop.create_task(W_robot[8].process_execution(event=wk_9))
     loop.create_task(W_robot[9].process_execution(event=wk_10))
-    loop.create_task(T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
-    loop.create_task(T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
-    loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
+    loop.create_task(T_robot[0].initiate_task(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
+    loop.create_task(T_robot[1].initiate_task(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
+    loop.create_task(T_robot[2].initiate_task(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
 
     ### Unused task functions########
     # loop.create_task(main_function(data_opcua))
