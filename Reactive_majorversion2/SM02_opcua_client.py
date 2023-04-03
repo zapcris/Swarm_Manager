@@ -328,9 +328,9 @@ if __name__ == "__main__":
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 
-    time.sleep(13)
+    time.sleep(45)
 
-    data_opcua["mobile_manipulator"] = ['n,23','','']
+    data_opcua["mobile_manipulator"] = ['b,0','','']
     #data_opcua["mobile_manipulator"] = ['n,39', '', '']
     #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
     #data_opcua["mobile_manipulator"] = [' ', '', '']

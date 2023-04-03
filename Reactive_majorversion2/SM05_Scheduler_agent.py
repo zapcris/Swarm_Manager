@@ -202,7 +202,7 @@ class Scheduling_agent:
                 type = 10
             TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
                       allocation=False,
-                      status="Pending", robot=999)
+                      status="Pending", robot=999, step=1)
             task_for_allocation.append(TA)
         return task_for_allocation, product_list
 
@@ -220,7 +220,7 @@ class Scheduling_agent:
             else:
                 type = 10
             TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
-                      status="Pending", robot=999)
+                      status="Pending", robot=999, step=1)
             tasks_for_allocation.append(TA)
 
         return tasks_for_allocation

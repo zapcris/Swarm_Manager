@@ -13,6 +13,7 @@ class Task:
     allocation: bool
     status: str
     robot: int
+    step: int
 
     def __getitem__(self, id):
         return getattr(self, id)

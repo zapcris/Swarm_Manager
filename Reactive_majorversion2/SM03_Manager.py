@@ -65,9 +65,9 @@ async def release_task_execution(loop):
                 robot_id = task_opcua["robot"]
                 print(task_opcua["robot"])
                 # await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
-                a = True
+                #a = True
                 await asyncio.sleep(1)
-                T_robot[robot_id-1].trigger_task(task=task_opcua, execute=a)
+                T_robot[robot_id-1].trigger_task(task=task_opcua)
                 opcua_cmd_event(id=robot_id, loop=loop)
                 print(f"Task released to robot {robot_id}")
 
@@ -184,23 +184,13 @@ async def release_opcua_cmd(loop):
                         #Ax_station[target-10].booked = True
                         await asyncio.sleep(0.5)
 
-                        # # data_opcua["mobile_manipulator"] = cmd
-                        # data_opcua["mobile_manipulator"] = ['a,10', '', '']
-                        # await asyncio.sleep(3)
-                        # data_opcua["mobile_manipulator"] = ['', '', '']
-                        # print("command sent to opcuaclient", cmd)
-                        # await asyncio.sleep(1)
-                        # # W_robot[task.command[1] - 1].booked = True
-                        # # W_robot[10].product_clearance()
-                        # await asyncio.sleep(2)
-                        # # W_robot[target].product_clearance()
-                        # # W_robot[target].booked = True
-                        # print(f"Workstation {sub_task[1]} is BOOKED")
-                        # q_robot_to_opcua.task_done()
-                        # task_released(robot_id=id, loop=loop)
-                        # print("Event Status", Events["rob_execution"])
-                case "queue":
-                    c = "n" + "," + sub_task[1]
+                case "q1":
+                    endpoint = str(target + 20)
+                    c = "n" + "," + endpoint
+                    cmd.insert((int(id) - 1), c)
+                case "q2":
+                    endpoint = str(target + 30)
+                    c = "n" + "," + endpoint
                     cmd.insert((int(id) - 1), c)
                 case "drop":
                     c = "b" + "," + sub_task[1]
@@ -211,8 +201,7 @@ async def release_opcua_cmd(loop):
                     Ax_station[11].booked = True
 
 
-            #data_opcua["mobile_manipulator"] = cmd
-            data_opcua["mobile_manipulator"] = ['a,10','','']
+            data_opcua["mobile_manipulator"] = cmd
             await asyncio.sleep(3)
             data_opcua["mobile_manipulator"] = ['', '', '']
             print("command sent to opcuaclient", cmd)
@@ -310,7 +299,7 @@ if __name__ == "__main__":
             W_robot.append(wr)
     #W_robot.append(source_station)
     #W_robot.append(sink_station)
-
+    W_robot[0].booked = True
     ########## Initialization of Carrier robots######################################################
     q_robot = []
     for r in data_opcua["rob_busy"]:
