@@ -299,7 +299,7 @@ if __name__ == "__main__":
             W_robot.append(wr)
     #W_robot.append(source_station)
     #W_robot.append(sink_station)
-    W_robot[0].booked = True
+    #W_robot[0].booked = True
     ########## Initialization of Carrier robots######################################################
     q_robot = []
     for r in data_opcua["rob_busy"]:

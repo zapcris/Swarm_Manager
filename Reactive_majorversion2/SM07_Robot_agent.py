@@ -635,7 +635,7 @@ class Workstation_robot:
         self.robot_free = True
         self.booked = False
         self.capability = []
-        self.q1_empty = False
+        self.q1_empty = True
         self.q2_empty = True
 
     def __await__(self):
