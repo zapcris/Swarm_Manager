@@ -337,6 +337,7 @@ if __name__ == "__main__":
     time.sleep(0.7)
     data_opcua["mobile_manipulator"] = ['', '', '']
 
+    print(data_opcua["machine_pos"])
 
 
 

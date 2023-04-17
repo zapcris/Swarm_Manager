@@ -10,10 +10,10 @@ from Reactive_majorversion2.SM10_Product_Task import Product, Task, Transfer_tim
 production_order = {
     "Name": "Test",
     "PV": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    "sequence": [[11, 1, 7, 12],  # [11, 1, 7, 5, 6, 8, 9, 12]
-                 [12, 2, 6, 12],  # [11, 2, 6, 6, 8, 12]
-                 [13, 3, 9, 12],
-                 [14, 4, 8, 12],  # [11, 4, 8, 12, 9, 12]
+    "sequence": [[11, 1, 7, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
+                 [12, 2, 6, 50],  # [11, 2, 6, 6, 8, 12]
+                 [13, 3, 9, 50],
+                 [14, 4, 8, 50],  # [11, 4, 8, 12, 9, 12]
                  [15, 10, 9, 12],
                  [16, 2, 5, 6, 8, 3, 12],
                  [17, 3, 6, 8, 2, 4, 3, 12],
@@ -40,7 +40,7 @@ data_opcua = {
     "brand": "Ford",
     "mobile_manipulator": ["", "", "", "", "", "", "", "", "", ""],
     "rob_busy": [False, False, False, False, False, False, False, False, False, False],
-    "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
+    "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
     "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
     "create_part": 0,
     "mission": ["", "", "", "", "", "", "", "", "", ""],
@@ -246,7 +246,7 @@ class Transfer_robot:
         self.base_move = False
         self.wait = False
         self.task_initiated = False
-        self.task_step = int
+        # self.task_step = int
         self.opcua_cmd = []
         self.new_prod = int
 
@@ -257,31 +257,49 @@ class Transfer_robot:
 
         return closure().__await__()
 
-    def bid(self, auctioned_task):
+    def bid(self, auctioned_task: Task):
         bid_value = 0.0
         task_cost = 0.0
         marginal_cost = 0.0
-        print(auctioned_task)
+        machine_pos = [[3569, 5526], [11989, 5176], [5401, -1414], [14936, -1658], [25615, -2503], [3077, 12153],
+                       [15434, 16900], [12432, 10650], [22123, 10581], [27500, 3630]]
+        #print("The broadcasted task is", auctioned_task)
+
         start_loc = auctioned_task.command[0]
         end_loc = auctioned_task.command[1]
-        total_ws = len(data_opcua["machine_pos"])
-        if start_loc == 11:  ## if source node
-            start_pos = [0, -1000]
-        else:
-            start_pos = data_opcua["machine_pos"][start_loc - 1]
-        if end_loc == 12:  ## if source node or sink node
-            end_pos = [30850, 3556]
-        else:
-            end_pos = data_opcua["machine_pos"][end_loc - 1]
-        task_cost = distance.euclidean(start_pos, end_pos)
+        # total_ws = len(data_opcua["machine_pos"])
+        #print("Bid started")
 
+        if start_loc == 11:  ## if source node
+            start_pos = [0, -2000]
+        elif start_loc == 12:  ## if source node
+            start_pos = [0, -4000]
+        elif start_loc == 13:  ## if source node
+            start_pos = [0, -6000]
+        elif start_loc == 14:  ## if source node
+            start_pos = [0, -8000]
+        elif start_loc == 15:  ## if source node
+            start_pos = [0, -10000]
+        else:
+            #start_pos = data_opcua["machine_pos"][start_loc - 1]
+            start_pos = machine_pos[start_loc - 1]
+
+        #print("Start_position", start_pos)
+        if end_loc == 50:  ## if source node or sink node
+            end_pos = [40292, 3258]
+        else:
+            #end_pos = data_opcua["machine_pos"][end_loc - 1]
+            end_pos = machine_pos[end_loc - 1]
+        #print("End_position", end_pos)
+        task_cost = distance.euclidean(start_pos, end_pos)
+        #print("Cleared bid mid function")
         # if self.data_opcua["rob_busy"][self.id-1] == False :
         if self.free == True and data_opcua["rob_busy"][self.id - 1] == False:
             marginal_cost = distance.euclidean(start_pos, data_opcua["robot_pos"][self.id - 1])
         else:
             marginal_cost = 99999999999
         bid_value = task_cost + marginal_cost
-        # print(bid_value)
+        print(bid_value)
         return bid_value
 
     def task_assign(self, task):
@@ -297,7 +315,7 @@ class Transfer_robot:
     def trigger_task(self, task):
         self.task = task
         self.exec_cmd = True
-        #self.task_step = 1
+        # self.task_step = 1
         # if self.wk_loc != task.command[0]:
         #     self.task_step = 6
         # elif 1 <= task.command[0] <= 10 and self.wk_loc != task.command[0]:
@@ -316,6 +334,7 @@ class Transfer_robot:
             pickup = self.task.command[0]
             drop = self.task.command[1]
             self.new_prod = self.task.pV
+            print(f"Task Step value is {self.task.step}")
 
             match self.task.step:
                 case 1:
@@ -324,7 +343,7 @@ class Transfer_robot:
                         pickup - 11].booked == False:
                         self.opcua_cmd = ["pick", str(pickup - 1)]
                         self.path_clear = True
-                        #self.task.step = 2
+                        # self.task.step = 2
 
                         print(f" Path clearance condition 2 activated for robot {self.id} for task{self.task.command}")
 
@@ -335,44 +354,45 @@ class Transfer_robot:
                             drop - 1].robot_free == True:
                             self.opcua_cmd = ["drop", str(drop - 1)]
                             self.path_clear = True
-                            self.task_step = 5  ## Last step ####
+                            self.task.step = 5  ## Last step ####
+
                         elif (W_robot[drop - 1].booked == True or W_robot[drop - 1].product_free == False or W_robot[
                             drop - 1].robot_free == False) \
                                 and (W_robot[drop - 1].q1_empty == True):
                             self.opcua_cmd = ["q1", str(drop - 1)]
                             self.path_clear = True
-                            self.task_step = 3
+                            self.task.step = 3
                         elif (W_robot[drop - 1].booked == True or W_robot[drop - 1].product_free == False or W_robot[
                             drop - 1].robot_free == False) \
                                 and (W_robot[drop - 1].q1_empty == False) and (W_robot[drop - 1].q2_empty == True):
                             self.opcua_cmd = ["q2", str(drop - 1)]
                             self.path_clear = True
-                            self.task_step = 4
+                            self.task.step = 4
 
                 case 6:
                     #######To Pickup from Workstation #######
                     if 1 <= pickup <= 10 and event_toopcua.is_set() == False:
                         if W_robot[pickup - 1].booked == False and W_robot[pickup - 1].robot_free == True:
-                            self.opcua_cmd = ["pickup", str(pickup - 1)]
+                            self.opcua_cmd = ["pick", str(pickup - 1)]
                             self.path_clear = True
-                            self.task_step = 2
+                            self.task.step = 1
                         elif (W_robot[pickup - 1].booked == True or W_robot[pickup - 1].robot_free == False) and (
                                 W_robot[pickup - 1].q1_empty == True):
                             self.opcua_cmd = ["q1", str(drop - 1)]
                             self.path_clear = True
-                            self.task_step = 7
+                            self.task.step = 7
                         elif (W_robot[pickup - 1].booked == True or W_robot[pickup - 1].robot_free == False) and (
                                 W_robot[pickup - 1].q1_empty == False) \
                                 and (W_robot[pickup - 1].q2_empty == False):
                             self.opcua_cmd = ["q2", str(drop - 1)]
                             self.path_clear = True
-                            self.task_step = 8
+                            self.task.step = 8
 
                 case 10:
-                    if drop == 99 and event_toopcua.is_set() == False and W_robot[drop - 1].booked == False:
-                        self.opcua_cmd = ["sink", str(drop - 1)]
+                    if drop == 50 and event_toopcua.is_set() == False and Ax_station[10].booked == False:
+                        self.opcua_cmd = ["sink", str(pickup - 1)]
                         self.path_clear = True
-                        self.task_step = 11
+                        self.task.step = 11
 
             if event_frommain.is_set() == True and self.path_clear == True:
                 event_toopcua.set()
@@ -427,18 +447,21 @@ class Transfer_robot:
             self.executing = False
             exec_time = (datetime.now() - start_time).total_seconds()
             print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
-            self.wk_loc = int(self.opcua_cmd[1])+1
+            self.wk_loc = int(self.opcua_cmd[1]) + 1
             print(f"Robot {self.id} is at Workstation {self.wk_loc}")
+            print(f"Task Step value is {self.task.step}")
             # self.locate_robot()
             match self.task.step:
                 case 1:
                     # loop.call_soon_threadsafe(event_init_task.set())
-                    self.task.step = 2
+                    if self.task.command[1] == 50:
+                        self.task.step = 10
+                    else:
+                        self.task.step = 2
                     self.exec_cmd = True
                     print(f"Robot{self.id} picked up the product and will movie to drop wk")
-                    #print(f"Robot {self.id} will move to drop workstation")
+                    # print(f"Robot {self.id} will move to drop workstation")
                     opcua_cmd_event(id=self.id, loop=loop)
-
 
                 case 3:
                     # event_chkpath.set()
@@ -455,12 +478,14 @@ class Transfer_robot:
                     self.assigned_task = False
                     ##NEW implementation for saturating products####
                     new_task_list = generate_task(order=production_order)
-                    print("Generated TASK from new function", new_task_list)
+                    # print("Generated TASK from new function", new_task_list)
                     new_product = GreedyScheduler.robot_done(product=self.product, product_tList=new_task_list)
                     if new_product != None:
                         q_product_done.put_nowait([new_product])
+                        print("No new product to generate")
                     else:
                         pass
+                    wk_process_event(wk=self.task.command[1], loop=loop)
 
                 case 7:
                     # event_chkpath.set()
@@ -645,7 +670,6 @@ class Workstation_robot:
 
         return closure().__await__()
 
-
     def product_clearance(self):
         self.product_free = True
         self.robot_free = True
@@ -679,8 +703,8 @@ class Workstation_robot:
             ### Remove current from product###
             self.assingedProduct.released = True
             self.done_product = self.assingedProduct
-            a = [self.done_product]
-            q_product_done.put_nowait(a)
+            #a = [self.done_product]
+            q_product_done.put_nowait(self.done_product)
             print(f"Product {self.done_product} added into done queue")
             event.clear()
 

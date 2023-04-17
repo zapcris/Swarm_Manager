@@ -183,28 +183,33 @@ class Scheduling_agent:
         initial_allocation = self.initial_evaluation()
         return initial_allocation, self.active_products
 
-    def normalized_production(self, product_list):
-        task_for_allocation = []
-        for new_product in product_list:
-            for act_prod in self.active_products:
-                if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
-                    act_prod = new_product
-                    ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
-                else:
-                    pass
-            cmd = new_product.task_list[0]
-            ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
-            if 11 <= cmd[0] <= 20:
-                type = 1
-            elif (1 <= cmd[0] <= 10) or (1 <= cmd[1] <= 10):
-                type = 6
-            else:
-                type = 10
-            TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
-                      allocation=False,
-                      status="Pending", robot=999, step=1)
-            task_for_allocation.append(TA)
-        return task_for_allocation, product_list
+    def normalized_production(self, new_product):
+        #task_for_allocation = []
+        #global task_for_allocation
+        #for new_product in product_list:
+        # for act_prod in self.active_products:
+        #     if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
+        #         act_prod = new_product
+        #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
+        #     else:
+        #         pass
+
+        cmd = new_product.task_list[0]
+
+        ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
+        if 11 <= cmd[0] <= 20:
+               type = 1
+        elif (1 <= cmd[0] <= 10) or (1 <= cmd[1] <= 10):
+            type = 6
+        else:
+            type = 10
+        TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
+                    allocation=False,
+                    status="Pending", robot=999, step=type)
+        #print("New task created ", TA)
+
+        task_for_allocation = TA
+        return task_for_allocation, new_product
 
     ######## Dispatch Task to Task Allocator for broadcasting ###################
     def initial_evaluation(self):

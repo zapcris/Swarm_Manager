@@ -96,18 +96,17 @@ async def task_wait_queue():
             awaited_task = q_task_wait.get_nowait()
             print("Task found in the waiting queue", awaited_task[0])
             # await asyncio.sleep(10)
-            wait_alloted_task = Greedy_Allocator.step_allocation(awaited_task[0], awaited_task[1])
-            for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
-                if task.allocation == True:
-
-                    print(f"task alloted while in the waiting queue:", task)
-                    q_main_to_releaser.put_nowait(task)
-                    print("Task released to Main Releaser")
-                    q_product_done.task_done()
-                elif task.allocation == False:
-                    print("Task again queued in waiting list")
-                    await asyncio.sleep(10)
-                    q_task_wait.put_nowait([task, product])
+            wait_alloted_task = Greedy_Allocator.normal_allocation(awaited_task[0], awaited_task[1])
+            #for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
+            if wait_alloted_task[0].allocation == True:
+                print(f"task alloted while in the waiting queue:", wait_alloted_task[0])
+                q_main_to_releaser.put_nowait(wait_alloted_task[0])
+                print("Task released to Main Releaser")
+                q_product_done.task_done()
+            elif wait_alloted_task[0].allocation == False:
+                print("Task again queued in waiting list")
+                await asyncio.sleep(10)
+                q_task_wait.put_nowait([wait_alloted_task[0], wait_alloted_task[1]])
 
         except:
 
@@ -123,22 +122,24 @@ async def release_products():
         try:
 
             done_prod = q_product_done.get_nowait()
-            ###print("product retrieved from queue",done_prod)
+            #print("product retrieved from queue",done_prod)
             normal_allotment = GreedyScheduler.normalized_production(done_prod)
-            ###print("normal allotment", normal_allotment)
-            alloted_normal_task = Greedy_Allocator.step_allocation(normal_allotment[0], normal_allotment[1])
+            #print("normal allotment", normal_allotment)
+            #print("Allocation Started for task", normal_allotment[0])
+            alloted_normal_task = Greedy_Allocator.normal_allocation(normal_allotment[0], normal_allotment[1])
+            #print("alloted normal task", alloted_normal_task)
 
-            for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
-                if task.allocation == True:
-                    print(f"tasks entered in the queue:", task)
-                    q_main_to_releaser.put_nowait(task)
-                    print("Task released to Main Releaser")
-                    q_product_done.task_done()
-                elif task.allocation == False:
-                    print("Task again queued in waiting list")
-                    await asyncio.sleep(10)
-                    q_task_wait.put_nowait([task, product])
-                    print("Task queued in waiting list")
+            #for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
+            if alloted_normal_task[0].allocation == True:
+                print(f"tasks entered in the queue:", alloted_normal_task[0])
+                q_main_to_releaser.put_nowait(alloted_normal_task[0])
+                print("Task released to Main Releaser")
+                q_product_done.task_done()
+            elif alloted_normal_task[0].allocation == False:
+                print("Task again queued in waiting list")
+                await asyncio.sleep(10)
+                q_task_wait.put_nowait([alloted_normal_task[0], alloted_normal_task[1]])
+                print("Task queued in waiting list")
 
 
         except:
@@ -181,7 +182,7 @@ async def release_opcua_cmd(loop):
                         await asyncio.sleep(3)
                         data_opcua["create_part"] = 0
                         print(f"part created for robot {id},", product)
-                        #Ax_station[target-10].booked = True
+                        Ax_station[target-10].booked = True
                         await asyncio.sleep(0.5)
 
                 case "q1":
@@ -196,9 +197,9 @@ async def release_opcua_cmd(loop):
                     c = "b" + "," + sub_task[1]
                     cmd.insert((int(id) - 1), c)
                 case "sink":
-                    c = "b" + "," + sub_task[1]
+                    c = "s" + "," + sub_task[1]
                     cmd.insert((int(id) - 1), c)
-                    Ax_station[11].booked = True
+                    Ax_station[10].booked = True
 
 
             data_opcua["mobile_manipulator"] = cmd
@@ -302,10 +303,12 @@ if __name__ == "__main__":
     #W_robot[0].booked = True
     ########## Initialization of Carrier robots######################################################
     q_robot = []
-    for r in data_opcua["rob_busy"]:
+    #for r in data_opcua["rob_busy"]:
+    for r in range(3):
         q = queue.Queue()
         q_robot.append(q)
-    for i, R in enumerate(data_opcua["rob_busy"]):
+    #for i, R in enumerate(data_opcua["rob_busy"]):
+    for i in range(3):
         # print(i+1, R)
         robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
         T_robot.append(robot)
