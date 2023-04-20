@@ -309,47 +309,47 @@ if __name__ == "__main__":
     #time.sleep(1)
     #data_opcua["do_reconfiguration"] = False
 
-    time.sleep(3)
-
-    # time.sleep(2)
+    # time.sleep(3)
     #
-    data_opcua["create_part"] = 1
-    time.sleep(0.7)
-    data_opcua["create_part"] = 0
+    # # time.sleep(2)
+    # #
+    # data_opcua["create_part"] = 1
+    # time.sleep(0.7)
+    # data_opcua["create_part"] = 0
+    #
+    # time.sleep(3)
+    #
+    #
+    # data_opcua["mobile_manipulator"] = ['a,10','','']
+    # #data_opcua["mobile_manipulator"] = ['n,23', '', '']
+    # #data_opcua["mobile_manipulator"] = ['b,1','','']
+    # #data_opcua["mobile_manipulator"] = ['m,4000,15000,0', '', '']
+    # #data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    # time.sleep(0.7)
+    # data_opcua["mobile_manipulator"] = ['', '', '']
+    #
+    # time.sleep(45)
+    #
+    # data_opcua["mobile_manipulator"] = ['b,0','','']
+    # #data_opcua["mobile_manipulator"] = ['n,39', '', '']
+    # #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    # #data_opcua["mobile_manipulator"] = [' ', '', '']
+    # time.sleep(0.7)
+    # data_opcua["mobile_manipulator"] = ['', '', '']
+    #
+    # print(data_opcua["machine_pos"])
 
-    time.sleep(3)
-
-
-    data_opcua["mobile_manipulator"] = ['a,10','','']
-    #data_opcua["mobile_manipulator"] = ['n,23', '', '']
-    #data_opcua["mobile_manipulator"] = ['b,1','','']
-    #data_opcua["mobile_manipulator"] = ['m,4000,15000,0', '', '']
-    #data_opcua["mobile_manipulator"] = ['s,7', '', '']
-    time.sleep(0.7)
-    data_opcua["mobile_manipulator"] = ['', '', '']
-
-    time.sleep(45)
-
-    data_opcua["mobile_manipulator"] = ['b,0','','']
-    #data_opcua["mobile_manipulator"] = ['n,39', '', '']
-    #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
-    #data_opcua["mobile_manipulator"] = [' ', '', '']
-    time.sleep(0.7)
-    data_opcua["mobile_manipulator"] = ['', '', '']
-
-    print(data_opcua["machine_pos"])
 
 
 
 
-    """
     while(True):
 
-        time.sleep(0.5)
+        time.sleep(2)
         print(data_opcua["machine_pos"])
         print(data_opcua["robot_pos"])
         print("####################################")
-    """
+
 
 
 

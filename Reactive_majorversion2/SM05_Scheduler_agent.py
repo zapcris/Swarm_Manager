@@ -134,7 +134,6 @@ class Scheduling_agent:
         new_instance.tracking.append(ct)
         self.active_products.append(new_instance)
         print(f"New Product {new_instance}  added to active list")
-
         return new_instance
 
     def initialize_production(self):

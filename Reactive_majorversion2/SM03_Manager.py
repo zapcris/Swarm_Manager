@@ -19,16 +19,18 @@ from Reactive_majorversion2.SM07_Robot_agent import data_opcua, Workstation_robo
 
 
 def reconfigure_topology():
-    #reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
+    # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
     reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
     data_opcua["reconfiguration_machine_pos"] = reconfig
     time.sleep(0.5)
     data_opcua["do_reconfiguration"] = True
     time.sleep(1)
     data_opcua["do_reconfiguration"] = False
+
+
 def task_released(robot_id, loop):
-    #id = robot_id - 1
-    #print("Triggered robot id is:", id + 1)
+    # id = robot_id - 1
+    # print("Triggered robot id is:", id + 1)
     if robot_id == 1 and data_opcua["rob_busy"][0]:
         loop.call_soon_threadsafe(event1_exectime.set)
         print("Triggered execution_timer event for robot 1")
@@ -38,9 +40,6 @@ def task_released(robot_id, loop):
     elif robot_id == 3 and data_opcua["rob_busy"][2]:
         loop.call_soon_threadsafe(event3_exectime.set)
         print("Triggered execution_timer event for robot 3")
-
-
-
 
 
 def start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -65,9 +64,9 @@ async def release_task_execution(loop):
                 robot_id = task_opcua["robot"]
                 print(task_opcua["robot"])
                 # await T_robot[robot_id].sendtoOPCUA(task=task_opcua)
-                #a = True
+                # a = True
                 await asyncio.sleep(1)
-                T_robot[robot_id-1].trigger_task(task=task_opcua)
+                T_robot[robot_id - 1].trigger_task(task=task_opcua)
                 opcua_cmd_event(id=robot_id, loop=loop)
                 print(f"Task released to robot {robot_id}")
 
@@ -97,7 +96,7 @@ async def task_wait_queue():
             print("Task found in the waiting queue", awaited_task[0])
             # await asyncio.sleep(10)
             wait_alloted_task = Greedy_Allocator.normal_allocation(awaited_task[0], awaited_task[1])
-            #for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
+            # for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
             if wait_alloted_task[0].allocation == True:
                 print(f"task alloted while in the waiting queue:", wait_alloted_task[0])
                 q_main_to_releaser.put_nowait(wait_alloted_task[0])
@@ -122,14 +121,14 @@ async def release_products():
         try:
 
             done_prod = q_product_done.get_nowait()
-            #print("product retrieved from queue",done_prod)
+            # print("product retrieved from queue",done_prod)
             normal_allotment = GreedyScheduler.normalized_production(done_prod)
-            #print("normal allotment", normal_allotment)
-            #print("Allocation Started for task", normal_allotment[0])
+            # print("normal allotment", normal_allotment)
+            # print("Allocation Started for task", normal_allotment[0])
             alloted_normal_task = Greedy_Allocator.normal_allocation(normal_allotment[0], normal_allotment[1])
-            #print("alloted normal task", alloted_normal_task)
+            # print("alloted normal task", alloted_normal_task)
 
-            #for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
+            # for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
             if alloted_normal_task[0].allocation == True:
                 print(f"tasks entered in the queue:", alloted_normal_task[0])
                 q_main_to_releaser.put_nowait(alloted_normal_task[0])
@@ -166,23 +165,23 @@ async def release_opcua_cmd(loop):
             product = data[2]
             cmd = ["" for _ in range(3)]
             print(f"Task {sub_task} received from Swarm Manager for robot {id} for execution")
-            await asyncio.sleep(1)
+            # await asyncio.sleep(1)
             match sub_task[0]:
                 case 'pick':
-                    #print("case1 activated")
+                    # print("case1 activated")
                     c = "a" + "," + sub_task[1]
                     cmd.insert((int(id) - 1), c)
-                    #print("command to opcua", cmd)
-                    #print("id", id)
-                    #print("target station", sub_task[1])
-                    #print("part to be created", product)
-                    if 10<=target<=19:
+                    # print("command to opcua", cmd)
+                    # print("id", id)
+                    # print("target station", sub_task[1])
+                    # print("part to be created", product)
+                    if 10 <= target <= 19:
                         data_opcua["create_part"] = product
                         # write_opcua(task["pV"], "create_part", None)
                         await asyncio.sleep(3)
                         data_opcua["create_part"] = 0
                         print(f"part created for robot {id},", product)
-                        Ax_station[target-10].booked = True
+                        # Ax_station[target-10].booked = True
                         await asyncio.sleep(0.5)
 
                 case "q1":
@@ -199,19 +198,22 @@ async def release_opcua_cmd(loop):
                 case "sink":
                     c = "s" + "," + sub_task[1]
                     cmd.insert((int(id) - 1), c)
-                    Ax_station[10].booked = True
-
+                    # Ax_station[10].booked = True
+                case "base":
+                    y_pos = -1700 + ((id - 1) * 5000)
+                    c = "m" + "," + "-10662" + "," + str(y_pos) + "," + "0"
+                    cmd.insert((int(id) - 1), c)
 
             data_opcua["mobile_manipulator"] = cmd
             await asyncio.sleep(3)
             data_opcua["mobile_manipulator"] = ['', '', '']
             print("command sent to opcuaclient", cmd)
-            #await asyncio.sleep(1)
-            #W_robot[task.command[1] - 1].booked = True
-            #W_robot[10].product_clearance()
-            #await asyncio.sleep(2)
-            #W_robot[target].product_clearance()
-            #W_robot[target].booked = True
+            # await asyncio.sleep(1)
+            # W_robot[task.command[1] - 1].booked = True
+            # W_robot[10].product_clearance()
+            # await asyncio.sleep(2)
+            # W_robot[target].product_clearance()
+            # W_robot[target].booked = True
             q_robot_to_opcua.task_done()
             task_released(robot_id=id, loop=loop)
             print("Event Status", Events["rob_execution"])
@@ -265,7 +267,6 @@ async def concurrent_tasks(loop):
     loop.create_task(W_robot[8].process_execution(event=wk_9))
     loop.create_task(W_robot[9].process_execution(event=wk_10))
 
-
     # )
     # print(results)
 
@@ -281,36 +282,46 @@ if __name__ == "__main__":
 
     ##### Initialization of auxiliary stations#######
     for i in range(10):
-        source = Auxillary_station(stn_no=i+10, order=production_order, product=null_product)
+        source = Auxillary_station(stn_no=i + 10, order=production_order, product=null_product)
         Ax_station.append(source)
     sink_station = Auxillary_station(stn_no=40, order=production_order, product=null_product)
     Ax_station.append(sink_station)
-
 
     #########Initialization of Workstation robots###############################
     ##### Start OPCUA Client Thread################
     opcua_client = Thread(target=start_opcua, args=(data_opcua,))
     opcua_client.start()
 
+    while (True):
+        time.sleep(2)
+        print("Awaiting data from Visual Components")
+        # print(data_opcua["machine_pos"])
+        # print(data_opcua["robot_pos"])
+        if data_opcua["machine_pos"][0] != [0, 0]:
+            global_wk_pos = data_opcua["machine_pos"]
+            break
+
+    print("The values of workstation positions are", data_opcua["machine_pos"])
 
     for i, type in enumerate(production_order["Wk_type"]):
         if type == 1 or type == 2:
             # print("create wk", i, pt, type)
             wr = Workstation_robot(wk_no=i + 1, order=production_order, product=null_product)
             W_robot.append(wr)
-    #W_robot.append(source_station)
-    #W_robot.append(sink_station)
+    # W_robot.append(source_station)
+    # W_robot.append(sink_station)
     #W_robot[0].booked = True
     ########## Initialization of Carrier robots######################################################
     q_robot = []
-    #for r in data_opcua["rob_busy"]:
+    # for r in data_opcua["rob_busy"]:
     for r in range(3):
         q = queue.Queue()
         q_robot.append(q)
-    #for i, R in enumerate(data_opcua["rob_busy"]):
+    # for i, R in enumerate(data_opcua["rob_busy"]):
     for i in range(3):
         # print(i+1, R)
-        robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i])
+        robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i],
+                               machine_pos=global_wk_pos)
         T_robot.append(robot)
 
     ##### Initialize Task Allocator agent #########
@@ -319,13 +330,6 @@ if __name__ == "__main__":
     ### Perform task creation and allocation process
     initial_allotment = GreedyScheduler.initialize_production()
     alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1])
-
-    ###### Task queue functions #############
-
-    for task in alloted_initial_task[0]:
-        print(f"tasks in the queue:", task)
-        q_main_to_releaser.put_nowait(task)
-
 
     ##### Start Task Release Thread################
     task_releaser_thread = Thread(target=main_release, daemon=True, args=(loop,))
@@ -339,6 +343,12 @@ if __name__ == "__main__":
     ##### Start done product Thread################
     done_product_thread = Thread(target=done_release, daemon=True)
     done_product_thread.start()
+
+    ###### Task queue functions #############
+
+    for task in alloted_initial_task[0]:
+        print(f"tasks in the queue:", task)
+        q_main_to_releaser.put_nowait(task)
 
     if app_close.is_set() == True:
         print("Closing Loop and Threads")
