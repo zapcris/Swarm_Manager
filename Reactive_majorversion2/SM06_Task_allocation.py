@@ -75,7 +75,8 @@ class Task_Allocator_agent:
             ## assign product to robot####
             #T_robot[i].product_assign(product)
             T_robot[min_index].product = product
-            print(f"Product Allocated to robot {min_index + 1} is {product}")
+            #print(f"Product Allocated to robot {min_index + 1} is {product}")
+
             #print("New task status", task)
             #print("New product status", product)
 

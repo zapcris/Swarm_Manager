@@ -1,10 +1,8 @@
-import asyncio
-import multiprocessing
 import threading
 import time
 from tkinter import *
 import queue
-from Reactive_majorversion2.SM02_opcua_client import start_opcua
+from Reactive_majorversion2.SM02_opcua_client_2_7 import start_opcua
 
 
 q1 = queue.Queue(maxsize=100)

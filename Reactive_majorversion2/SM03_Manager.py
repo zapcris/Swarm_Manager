@@ -1,6 +1,5 @@
 import asyncio
 import queue
-import sys
 import time
 import tracemalloc
 from threading import Thread
@@ -9,12 +8,10 @@ from Reactive_majorversion2.SM05_Scheduler_agent import app_close
 from Reactive_majorversion2.SM06_Task_allocation import Task_Allocator_agent
 from Reactive_majorversion2.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, \
     Transfer_robot, \
-    T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, \
-    event2_opcua, event3_opcua, \
-    wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
+    T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
-    event1_pth_clr, event2_pth_clr, event3_pth_clr, p1, p3, p2, test_product, test_task, q_product_done, \
-    wk_process_event, wk_proc_event, q_main_to_releaser, production_order, q_task_wait, capabilities, Ax_station, \
+    event1_pth_clr, event2_pth_clr, event3_pth_clr, q_product_done, \
+    q_main_to_releaser, production_order, q_task_wait, Ax_station, \
     Auxillary_station, opcua_cmd_event
 
 
