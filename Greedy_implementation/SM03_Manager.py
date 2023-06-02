@@ -78,7 +78,7 @@ async def release_task_execution(loop):
                 T_robot[robot_id].trigger_task(task=task_opcua, execute=a)
                 opcua_cmd_event(task=task_opcua, loop=loop)
                 print(f"Task released to robot {robot_id + 1}")
-
+                print("The workstation position", data_opcua["machine_pos"])
                 q_main_to_releaser.task_done()
                 # done()
                 print("Execution task release", task_opcua)
@@ -272,9 +272,9 @@ async def concurrent_tasks(loop):
     loop.create_task(W_robot[7].process_execution(event=wk_8))
     loop.create_task(W_robot[8].process_execution(event=wk_9))
     loop.create_task(W_robot[9].process_execution(event=wk_10))
-    loop.create_task(T_robot[0].initiate_task(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
-    loop.create_task(T_robot[1].initiate_task(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
-    loop.create_task(T_robot[2].initiate_task(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
+    loop.create_task(T_robot[0].check_path_clear(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
+    loop.create_task(T_robot[1].check_path_clear(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
+    loop.create_task(T_robot[2].check_path_clear(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
 
     ### Unused task functions########
     # loop.create_task(main_function(data_opcua))
@@ -363,6 +363,7 @@ if __name__ == "__main__":
         #     print('custom thread pool', result)
 
         # asyncio.ensure_future(main(), loop=loop)
+
         asyncio.run(concurrent_tasks(loop), debug=True)
         loop.run_forever()
     except KeyboardInterrupt:
