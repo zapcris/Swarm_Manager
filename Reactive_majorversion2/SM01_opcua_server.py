@@ -155,6 +155,9 @@ async def main():
     await reconfiguration_machine_pos.set_writable()
     await do_reconfiguration.set_writable()
 
+    # Variable to inform that create a new part has been recived
+    recive_part = await create_part.add_variable(idx, "recive_part", False)
+    await recive_part.set_writable()
 
     async with server:
         while True:

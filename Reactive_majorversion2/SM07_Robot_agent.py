@@ -36,19 +36,35 @@ production_order = {
                       ]
 }
 
-data_opcua = {
-    "brand": "Ford",
-    "mobile_manipulator": ["", "", "", "", "", "", "", "", "", ""],
-    "rob_busy": [False, False, False, False, False, False, False, False, False, False],
-    "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
-    "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-    "create_part": 0,
-    "mission": ["", "", "", "", "", "", "", "", "", ""],
-    "all_task_time": ["", "", "", "", "", "", "", "", "", ""],
-    "do_reconfiguration": False,
-    "reconfiguration_machine_pos": "",
+# data_opcua = {
+#     "brand": "Ford",
+#     "mobile_manipulator": ["", "", "", "", "", "", "", "", "", ""],
+#     "rob_busy": [False, False, False, False, False, False, False, False, False, False],
+#     "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
+#     "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
+#     "create_part": 0,
+#     "mission": ["", "", "", "", "", "", "", "", "", ""],
+#     "all_task_time": ["", "", "", "", "", "", "", "", "", ""],
+#     "do_reconfiguration": False,
+#     "reconfiguration_machine_pos": "",
+#
+# }
 
-}
+
+data_opcua = {
+        "brand": "Ford",
+        "mobile_manipulator": ["", "", "", "", "", "", "", "", "", ""],
+        "rob_busy": [False, False, False,False,False,False,False,False,False,False],
+        "machine_pos": [[0, 0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],],
+        "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
+        "create_part": 0,
+        "recive_part": False,
+        "mission": ["","","","","","","","","",""],
+        "all_task_time": ["","","","","","","","","",""],
+        "do_reconfiguration": False,
+        "reconfiguration_machine_pos": "",
+
+    }
 
 Events = {
     "brand": "Ford",

@@ -42,6 +42,8 @@ async def main_function(data_opcua):
             #print(object_name)
             if object_name.Name == 'create_new_part':
                 create_new_part = k
+            if object_name.Name == 'recive_part':
+                recive_part = k
 
         for k in Moble_manipulator_busy:
             object_name = await k.read_browse_name()
@@ -247,6 +249,8 @@ async def main_function(data_opcua):
             ##################################################
             await create_new_part.write_value(data_opcua["create_part"])
 
+            data_opcua["recive_part"] = await recive_part.read_value() # To confirm that Visual Components has created the part
+
             ##################################################
             mobile_manipulator_thread = data_opcua["mobile_manipulator"]
             for k in range(len(mobile_manipulator_thread)):
@@ -286,85 +290,80 @@ if __name__ == "__main__":
         "machine_pos": [[0, 0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],],
         "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
         "create_part": 0,
+        "recive_part": False,
         "mission": ["","","","","","","","","",""],
         "all_task_time": ["","","","","","","","","",""],
         "do_reconfiguration": False,
         "reconfiguration_machine_pos": "",
 
-        # check "mission": ["","","","","","","","","",""] change the
-
     }
 
     x = threading.Thread(target=start_opcua, args=(data_opcua,))
     x.start()
-    #""""
+
     #reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
-    reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    data_opcua["reconfiguration_machine_pos"] = reconfig
-    time.sleep(1)
-    data_opcua["do_reconfiguration"] = True
-    time.sleep(2)
-    data_opcua["do_reconfiguration"] = False
-    time.sleep(35)
-    #"""
+    #reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
 
 
+
+    #data_opcua["reconfiguration_machine_pos"] = reconfig
+
+    #time.sleep(0.5)
+    
+    #data_opcua["do_reconfiguration"] = True
+    #time.sleep(1)
+    #data_opcua["do_reconfiguration"] = False
+
+    # time.sleep(3)
+    #
+    # # time.sleep(2)
+    # #
+    print("Receive part status", data_opcua["recive_part"])
     data_opcua["create_part"] = 1
     time.sleep(0.7)
     data_opcua["create_part"] = 0
+    print("Receive part status",data_opcua["recive_part"])
     time.sleep(1)
     data_opcua["create_part"] = 2
     time.sleep(0.7)
     data_opcua["create_part"] = 0
-    time.sleep(1)
-    data_opcua["create_part"] = 3
-    time.sleep(0.7)
-    data_opcua["create_part"] = 0
-
+    print("Receive part status", data_opcua["recive_part"])
     time.sleep(3)
-
-    data_opcua["mobile_manipulator"][0] = 'a,10'
-    data_opcua["mobile_manipulator"][1] = 'a,11'
-    data_opcua["mobile_manipulator"][2] = 'a,12'
-    #data_opcua["mobile_manipulator"] = ['','a,10','']
-    #data_opcua["mobile_manipulator"] = ['n,23', '', '']
-    #data_opcua["mobile_manipulator"] = ['b,1','','']
-    #data_opcua["mobile_manipulator"] = ['m,4000,11000,0', '', '']
-    #data_opcua["mobile_manipulator"] = ['s,7', '', '']
-    time.sleep(0.7)
-    #data_opcua["mobile_manipulator"] = ['', '', '']
-    data_opcua["mobile_manipulator"][0] =  ""
-    data_opcua["mobile_manipulator"][1] = ""
-    data_opcua["mobile_manipulator"][2] = ""
-
-    time.sleep(15)
-
-    print("now_last")
-    data_opcua["mobile_manipulator"][0] = 'b,1'
-    data_opcua["mobile_manipulator"][1] = 'b,3'
-    data_opcua["mobile_manipulator"][2] = 'b,7'
-    #data_opcua["mobile_manipulator"] = ['','b,1','']
-    #data_opcua["mobile_manipulator"] = ['n,39', '', '']
-    #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
-    #data_opcua["mobile_manipulator"] = [' ', '', '']
-    time.sleep(0.7)
-    #data_opcua["mobile_manipulator"] = ['', '', '']
-    data_opcua["mobile_manipulator"][0] =  ""
-    data_opcua["mobile_manipulator"][1] = ""
-    data_opcua["mobile_manipulator"][2] = ""
+    print("Receive part status", data_opcua["recive_part"])
+    #
+    # time.sleep(3)
+    #
+    #
+    # data_opcua["mobile_manipulator"] = ['a,10','','']
+    # #data_opcua["mobile_manipulator"] = ['n,23', '', '']
+    # #data_opcua["mobile_manipulator"] = ['b,1','','']
+    # #data_opcua["mobile_manipulator"] = ['m,4000,15000,0', '', '']
+    # #data_opcua["mobile_manipulator"] = ['s,7', '', '']
+    # time.sleep(0.7)
+    # data_opcua["mobile_manipulator"] = ['', '', '']
+    #
+    # time.sleep(45)
+    #
+    # data_opcua["mobile_manipulator"] = ['b,0','','']
+    # #data_opcua["mobile_manipulator"] = ['n,39', '', '']
+    # #data_opcua["mobile_manipulator"] = ['m,0,9000,-5000', '', '']
+    # #data_opcua["mobile_manipulator"] = [' ', '', '']
+    # time.sleep(0.7)
+    # data_opcua["mobile_manipulator"] = ['', '', '']
+    #
+    # print(data_opcua["machine_pos"])
 
 
 
 
 
-    """
     while(True):
 
-        time.sleep(0.5)
+        time.sleep(2)
         print(data_opcua["machine_pos"])
         print(data_opcua["robot_pos"])
         print("####################################")
-    """
+
 
 
 

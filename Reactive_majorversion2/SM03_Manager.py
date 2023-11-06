@@ -152,6 +152,11 @@ def insert_opc_queue(data):
     print(f"Task entered into the queue")
 
 
+async def bg_tsk(flag):
+    await asyncio.sleep(3)
+    flag.set()
+
+
 async def release_opcua_cmd(loop):
     while True:
         try:
@@ -173,11 +178,24 @@ async def release_opcua_cmd(loop):
                     # print("target station", sub_task[1])
                     # print("part to be created", product)
                     if 10 <= target <= 19:
+                        flag = asyncio.Event()
                         data_opcua["create_part"] = product
                         # write_opcua(task["pV"], "create_part", None)
                         await asyncio.sleep(3)
+                        # "Test code for stopping over creation of product at base"
+                        # while data_opcua["create_part"] == product and data_opcua["create_part"] > 0:
+                        #     #await asyncio.sleep(2)
+                        #     if data_opcua["recive_part"] == True :
+                        #         print(f"Product{product} command received by Visual Component")
+                        #         print(f"Part create command received by Visual Components", data_opcua["recive_part"])
+                        #         break
+                        #     else:
+                        #         continue
+
+                        #asyncio.create_task(bg_tsk(flag))
                         data_opcua["create_part"] = 0
-                        print(f"part created for robot {id},", product)
+                        data_opcua["recive_part"] = False
+                        print(f"product {product} created for robot {id}")
                         # Ax_station[target-10].booked = True
                         await asyncio.sleep(0.5)
 
@@ -202,7 +220,15 @@ async def release_opcua_cmd(loop):
                     cmd.insert((int(id) - 1), c)
 
             data_opcua["mobile_manipulator"] = cmd
-            await asyncio.sleep(3)
+            #await asyncio.sleep(3)
+            "Wait for rob_busy"
+            while data_opcua["mobile_manipulator"] == cmd:
+            # await asyncio.sleep(0)
+                if data_opcua["rob_busy"][id-1] == True:
+                    print(f"Task{cmd} received by Robot {id-1}")
+                    break
+                else:
+                    continue
             data_opcua["mobile_manipulator"] = ['', '', '']
             print("command sent to opcuaclient", cmd)
             # await asyncio.sleep(1)
