@@ -1,40 +1,45 @@
-import sys
-from datetime import datetime
+import os
+import subprocess
 import tkinter as tk
 from tkinter import ttk
-
 import numpy as np
 import pymongo
-from bson import ObjectId
-from SM03_Manager import reconfigure_topology
 from sklearn.preprocessing import MinMaxScaler
 
 tree_stat_list = []
 tree_top_list = []
+Topology = "NONE"
 def read_tree():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
-    mycol = mydb["Tree_Topologies"]
+    mycol = mydb["Spring_Topologies"]
 
     #mydoc = mycol.distinct("Statistical_Fitness")
     mydoc = mycol.find()
     all_doc = list(mycol.find().sort("Timestamp", pymongo.DESCENDING))
     timestamp = []
     for x in all_doc:
-        timestamp.append(x["Timestamp"])
+        #_time = x["_id"].generation_time
+        _time = x["Timestamp"]
+        #stamp = _time.strftime("%Y-%m-%d-%H-%M-%S")
+        timestamp.append(_time)
         #print(x["Timestamp"])
     return timestamp
 
 def select_doc():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
-    mycol = mydb["Tree_Topologies"]
-    id = datetime.strptime(topchoosen.get(), '%Y-%m-%d %H:%M:%S.%f')
+    mycol = mydb["Spring_Topologies"]
+    #id = datetime.strptime(topchoosen.get(), '%Y-%m-%d %H:%M:%S.%f')
+    #id = datetime.strptime(topchoosen.get(), "%Y-%m-%d-%H-%M-%S")
+    id = topchoosen.get()
+    print(id)
     read_doc = mycol.find_one({'Timestamp': id})
+    print(read_doc)
     global tree_stat_list
     global tree_top_list
     tree_stat_list = read_doc["Statistical_Fitness"]
-    tree_top_list = read_doc["Topologies"]
+    tree_top_list = read_doc["Estimated_Topologies"]
     print("selected_document", tree_stat_list)
     toplist['values'] = tree_stat_list
 
@@ -43,6 +48,7 @@ def select_doc():
 def select_top():
     global tree_stat_list
     global tree_top_list
+    global Topology
     selection = float(toplist.get())
     #print(tree_stat_list)
     #print(tree_top_list)
@@ -79,8 +85,23 @@ def select_top():
             pos_str = "NULL," + "NULLd"
             reconfig = reconfig + pos_str
     print(reconfig)
+    Topology = reconfig
 
 
+def save(Topology):
+    "Connect to MongoDB"
+    client = pymongo.MongoClient("mongodb://localhost:27017")
+    db = client["Topology_Manager"]
+    collection = db["Reconfigure_Topology"]
+
+    coll_dict = {"Name": "Reconfiguration", "Topology": Topology}
+    # coll_dict = {"Topologies": topologies}
+
+    total_doc = collection.count_documents({})
+    if total_doc == 0:
+        collection.insert_one(coll_dict)
+    else:
+        collection.replace_one({"Name": "Reconfiguration"}, coll_dict)
 
 
 
@@ -121,14 +142,16 @@ toplist.current()
 
 
 
-reconfig = "0,0d20000,6000d0,15000d0,14000d20000,24000d0,31000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+#reconfig = "0,0d20000,6000d0,15000d0,14000d20000,24000d0,31000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
 
 
 b1 = tk.Button(window, text='Read Estimated Topologies', command=select_doc).grid(column=30,
                                              row=5, padx=10, pady=25)
 b2 = tk.Button(window, text='Retrieve Topology', command=select_top).grid(column=60,
                                              row=5, padx=10, pady=25)
-b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology(reconfig)).grid(column=90,
+# b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology()).grid(column=90,
+#                                              row=5, padx=10, pady=25)
+b3 = tk.Button(window, text='Save Topology', command=lambda:save(Topology)).grid(column=90,
                                              row=5, padx=10, pady=25)
 
 window.mainloop()

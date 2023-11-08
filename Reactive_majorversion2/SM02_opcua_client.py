@@ -247,7 +247,8 @@ async def main_function(data_opcua):
 
 
             ##################################################
-            await create_new_part.write_value(data_opcua["create_part"])
+            # Create parts code !!!
+            await create_new_part.write_value(data_opcua["create_part"]) # What part to create
 
             data_opcua["recive_part"] = await recive_part.read_value() # To confirm that Visual Components has created the part
 
@@ -289,8 +290,11 @@ if __name__ == "__main__":
         "rob_busy": [False, False, False,False,False,False,False,False,False,False],
         "machine_pos": [[0, 0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],],
         "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
+
         "create_part": 0,
         "recive_part": False,
+        "done_createing_part": False,
+
         "mission": ["","","","","","","","","",""],
         "all_task_time": ["","","","","","","","","",""],
         "do_reconfiguration": False,
@@ -300,6 +304,62 @@ if __name__ == "__main__":
 
     x = threading.Thread(target=start_opcua, args=(data_opcua,))
     x.start()
+
+
+    time.sleep(1)
+
+    def wait_create_parrt(data_opcua):
+        # Wait until the part has been created
+        run1 = 1
+        #time.sleep(0.5)
+        while (run1 == 1):
+            time.sleep(0.1)
+            if (data_opcua["recive_part"] == True): # Wait until a part har been created
+                data_opcua["create_part"] = 0
+                run1 = 0
+
+        # wait until Visual Components is ready to create a new part
+        run2 = 1
+        while(run2 == 1):
+            time.sleep(0.1)
+            if(data_opcua["recive_part"] == False):
+                run2 = 0
+
+
+
+    data_opcua["create_part"] = 1
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 2
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 3
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 4
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 5
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 6
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 7
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 8
+    wait_create_parrt(data_opcua)
+
+    data_opcua["create_part"] = 9
+    wait_create_parrt(data_opcua)
+
+    #################################################
+
+
+    print("all done")
+    time.sleep(100)
+
 
     #reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
     #reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
@@ -318,18 +378,7 @@ if __name__ == "__main__":
     #
     # # time.sleep(2)
     # #
-    print("Receive part status", data_opcua["recive_part"])
-    data_opcua["create_part"] = 1
-    time.sleep(0.7)
-    data_opcua["create_part"] = 0
-    print("Receive part status",data_opcua["recive_part"])
-    time.sleep(1)
-    data_opcua["create_part"] = 2
-    time.sleep(0.7)
-    data_opcua["create_part"] = 0
-    print("Receive part status", data_opcua["recive_part"])
-    time.sleep(3)
-    print("Receive part status", data_opcua["recive_part"])
+
     #
     # time.sleep(3)
     #

@@ -3,6 +3,9 @@ import queue
 import time
 import tracemalloc
 from threading import Thread
+
+import pymongo
+
 from Reactive_majorversion2.SM02_opcua_client import start_opcua
 from Reactive_majorversion2.SM05_Scheduler_agent import app_close
 from Reactive_majorversion2.SM06_Task_allocation import Task_Allocator_agent
@@ -17,13 +20,41 @@ from Reactive_majorversion2.SM07_Robot_agent import data_opcua, Workstation_robo
 
 def reconfigure_topology():
     # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
-    reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["Topology_Manager"]
+    mycol = mydb["Reconfigure_Topology"]
+    x = mycol.find_one()
+    reconfig = x["Topology"]
+
+    print("Reconfiguration Started")
+
+    #reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    print(reconfig)
     data_opcua["reconfiguration_machine_pos"] = reconfig
     time.sleep(0.5)
     data_opcua["do_reconfiguration"] = True
     time.sleep(1)
     data_opcua["do_reconfiguration"] = False
+    time.sleep(10)
+    print("Reconfiguration Ended")
 
+
+def wait_create_parrt(data_opcua):
+    # Wait until the part has been created
+    run1 = 1
+    #time.sleep(0.5)
+    while (run1 == 1):
+        time.sleep(0.1)
+        if (data_opcua["recive_part"] == True): # Wait until a part har been created
+            data_opcua["create_part"] = 0
+            run1 = 0
+
+    # wait until Visual Components is ready to create a new part
+    run2 = 1
+    while(run2 == 1):
+        time.sleep(0.1)
+        if(data_opcua["recive_part"] == False):
+            run2 = 0
 
 def task_released(robot_id, loop):
     # id = robot_id - 1
@@ -181,7 +212,7 @@ async def release_opcua_cmd(loop):
                         flag = asyncio.Event()
                         data_opcua["create_part"] = product
                         # write_opcua(task["pV"], "create_part", None)
-                        await asyncio.sleep(3)
+                        #await asyncio.sleep(3)
                         # "Test code for stopping over creation of product at base"
                         # while data_opcua["create_part"] == product and data_opcua["create_part"] > 0:
                         #     #await asyncio.sleep(2)
@@ -192,9 +223,10 @@ async def release_opcua_cmd(loop):
                         #     else:
                         #         continue
 
-                        #asyncio.create_task(bg_tsk(flag))
-                        data_opcua["create_part"] = 0
-                        data_opcua["recive_part"] = False
+                        # #asyncio.create_task(bg_tsk(flag))
+                        # data_opcua["create_part"] = 0
+                        # data_opcua["recive_part"] = False
+                        wait_create_parrt(data_opcua)
                         print(f"product {product} created for robot {id}")
                         # Ax_station[target-10].booked = True
                         await asyncio.sleep(0.5)
@@ -314,6 +346,12 @@ if __name__ == "__main__":
     ##### Start OPCUA Client Thread################
     opcua_client = Thread(target=start_opcua, args=(data_opcua,))
     opcua_client.start()
+    print("OpcUA client Started")
+
+    # #do reconfiguration
+    # time.sleep(5)
+    # reconfigure_topology()
+
 
     while (True):
         time.sleep(2)
