@@ -4,6 +4,7 @@ import random
 import networkx as nx
 from matplotlib import pyplot as plt
 from networkx.algorithms import approximation, hierarchy, efficiency_measures, tree
+from sklearn.preprocessing import MinMaxScaler
 
 from variant_topology import workstation, config, topology
 
@@ -15,10 +16,10 @@ def unique_values_in_list_of_lists(lst):
 
 def create_batch_topology(graph, num, k_val, iter):
     #k = 0
-    #print("The graph", graph)
+    print("The graph", graph)
     print("The batch topology number:", num)
     node_list = unique_values_in_list_of_lists(graph)
-    # print(node_list)
+    print("node list", node_list)
     # print("no of node:", len(node_list))
     edge_list = []
     tw = 0
@@ -78,17 +79,46 @@ def create_batch_topology(graph, num, k_val, iter):
     #print(f"min x {min_x} min y {min_y}")
     #print("position old data structure:", pos)
     scale = 20
-    new_pos = []
-    r_pos = []
-    for key, value in pos.items():
-        new_pos.append((key, (scale * (value[0] + abs(min_x)), scale * (value[1] + abs(min_y)))))
 
+    #new_pos = []
+    r_pos = []
+    data = [[0, 0] for i in range(max(node_list) + 1)]
+
+    ##old scaling ####
+    # for key, value in pos.items():
+    #     print("The non-scaled topological positions:", key, value)
+    #     new_pos.append((key, (scale * (value[0] + abs(min_x)), scale * (value[1] + abs(min_y)))))
+    #
+    #
+    # print("The new position datastrcuture", new_pos)
+
+
+    for i in range(len(data)):
+        for key, value in pos.items():
+            # print(key, value)
+            if i == key:
+                # print(i)
+                data[i] = list(dict.fromkeys(value))
+
+    #print(f"The new test topology of length {len(data)}", data)
+    scaler = MinMaxScaler(feature_range=(2, 22))  ## Maximum cordinate range in Visual Components
+    scaler.fit(data)
+    scaled_top = scaler.transform(data)
+    print("The new scaled topology", scaled_top)
     # pos = dict(new_pos)
     # print(dict(new_pos))
     #print(pos)
 
+    ###insert new scaling into pos dict to generate graph###
 
-    pos = dict(new_pos)
+    new_pos = {}
+    for index, value in enumerate(scaled_top):
+        if index in node_list:
+            new_pos[index] = (round(value[0]), round(value[1]))
+
+    print("New dictionoary for drawing graph", new_pos)
+    #pos = dict(new_pos)
+    pos = new_pos
     #print("position data structure:", pos)
     #print("old pos:", pos)
     #print("new pos:", pos2)
@@ -112,6 +142,8 @@ def create_batch_topology(graph, num, k_val, iter):
     #plt.savefig(f'kval{round(separated_num[1])}_{round(separated_num[0] * 100)}_iter{iter}_batch_topology')
 
     pos_list = [[0, 0] for i in range(max(node_list) + 1)]
+    #print("The zeroed position list", pos_list)
+
     config_list = []
 
     product_topologies = []
@@ -121,12 +153,15 @@ def create_batch_topology(graph, num, k_val, iter):
     total_cost = []
     fitness_value = []
 
-    for i in range(len(pos_list)):
-        for key, value in pos.items():
-            if i == key:
-                pos_list[i] = list(dict.fromkeys(value))
+    ## Deprecated pos_list -- old logic
+    # for i in range(len(pos_list)):
+    #     for key, value in pos.items():
+    #         #print(key, value)
+    #         if i == key:
+    #             #print(i)
+    #             pos_list[i] = list(dict.fromkeys(value))
 
-    #print(pos_list)
+    #print("The position list", pos_list)
 
     for i in range(len(graph)):
         ws = []
@@ -141,7 +176,9 @@ def create_batch_topology(graph, num, k_val, iter):
         for node in graph_taken:
             #print(f"Node {node}")
             #print(f"Value= {round(pos_list[node][0]),round(pos_list[node][1])}")
-            this_graph_config.append(config(round(pos_list[node][0]), round(pos_list[node][1])))
+            print(f" TEST Pos Nodes: {node} and {scaled_top[node][0]} and {scaled_top[node][1]}")
+
+            this_graph_config.append(config(round(scaled_top[node][0]), round(scaled_top[node][1])))
         sorted_configs.append(this_graph_config)
 
     for num in range(len(all_workstations)):
@@ -152,4 +189,4 @@ def create_batch_topology(graph, num, k_val, iter):
         total_cost.append(top.calculate_distance())
         fitness_value.append(top.fitness_calc())
 
-    return sum(fitness_value), return_pos, fitness_value
+    return sum(fitness_value), pos, fitness_value

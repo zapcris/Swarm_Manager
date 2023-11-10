@@ -1,5 +1,7 @@
 # Python3 program to check if the given graph
 # represents a bus topology
+import sys
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -130,62 +132,40 @@ def checkRingTopology(adj, V, E):
 		print("The Topology is not a Ring")
 
 
-# Driver code
-
-# Graph 1
-V, E = 6, 6
-adj1 = [[] for i in range(V + 1)]
-addEdge(adj1, 1, 2)
-addEdge(adj1, 2, 3)
-addEdge(adj1, 3, 4)
-addEdge(adj1, 4, 5)
-addEdge(adj1, 6, 1)
-addEdge(adj1, 5, 6)
-checkRingTopology(adj1, V, E)
-
-# # Graph 2
-# V, E = 5, 4
-# adj2 = [[] for i in range(V + 1)]
-# addEdge(adj2, 1, 2)
-# addEdge(adj2, 1, 3)
-# addEdge(adj2, 3, 4)
-# addEdge(adj2, 4, 2)
-# checkRingTopology(adj2, V, E)
 
 
-G = nx.MultiDiGraph()
-G.add_edge(0, 1)
-G.add_edge(1, 2)
-G.add_edge(2, 3)
-G.add_edge(3, 4)
-G.add_edge(4, 0)
-
-pos = nx.planar_layout(G)
-nx.draw(G,pos=pos, with_labels=True, font_weight='bold', node_size=1000, node_color = 'black',font_color = 'white')
-plt.show()
-
-# This code is contributed by mohit kumar 29
-
-
-# Driver code
-
+# # Driver code
+#
 # # Graph 1
-# V, E = 5, 4
+# V, E = 6, 6
 # adj1 = [[] for i in range(V + 1)]
 # addEdge(adj1, 1, 2)
-# addEdge(adj1, 1, 3)
+# addEdge(adj1, 2, 3)
 # addEdge(adj1, 3, 4)
 # addEdge(adj1, 4, 5)
-# print(adj1)
-# checkBusTopology(adj1, V, E)
+# addEdge(adj1, 6, 1)
+# addEdge(adj1, 5, 6)
+# checkRingTopology(adj1, V, E)
 #
-# # Graph 2
-# V, E = 4, 4
-# adj2 = [[] for i in range(V + 1)]
-# addEdge(adj2, 1, 2)
-# addEdge(adj2, 1, 3)
-# addEdge(adj2, 3, 4)
-# addEdge(adj2, 4, 2)
-# checkBusTopology(adj2, V, E)
+# # # Graph 2
+# # V, E = 5, 4
+# # adj2 = [[] for i in range(V + 1)]
+# # addEdge(adj2, 1, 2)
+# # addEdge(adj2, 1, 3)
+# # addEdge(adj2, 3, 4)
+# # addEdge(adj2, 4, 2)
+# # checkRingTopology(adj2, V, E)
 #
-# # This code is contributed by mohit kumar 29
+#
+# G = nx.MultiDiGraph()
+# G.add_edge(0, 1)
+# G.add_edge(1, 2)
+# G.add_edge(2, 3)
+# G.add_edge(3, 4)
+# G.add_edge(4, 0)
+#
+# pos = nx.planar_layout(G)
+# nx.draw(G,pos=pos, with_labels=True, font_weight='bold', node_size=1000, node_color = 'black',font_color = 'white')
+# plt.show()
+
+

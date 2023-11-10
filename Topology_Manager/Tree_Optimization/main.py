@@ -29,24 +29,50 @@ def rand_index(gen):
     else:
         rand_index(gen + 1)
 
+G_pos = {}
+Batch_sequence = {}
+Qty_order = []
 
-G_pos = {1: (9, 4), 2: (18, 13), 3: (22, 8), 4: (18, 10), 5: (13, 0), 6: (15, 4), 7: (24, 22), 8: (12, 6), 9: (10, 11), 10: (14, 16), 11: (26, 15), 12: (30, 4), 13: (17, 17), 14: (0, 2), 15: (19, 24), 16: (22, 12), 17: (26, 20), 19: (23, 33), 20: (27, 28)}
+def read_db():
+    global Batch_sequence
+    global G_pos
+    global Qty_order
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["Topology_Manager"]
+    mycol = mydb["Optimal_Topology"]
+    read_doc = mycol.find_one({"Name": "Optimal_Spring"})
+    Batch_sequence = read_doc["Batch_Sequence"]
+    Qty_order = read_doc["Qty_order"]
+    pos = read_doc["Topology"]
+    for index, value in enumerate(pos):
+        print(index, value)
+        if value != None:
+            G_pos.update({index+1: (value[0], value[1])})
+
+read_db()
+print(Batch_sequence)
+print(Qty_order)
+print(G_pos)
+
+
+
+#G_pos = {1: (9, 4), 2: (18, 13), 3: (22, 8), 4: (18, 10), 5: (13, 0), 6: (15, 4), 7: (24, 22), 8: (12, 6), 9: (10, 11), 10: (14, 16), 11: (26, 15), 12: (30, 4), 13: (17, 17), 14: (0, 2), 15: (19, 24), 16: (22, 12), 17: (26, 20), 19: (23, 33), 20: (27, 28)}
 
 
 
 
-Batch_sequence = [[1, 5, 9, 10, 2, 11, 13, 15, 7, 20],
-                  [1, 2, 7, 3, 5, 6, 8, 9, 13, 15, 19, 20],
-                  [1, 5, 8, 6, 3, 2, 4, 10, 15, 17, 20],
-                  [1, 8, 9, 10, 2, 11, 13, 15, 7, 20],
-                  [1, 4, 17, 3, 8, 9, 13, 15, 19, 20],
-                  [1, 6, 8, 6, 3, 12, 4, 10, 15, 17, 20],
-                  [1, 14, 8, 6, 13, 2, 4, 10, 15, 17, 20]]
+# Batch_sequence = [[1, 5, 9, 10, 2, 11, 13, 15, 7, 20],
+#                   [1, 2, 7, 3, 5, 6, 8, 9, 13, 15, 19, 20],
+#                   [1, 5, 8, 6, 3, 2, 4, 10, 15, 17, 20],
+#                   [1, 8, 9, 10, 2, 11, 13, 15, 7, 20],
+#                   [1, 4, 17, 3, 8, 9, 13, 15, 19, 20],
+#                   [1, 6, 8, 6, 3, 12, 4, 10, 15, 17, 20],
+#                   [1, 14, 8, 6, 13, 2, 4, 10, 15, 17, 20]]
 
 def max_value(input_list):
     return max([sublist[-1] for sublist in input_list])
 
-Qty_order = [10, 30, 50, 20, 60, 20, 40]
+#Qty_order = [10, 30, 50, 20, 60, 20, 40]
 #Qty_order = [100,100,100,100,100,100,100]
 #Qty_order = [1, 1, 1, 1, 1, 1, 1]
 
@@ -91,6 +117,7 @@ checkBusTopology(adj1, V, E)
 checkRingTopology(adj1, V, E)
 
 
+
 ### Generate a graph from the Genetic STage 1 Force directed output####
 G = nx.MultiGraph()
 G.add_nodes_from(node_list)
@@ -128,19 +155,27 @@ for i in range(1):
 #     random_pop.append(next(iter_class3))
 
 #     create_weightedPI_tree(G, G_pos, Batch_sequence[PI_weight.index(max(PI_weight))]))
-for pseq in Batch_sequence:
-    random_pop.append(create_weightedPI_tree(G, G_pos, pseq))
-    # print("The new batch sequenc:", pseq)
+
+(' Creating manual spanning trees creates multiple disconnected subgraphs  '
+ 'Eventually creating missing nodes in the Tree topology during G.neighbors operation')
+# for pseq in Batch_sequence:
+#     #print("Testing positions", G)
+#     a = create_weightedPI_tree(G, G_pos, pseq)
+#     #print(a)
+#     random_pop.append(a)
 
 
 ##Draw hierarchy tree psoitions all population###
 tree_pos = []
 for i, chr_Tree in enumerate(random_pop):
     # pos= G_pos
+    print("Multigraph", chr_Tree)
+    print(chr_Tree.edges())
     pos = draw_hierarchy_pos(chr_Tree, root=1, width=grid_size, height=grid_size)
     #pos = EoN.hierarchy_pos(chr_Tree, root=1, width=grid_size)
     #pos = hierarchy_pos3(chr_Tree,root=1,width=grid_size,xcenter=14)
     #pos = graphviz_layout(G, prog='dot')
+    #print(f"The node positions for the plot {i + 1}", pos)
     tree_pos.append(pos)
     plt.figure()
     plt.title(f"The plot belongs to initial population {i + 1} ")
@@ -423,8 +458,17 @@ for fit_val in top_keys:
     topologies.append(top)
 
 optimized_top = [None] * max_value(Batch_sequence)
-for key, value in topology_htable[min_fit][1].items():
-    optimized_top[key-1] = value
+
+# for key, value in topology_htable[min_fit][1].items():
+#     optimized_top[key-1] = value
+
+for i in range(len(optimized_top)):
+    for key, value in topology_htable[min_fit][1].items():
+        # print(key, value)
+        if i == key-1:
+             # print(i)
+            optimized_top[i] = list(dict.fromkeys(value))
+
 #print(topologies)
 
 "Connect to MongoDB"
@@ -437,80 +481,27 @@ coll_dict = { "Batch_Sequence": Batch_sequence, "Production_order": Qty_order, "
 #coll_dict = {"Topologies": topologies}
 
 x = collection.insert_one(coll_dict)
-sys.exit()
 
 
+def save(Topology):
+    "Connect to MongoDB"
+    client = pymongo.MongoClient("mongodb://localhost:27017")
+    db = client["Topology_Manager"]
+    collection = db["Optimal_Topology"]
+
+    coll_dict = {"Name": "Optimal_Tree", "Topology": Topology, "Batch_Sequence": Batch_sequence, "Qty_order": Qty_order}
+    # coll_dict = {"Topologies": topologies}
+    read_doc = collection.find_one({"Name": "Optimal_Spring"})
+
+    total_doc = collection.count_documents({})
+    if total_doc == 0 :
+        collection.insert_one(coll_dict)
+    elif total_doc == 1 and  read_doc["Name"] != "Optimal_Tree":
+        collection.insert_one(coll_dict)
+    else:
+        collection.replace_one({"Name": "Optimal_Tree"}, coll_dict)
+    print("Topology saved")
 
 
-Grid_graph = nx.grid_2d_graph(50,50)
-
-plt.figure(figsize=(100,100))
-pos = {(x,y):(y,-x) for x,y in Grid_graph.nodes()}
-nx.draw(Grid_graph, pos=pos,
-        node_color='lightgreen',
-        with_labels=True,
-        node_size=600)
-plt.savefig(f'charts/throughput/gridmap')
-
-#### GRAPH TO GRID MAPP#####
-
-matrix = np.array(
-    [[-2, 5, 3, 2],
-     [9, -6, 5, 1],
-     [3, 2, 7, 3],
-     [-1, 8, -4, 8]])
-
-diags = [matrix[::-1, :].diagonal(i) for i in range(-3, 4)]
-diags.extend(matrix.diagonal(i) for i in range(3, -4, -1))
-
-# for n in diags:
-#     print(n.tolist())
-
-
-Grid = np.zeros((35, 35))
-# print(Grid)
-
-max_index = PI_weight.index(max(PI_weight))
-# print(max_index)
-
-nList_diag = Batch_sequence[max_index]
-# print("Diagnoally prefered sequence", nList_diag)
-
-np.fill_diagonal(Grid, 99)
-
-di = np.diag_indices_from(Grid)
-# print(di)
-
-# create list to be filled in diagonal of grid matrix
-
-interval = len(Grid.diagonal()) // len(nList_diag)
-
-# print(interval)
-
-
-diag_seq = [0 for n in Grid.diagonal()]
-
-for i in range(0, len(Grid.diagonal()), 3):
-    # print(i)
-    diag_seq[i] = 6
-
-# print(diag_seq)
-
-# Initiliaze the grid map
-grid_map = GridMap(35, 35, 1, 17.5, 17.5)
-
-# grid_map.plot_grid_map()
-
-# Place diagonals workstations on the grid MAP
-for i in range(len(nList_diag)):
-    x = i * interval
-    y = i * interval
-    grid_map.set_value_from_xy_pos(x, y, 1)
-
-    label = f"WK({nList_diag[i]})"
-    # plt.annotate(label,  # this is the text
-    #              (x, y),  # these are the coordinates to position the label
-    #              textcoords="offset points",  # how to position the text
-    #              xytext=(0, 0),  # distance from text to points (x,y)
-    #              ha='left')  # horizontal alignment can be left, right or cente
-
+## Save Spring optimal topology for Tree Optimization####
+save(optimized_top)

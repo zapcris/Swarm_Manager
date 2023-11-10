@@ -48,7 +48,7 @@ def create_weightedPI_tree(G, pos, PI_sequence):
         e = [PI_sequence[i], PI_sequence[i + 1]]
         edge_list.append(e)
     #print("Input product sequence:", PI_sequence)
-    # print("Complete topology:", full_elist)
+    #print("Complete topology:", full_elist)
     # print("Complete topology:", full_elist[1][0], full_elist[1][1])
     ### enlist nodes to be added to complete the spanning tree####
     for node in full_nlist:
@@ -101,7 +101,7 @@ def create_weightedPI_tree(G, pos, PI_sequence):
 
     edge_list.extend(edge)
 
-    # print("Spanning tree edge list:", edge_list)
+    #print("Spanning tree edge list:", edge_list)
 
     S = nx.MultiGraph()
     S.add_nodes_from(PI_sequence)
@@ -112,8 +112,9 @@ def create_weightedPI_tree(G, pos, PI_sequence):
                  for ((u, v), value) in width_dict.items()]
     S.remove_edges_from(edge_list)
     S.add_edges_from(edge_dict)
-    #print(S.edges())
+    #print("Printed edges", S.edges())
 
     #print("The graph is a tree?", nx.is_tree(S))
+
 
     return S

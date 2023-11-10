@@ -322,9 +322,10 @@ def run_GA():
     print("The frequency of edges", edge_width)
 
     "Production performance of the fittest solution"
-    Qty_order = [10, 30, 50, 20, 60, 20, 40, 30, 40, 20]
-    #Qty_order = [100,100,100,100,100,100,100]
+    #Qty_order = [10, 30, 50, 20, 60, 20, 40, 30, 40, 20]
+    Qty_order = prod_volume
     #Qty_order = [1, 1, 1, 1, 1, 1, 1]
+    print("Positions of Optimal Topology", topology_htable[final_fitness][0])
     print(prod_efficiency(batch_seq, topology_htable[final_fitness][0], Qty_order, topology_htable[final_fitness][1]))
 
     top_keys = []
@@ -347,9 +348,18 @@ def run_GA():
         topologies.append(top)
 
     optimized_top = [None] * max_value(batch_seq)
-    for key, value in topology_htable[final_fitness][0].items():
-        optimized_top[key-1] = value
-    #print(topologies)
+
+    ##old logic##
+    # for key, value in topology_htable[final_fitness][0].items():
+    #     optimized_top[key-1] = value
+    # #print(topologies)
+
+    for i in range(len(optimized_top)):
+        for key, value in topology_htable[final_fitness][0].items():
+            # print(key, value)
+            if i == key-1:
+                # print(i)
+                optimized_top[i] = list(dict.fromkeys(value))
 
 
 
@@ -371,3 +381,21 @@ def run_GA():
     # coll_dict = {"Topologies": topologies}
 
     x = collection.insert_one(coll_dict)
+
+    def save(Topology):
+        "Connect to MongoDB"
+        client = pymongo.MongoClient("mongodb://localhost:27017")
+        db = client["Topology_Manager"]
+        collection = db["Optimal_Topology"]
+
+        coll_dict = {"Name": "Optimal_Spring", "Topology": Topology, "Batch_Sequence": batch_seq, "Qty_order": Qty_order}
+        # coll_dict = {"Topologies": topologies}
+
+        total_doc = collection.count_documents({})
+        if total_doc == 0:
+            collection.insert_one(coll_dict)
+        else:
+            collection.replace_one({"Name": "Optimal_Spring"}, coll_dict)
+
+    ## Save Spring optimal topology for Tree Optimization####
+    save(optimized_top)

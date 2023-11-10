@@ -19,8 +19,11 @@ def draw_hierarchy_pos(G, root, levels=None, width=1., height=1.):
         if not currentLevel in levels:
             levels[currentLevel] = {TOTAL: 0, CURRENT: 0}
         levels[currentLevel][TOTAL] += 1
+        for i in G.neighbors(node):
+            print("Neigbour Nodes", i)
         neighbors = G.neighbors(node)
         for neighbor in neighbors:
+            #print("Neigbours", neighbor)
             if not neighbor == parent:
                 levels = make_levels(levels, neighbor, currentLevel + 1, node)
         return levels
@@ -34,6 +37,7 @@ def draw_hierarchy_pos(G, root, levels=None, width=1., height=1.):
         for neighbor in neighbors:
             if not neighbor == parent:
                 pos = make_pos(pos, neighbor, currentLevel + 1, node, vert_loc - vert_gap)
+        #print("Positions", pos)
         return pos
 
     if levels is None:
