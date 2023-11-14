@@ -42,8 +42,6 @@ async def main_function(data_opcua):
             #print(object_name)
             if object_name.Name == 'create_new_part':
                 create_new_part = k
-            if object_name.Name == 'recive_part':
-                recive_part = k
 
         for k in Moble_manipulator_busy:
             object_name = await k.read_browse_name()
@@ -247,10 +245,7 @@ async def main_function(data_opcua):
 
 
             ##################################################
-            # Create parts code !!!
-            await create_new_part.write_value(data_opcua["create_part"]) # What part to create
-
-            data_opcua["recive_part"] = await recive_part.read_value() # To confirm that Visual Components has created the part
+            await create_new_part.write_value(data_opcua["create_part"])
 
             ##################################################
             mobile_manipulator_thread = data_opcua["mobile_manipulator"]
@@ -290,11 +285,7 @@ if __name__ == "__main__":
         "rob_busy": [False, False, False,False,False,False,False,False,False,False],
         "machine_pos": [[0, 0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],],
         "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-
         "create_part": 0,
-        "recive_part": False,
-        "done_createing_part": False,
-
         "mission": ["","","","","","","","","",""],
         "all_task_time": ["","","","","","","","","",""],
         "do_reconfiguration": False,
@@ -305,82 +296,26 @@ if __name__ == "__main__":
     x = threading.Thread(target=start_opcua, args=(data_opcua,))
     x.start()
 
-
-    time.sleep(1)
-
-    # def wait_create_parrt(data_opcua):
-    #     # Wait until the part has been created
-    #     run1 = 1
-    #     #time.sleep(0.5)
-    #     t1 = time.time()
-    #     while (run1 == 1):
-    #         time.sleep(0.1)
-    #         if (data_opcua["recive_part"] == True): # Wait until a part har been created
-    #             data_opcua["create_part"] = 0
-    #             run1 = 0
-    #
-    #     # wait until Visual Components is ready to create a new part
-    #     run2 = 1
-    #     while(run2 == 1):
-    #         time.sleep(0.1)
-    #         if(data_opcua["recive_part"] == False):
-    #             run2 = 0
-    #     print("Required time for part creation second:", (time.time() - t1))
-    #
-    #
-    #
-    # data_opcua["create_part"] = 1
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 2
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 3
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 4
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 5
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 6
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 7
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 8
-    # wait_create_parrt(data_opcua)
-    #
-    # data_opcua["create_part"] = 9
-    # wait_create_parrt(data_opcua)
-    #
-    # #################################################
-    #
-    #
-    # print("all done")
-    # time.sleep(100)
-
-
-    reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
-    reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    #reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
+    #reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
 
 
 
-    data_opcua["reconfiguration_machine_pos"] = reconfig
+    #data_opcua["reconfiguration_machine_pos"] = reconfig
 
-    time.sleep(0.5)
+    #time.sleep(0.5)
     
-    data_opcua["do_reconfiguration"] = True
-    time.sleep(1)
-    data_opcua["do_reconfiguration"] = False
+    #data_opcua["do_reconfiguration"] = True
+    #time.sleep(1)
+    #data_opcua["do_reconfiguration"] = False
 
-    time.sleep(3)
+    # time.sleep(3)
     #
     # # time.sleep(2)
     # #
-
+    # data_opcua["create_part"] = 1
+    # time.sleep(0.7)
+    # data_opcua["create_part"] = 0
     #
     # time.sleep(3)
     #

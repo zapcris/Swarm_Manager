@@ -388,7 +388,11 @@ def run_GA():
         db = client["Topology_Manager"]
         collection = db["Optimal_Topology"]
 
-        coll_dict = {"Name": "Optimal_Spring", "Topology": Topology, "Batch_Sequence": batch_seq, "Qty_order": Qty_order}
+        coll_dict = {"Name": "Optimal_Spring", "Topology": Topology,
+                     "Product_name": prod_name,
+                     "Product_active": prod_active,
+                     "Process_Sequence": batch_seq,
+                     "Product_volume": prod_volume}
         # coll_dict = {"Topologies": topologies}
 
         total_doc = collection.count_documents({})

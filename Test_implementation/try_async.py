@@ -1,27 +1,45 @@
 import asyncio
 
-async def task1():
-    print("Task 1 is running")
+async def waiter():
+    print('waiting for it ...')
+
+    await asyncio.sleep(5)
+
+    print('... got it!')
+
+async def main():
+    # Create an Event object.
+    event = asyncio.Event()
+
+    # Spawn a Task to wait until 'event' is set.
+    waiter_task = asyncio.create_task(waiter())
+    print("event_created")
+
+    # Sleep for 1 second and se
+
+    # Wait until the waiter task is finished.
+    await waiter_task
+
+
+async def main2():
+    # Create an Event object.
+
+    print("main task running")
+
     await asyncio.sleep(1)
-    print("Task 1 is calling Task 2")
-    await task2()
-    print("Task 1 is finished")
 
-async def task2():
-    print("Task 2 is running")
+    print("main task running2")
     await asyncio.sleep(1)
-    print("Task 2 is calling Task 1")
-    await task1()
-    print("Task 2 is finished")
 
-##############
-order = {
-    "Name": "Test",
-    "PV": 1,
-    "sequence": [[11, 1, 7, 5, 6, 8, 9, 12]],
-    "PI": [1],
-    "Wk_type": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-    "Process_times": [[20, 30, 40, 50, 20, 40, 80, 70, 30, 60]]
-}
+    print("main task running3")
 
-print(order["Process_times"][0][0])
+    await asyncio.sleep(1)
+
+    print("main task running4")
+
+
+
+
+
+asyncio.run(main())
+asyncio.run(main2())

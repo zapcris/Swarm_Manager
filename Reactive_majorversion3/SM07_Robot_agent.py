@@ -63,19 +63,7 @@ production_order = {
                       ]
 }
 
-# data_opcua = {
-#     "brand": "Ford",
-#     "mobile_manipulator": ["", "", "", "", "", "", "", "", "", ""],
-#     "rob_busy": [False, False, False, False, False, False, False, False, False, False],
-#     "machine_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], ],
-#     "robot_pos": [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-#     "create_part": 0,
-#     "mission": ["", "", "", "", "", "", "", "", "", ""],
-#     "all_task_time": ["", "", "", "", "", "", "", "", "", ""],
-#     "do_reconfiguration": False,
-#     "reconfiguration_machine_pos": "",
-#
-# }
+
 
 
 data_opcua = {
@@ -179,20 +167,20 @@ wk_proc_event = 99
 
 def opcua_cmd_event(id, loop):
     # id = task.robot
-    print("Triggered opcua robot id is:", id)
+    #print("Triggered opcua robot id is:", id)
     if id == 1 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event1_chk_exec.set)
-        print("Triggered event is 1 for robot 1")
+        #print("Triggered event is 1 for robot 1")
     elif id == 2 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event2_chk_exec.set)
-        print("Triggered event is 1 for robot 2")
+        #print("Triggered event is 1 for robot 2")
     elif id == 3 and T_robot[id - 1].exec_cmd == True:
         loop.call_soon_threadsafe(event3_chk_exec.set)
-        print("Triggered event is 1 for robot 3")
+        #print("Triggered event is 1 for robot 3")
 
 ## Trigger Production end ####
 def all_rob_base():
-    print("Production end check triggered")
+    #print("Production end check triggered")
     if T_robot[0].wk_loc == 99 and T_robot[1].wk_loc == 99 and T_robot[2].wk_loc == 99:
         GreedyScheduler.production_end()
 
@@ -200,52 +188,52 @@ def all_rob_base():
 def wk_process_event(wk, loop: asyncio.AbstractEventLoop):
     if wk == 1:
         loop.call_soon_threadsafe(wk_1.set)
-        print("Triggered wk process execution for Workstation1")
+        #print("Triggered wk process execution for Workstation1")
         wk_proc_event = 99
         # return wk_1
     elif wk == 2:
         loop.call_soon_threadsafe(wk_2.set)
-        print("Triggered wk process execution for Workstation2")
+        #print("Triggered wk process execution for Workstation2")
         wk_proc_event = 99
         # return wk_2
     elif wk == 3:
         loop.call_soon_threadsafe(wk_3.set)
-        print("Triggered wk process execution for Workstation3")
+        #print("Triggered wk process execution for Workstation3")
         wk_proc_event = 99
         # return wk_3
     elif wk == 4:
         loop.call_soon_threadsafe(wk_4.set)
-        print("Triggered wk process execution for Workstation4")
+        #print("Triggered wk process execution for Workstation4")
         wk_proc_event = 99
         # return wk_4
     elif wk == 5:
         loop.call_soon_threadsafe(wk_5.set)
-        print("Triggered wk process execution for Workstation5")
+        #print("Triggered wk process execution for Workstation5")
         wk_proc_event = 99
         # return wk_5
     elif wk == 6:
         loop.call_soon_threadsafe(wk_6.set)
-        print("Triggered wk process execution for Workstation6")
+        #print("Triggered wk process execution for Workstation6")
         wk_proc_event = 99
         # return wk_6
     elif wk == 7:
         loop.call_soon_threadsafe(wk_7.set)
-        print("Triggered wk process execution for Workstation7")
+        #print("Triggered wk process execution for Workstation7")
         wk_proc_event = 99
         # return wk_7
     elif wk == 8:
         loop.call_soon_threadsafe(wk_8.set)
-        print("Triggered wk process execution for Workstation8")
+        #print("Triggered wk process execution for Workstation8")
         wk_proc_event = 99
         # return wk_8
     elif wk == 9:
         loop.call_soon_threadsafe(wk_9.set)
-        print("Triggered wk process execution for Workstation9")
+        #print("Triggered wk process execution for Workstation9")
         wk_proc_event = 99
         # return wk_9
     elif wk == 10:
         loop.call_soon_threadsafe(wk_10.set)
-        print("Triggered wk process execution for Workstation10")
+        #print("Triggered wk process execution for Workstation10")
         wk_proc_event = 99
         # return wk_10
 
@@ -349,7 +337,7 @@ class Transfer_robot:
         else:
             # end_pos = data_opcua["machine_pos"][end_loc - 1]
             end_pos = self.machine_pos[end_loc - 1]
-            print("Target position values", end_pos)
+            #print("Target position values", end_pos)
         # print("End_position", end_pos)
         # print("Start position values", start_pos)
         # print("Target position values", end_pos)
@@ -361,7 +349,7 @@ class Transfer_robot:
         else:
             marginal_cost = 99999999999
         bid_value = task_cost + marginal_cost
-        print(bid_value)
+        #print(bid_value)
         return bid_value
 
     def task_assign(self, task):
@@ -378,7 +366,7 @@ class Transfer_robot:
         self.task = task
         self.exec_cmd = True
 
-        print(f"Task triggered to robot {self.id} and execution status is {self.exec_cmd}")
+        #print(f"Task triggered to robot {self.id} and execution status is {self.exec_cmd}")
 
     async def initiate_task(self, event_frommain: asyncio.Event, event_toopcua: asyncio.Event):
         while True:
@@ -389,7 +377,7 @@ class Transfer_robot:
             pickup = self.task.command[0]
             drop = self.task.command[1]
             self.new_prod = self.task.pV
-            print(f"Task Step value is {self.task.step}")
+            #print(f"Task Step value is {self.task.step}")
 
             match self.task.step:
                 case 1:
@@ -401,11 +389,11 @@ class Transfer_robot:
                         Ax_station[pickup - 11].booked = True
                         # self.task.step = 2
 
-                        print(f" Path clearance condition 2 activated for robot {self.id} for task{self.task.command}")
+                        #print(f" Path clearance condition 2 activated for robot {self.id} for task{self.task.command}")
 
                 case 2:
-                    print(f"Drop station {drop} status, booking : {W_robot[drop - 1].booked}, "
-                          f"Queue1 {W_robot[drop - 1].q1_empty}, Queue2 {W_robot[drop - 1].q2_empty}")
+                    #print(f"Drop station {drop} status, booking : {W_robot[drop - 1].booked}, "
+                          #f"Queue1 {W_robot[drop - 1].q1_empty}, Queue2 {W_robot[drop - 1].q2_empty}")
                     ########To drop workstation########
                     if 1 <= drop <= 10 and event_toopcua.is_set() == False:
                         if W_robot[drop - 1].booked == False and W_robot[drop - 1].product_free == True and W_robot[
@@ -431,8 +419,8 @@ class Transfer_robot:
                             W_robot[drop - 1].q2_empty = False
 
                 case 6:
-                    print(f"Pickup station {pickup} status, booking : {W_robot[pickup - 1].booked}, "
-                          f"Queue1 {W_robot[pickup - 1].q1_empty}, Queue2 {W_robot[pickup - 1].q2_empty}")
+                    #print(f"Pickup station {pickup} status, booking : {W_robot[pickup - 1].booked}, "
+                          #f"Queue1 {W_robot[pickup - 1].q1_empty}, Queue2 {W_robot[pickup - 1].q2_empty}")
                     #######To Pickup from Workstation #######
                     if 1 <= pickup <= 10 and event_toopcua.is_set() == False:
 
@@ -484,8 +472,8 @@ class Transfer_robot:
                     pass
                 event_frommain.clear()
             else:
-                print(
-                    f"Robot{self.id} at WK {self.wk_loc} awaiting for path to be cleared for task {self.task.command}")
+                #print(
+                    #f"Robot{self.id} at WK {self.wk_loc} awaiting for path to be cleared for task {self.task.command}")
                 self.wait = True
                 wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
                                      tr_no=self.id)
@@ -504,14 +492,14 @@ class Transfer_robot:
             self.Free = False
             data = [cmd, self.id, self.new_prod]
             q_robot_to_opcua.put_nowait(data)
-            print(f"Sub-task command {cmd} entered in opcua queue for robot {self.id}")
+            #print(f"Sub-task command {cmd} entered in opcua queue for robot {self.id}")
             event_fromchkpath.clear()
 
     async def execution_timer(self, event_main: asyncio.Event, event_init_task: asyncio.Event,
                               loop: asyncio.AbstractEventLoop):
         while True:
             await event_main.wait()
-            print(f'Robot {self.id} execution timer has started')
+            #print(f'Robot {self.id} execution timer has started')
             ## Clearance of booking of current location ####
             if 1 <= self.wk_loc <= 10:
                 if self.base == True:
@@ -522,7 +510,7 @@ class Transfer_robot:
                     W_robot[self.wk_loc - 1].q2_empty = True
             elif 11 <= self.wk_loc <= 20:
                 Ax_station[self.wk_loc - 11].booked = False
-                print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
+                #print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
             elif self.wk_loc == 50:
                 Ax_station[10].booked = False
 
@@ -531,7 +519,7 @@ class Transfer_robot:
             start_time = datetime.now()
             tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0],
                                   drop=self.task.command[1], tr_no=self.id)
-            print(f"Robot {self.id} started executing at {start_time}")
+            #print(f"Robot {self.id} started executing at {start_time}")
             while event_main.is_set() == True:
                 # await asyncio.sleep(0)
                 if data_opcua["rob_busy"][self.id - 1] == False:
@@ -541,7 +529,7 @@ class Transfer_robot:
             Events["rob_execution"][self.id - 1] = False
             self.executing = False
             exec_time = (datetime.now() - start_time).total_seconds()
-            print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
+            #print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
             self.wk_loc = int(self.opcua_cmd[1]) + 1
             if self.opcua_cmd[0] == "pick" or "drop" or "sink":
                 self.base = True
@@ -555,8 +543,8 @@ class Transfer_robot:
                 self.base = False
                 self.q1 = False
                 self.q2 = True
-            print(f"Robot {self.id} is at Station {self.wk_loc}")
-            print(f"Task Step value is {self.task.step}")
+            #print(f"Robot {self.id} is at Station {self.wk_loc}")
+            #print(f"Task Step value is {self.task.step}")
             # self.locate_robot()
             match self.task.step:
                 case 1:
@@ -566,7 +554,7 @@ class Transfer_robot:
                     else:
                         self.task.step = 2
                     self.exec_cmd = True
-                    print(f"Robot{self.id} picked up the product and will movie to drop wk")
+                    #print(f"Robot{self.id} picked up the product and will movie to drop wk")
                     if 1 <= self.task.command[0] <= 10:
                         W_robot[self.wk_loc - 1].product_free = True
                     # print(f"Robot {self.id} will move to drop workstation")
@@ -574,7 +562,7 @@ class Transfer_robot:
 
                 case 3:
                     # event_chkpath.set()
-                    print(f"Robot{self.id} at Drop {self.wk_loc} queue1 position")
+                    #print(f"Robot{self.id} at Drop {self.wk_loc} queue1 position")
                     self.task.step = 2
                     if self.q1 == True:
                         W_robot[self.wk_loc - 1].q1_empty = True
@@ -585,7 +573,7 @@ class Transfer_robot:
 
                 case 4:
                     # event_chkpath.set()
-                    print(f"Robot{self.id} at Drop {self.wk_loc} queue2 position")
+                    #print(f"Robot{self.id} at Drop {self.wk_loc} queue2 position")
                     self.task.step = 2
                     self.exec_cmd = True
                     opcua_cmd_event(id=self.id, loop=loop)
@@ -593,7 +581,7 @@ class Transfer_robot:
                 case 5:
                     self.free = True
                     W_robot[self.wk_loc - 1].assingedProduct = self.product
-                    print(f"Robot{self.id} at Drop workstation")
+                    #print(f"Robot{self.id} at Drop workstation")
                     self.assigned_task = False
                     W_robot[self.wk_loc - 1].q1_empty = True
                     W_robot[self.wk_loc - 1].q2_empty = True
@@ -610,7 +598,7 @@ class Transfer_robot:
 
                 case 7:
                     # event_chkpath.set()
-                    print(f"Robot{self.id} at pickup {self.wk_loc} queue1 workstation")
+                    #print(f"Robot{self.id} at pickup {self.wk_loc} queue1 workstation")
                     self.task.step = 6
                     self.exec_cmd = True
                     # W_robot[self.wk_loc - 1].q2_empty = True
@@ -618,20 +606,20 @@ class Transfer_robot:
 
                 case 8:
                     # event_chkpath.set()
-                    print(f"Robot{self.id} at pickup {self.wk_loc} queue2 workstation")
+                    #print(f"Robot{self.id} at pickup {self.wk_loc} queue2 workstation")
                     self.task.step = 6
                     self.exec_cmd = True
                     opcua_cmd_event(id=self.id, loop=loop)
 
                 case 11:
-                    print(f"Robot{self.id} at Sink Station")
-                    print(f"Product {self.product.pv_Id} moved to sink node")
+                    #print(f"Robot{self.id} at Sink Station")
+                    #print(f"Product {self.product.pv_Id} moved to sink node")
                     st = Sink(tstamp=datetime.now())
                     self.product.tracking.append(st)
                     self.assigned_task = False
                     #self.free = True
                     self.finished_product = self.product
-                    print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
+                    #print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
                     #self.base_move = True
                     self.opcua_cmd = ["base", "99"]
                     data = [self.opcua_cmd, self.id, self.new_prod]
@@ -639,114 +627,20 @@ class Transfer_robot:
                     self.task.step = 12
                     await Ax_station[10].sink_station(self.product)
                     Ax_station[10].booked = False
-                    print(f"Robot moving to Base Station")
+                    #print(f"Robot moving to Base Station")
                     self.exec_cmd = True
                     opcua_cmd_event(id=self.id, loop=loop)
 
 
                 case 12:
                     await asyncio.sleep(15)
-                    print(f"Robot {self.id} ")
+                    #print(f"Robot {self.id} ")
                     self.free = True
                     self.base_move = False
                     self.wk_loc = 99
                     all_rob_base()
 
             event_main.clear()
-
-    # async def execution_time(self, event, loop: asyncio.AbstractEventLoop):
-    #     while True:
-    #         # print(f'waiting for robot {id} for  execution')
-    #         await event.wait()
-    #         t = self.task.command
-    #         print(f'Robot {self.id} execution tim'
-    #               f'er has started')
-    #         start_time = datetime.now()
-    #         tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0],
-    #                               drop=self.task.command[1], tr_no=self.id)
-    #         print(f"Robot {self.id} started executing at {start_time}")
-    #
-    #         while event.is_set() == True:
-    #             await asyncio.sleep(1)
-    #             if data_opcua["rob_busy"][self.id - 1] == False:
-    #                 break
-    #             else:
-    #                 continue
-    #         # await event2.wait()
-    #         Events["rob_execution"][self.id - 1] = False
-    #         exec_time = (datetime.now() - start_time).total_seconds()
-    #         print(f"Robot {self.id} took {exec_time:,.2f} seconds to run")
-    #         await asyncio.sleep(1)
-    #         # print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
-    #         # for wk, wk_loc in enumerate(data_opcua["machine_pos"]):
-    #         #     dist = distance.euclidean(wk_loc, data_opcua["robot_pos"][self.id - 1])
-    #         #     print("Distance to target position is:", dist)
-    #         #     if dist <= 800:
-    #         #         self.wk_loc = wk + 1
-    #         #     elif dist > 800:
-    #         #         self.wk_loc = 99
-    #         #         print("Error: Robot at unknown position")
-    #         # self.wk_loc = t[1]
-    #         print(f"Robot {self.id} is at Workstation {self.wk_loc}")
-    #         W_robot[t[1] - 1].product_free = False
-    #         W_robot[t[1] - 1].robot_free = False
-    #         if t[1] <= 11:  ### if Task for normal workstation#####
-    #             print(f"the product is delivered to workstation {t[1]} by robot {self.id}")
-    #             print(f"Robot {self.id} is at {self.wk_loc}")
-    #             wk = t[1] - 1
-    #             W_robot[wk].assingedProduct = self.product
-    #             print(f"Robot {self.id} assigned product to Workstation{t[1]} is {self.product}")
-    #             ### self Product deassign ####
-    #             self.assigned_task = False
-    #             self.assigned_task = False
-    #             self.free = True
-    #             print(f"The robot {self.id} is Product and Task free")
-    #             tTime.calc_time()
-    #             self.product.tracking.append(tTime)
-    #             wk_process_event(wk=t[1], loop=loop)
-    #             ##NEW implementation for saturating products####
-    #             new_task_list = generate_task(order=production_order)
-    #             print("Generated TASK from new function", new_task_list)
-    #             new_product = GreedyScheduler.robot_done(product=self.product, product_tList=new_task_list)
-    #             if new_product != None:
-    #                 q_product_done.put_nowait([new_product])
-    #             else:
-    #                 pass
-    #             event.clear()
-    #
-    #         else:  ### If task for Sink node#####
-    #             print(f"Product moved to sink node")
-    #             st = Sink(tstamp=datetime.now())
-    #             self.product.tracking.append(st)
-    #             ### self task deassign####
-    #             if self.base_move == False:
-    #                 self.assigned_task = False
-    #                 self.free = True
-    #                 self.finished_product = self.product
-    #                 print(f"Robot {self.id} unloaded completed product {self.product} to Sink")
-    #                 self.base_move = True
-    #                 cmd = []
-    #                 if self.id == 1:
-    #                     cmd = ['m,-1644,-3211,0', '', '']
-    #                 elif self.id == 2:
-    #                     cmd = ['', 'm,-1575,455,0', '']
-    #                 elif self.id == 3:
-    #                     cmd = ['', '', 'm,-1711,5033,0']
-    #                 ### move to base station #####
-    #                 data_opcua["mobile_manipulator"] = cmd
-    #                 await asyncio.sleep(2)
-    #                 data_opcua["mobile_manipulator"] = ["", "", ""]
-    #                 print(f"Robot moving to Base Station")
-    #             elif self.base_move == True:
-    #                 W_robot[11].product_clearance()
-    #                 await asyncio.sleep(15)
-    #                 print(f"Robot reached Base Station")
-    #                 self.free = True
-    #                 self.base_move = False
-    #                 self.wk_loc = 99  ### 0 --> Base/arbitrary location for
-    #                 W_robot[11].sink_station(self.product)
-    #                 #all_rob_base()
-    #                 event.clear()
 
 
     async def direct_exec_channel(self, task, product, cmd):
@@ -759,13 +653,13 @@ class Transfer_robot:
             data_opcua["create_part"] = task["pV"]
             # write_opcua(task["pV"], "create_part", None)
             await asyncio.sleep(0.7)
-            print(f"part created for robot {self.id},", task["pV"])
+            #print(f"part created for robot {self.id},", task["pV"])
             data_opcua["create_part"] = 0
             await asyncio.sleep(0.7)
             data_opcua["mobile_manipulator"] = cmd
             await asyncio.sleep(0.7)
             data_opcua["mobile_manipulator"] = ["", "", ""]
-            print("command sent to opcuaclient", cmd)
+            #print("command sent to opcuaclient", cmd)
         else:
             data_opcua["mobile_manipulator"] = cmd
             await asyncio.sleep(0.7)
@@ -802,29 +696,29 @@ class Workstation_robot:
         self.product_free = True
         self.robot_free = True
         self.booked = False
-        print(f"The workstation {self.id} is Product Free")
+        #print(f"The workstation {self.id} is Product Free")
 
     async def process_execution(self, event):
         while True:
             await asyncio.sleep(2)
-            print(f"Workstation {self.id} execution task re-initialized")
+            #print(f"Workstation {self.id} execution task re-initialized")
             await event.wait()
-            print(f" Workstation ID {self.id}")
+            #print(f" Workstation ID {self.id}")
             process_time = production_order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
             # process_time = 20
             #print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
             self.process_done = False
             self.product_free = False
-            print(f"Process task executing at workstation {self.id}")
+            #print(f"Process task executing at workstation {self.id}")
             pt = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=self.id)
             await asyncio.sleep(process_time)
-            print(f"Process task on workstation {self.id} finished")
+            #print(f"Process task on workstation {self.id} finished")
             self.assingedProduct.task_list.pop(0)
             # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
-            print(f"Done workstation {self.id}")
+            #print(f"Done workstation {self.id}")
             self.process_done = True
-            print(f"The Workstation {self.id} free status is {self.process_done}")
-            print("done product", self.done_product)
+            #print(f"The Workstation {self.id} free status is {self.process_done}")
+            #print("done product", self.done_product)
             pt.calc_time()
             self.assingedProduct.tracking.append(pt)
             self.assingedProduct.released = True
@@ -833,7 +727,7 @@ class Workstation_robot:
             self.done_product = self.assingedProduct
             # a = [self.done_product]
             q_product_done.put_nowait(self.done_product)
-            print(f"Product {self.done_product} added into done queue")
+            #print(f"Product {self.done_product} added into done queue")
             event.clear()
 
 
@@ -852,8 +746,8 @@ class Auxillary_station:
 
     async def sink_station(self, product):
         new_task_list = generate_task(order=production_order)
-        print("Generated TASK from new function", new_task_list)
-        print(f"Product Variant {product.pv_Id} deposited to sink")
+        #print("Generated TASK from new function", new_task_list)
+        #print(f"Product Variant {product.pv_Id} deposited to sink")
         new_product = GreedyScheduler.prod_completed(product=product, product_tList=new_task_list)
         #print("Product in Sink .....................Finished Triggered")
         q_product_done.put_nowait([new_product])
@@ -862,4 +756,4 @@ class Auxillary_station:
         self.product_free = True
         self.robot_free = True
         self.booked = False
-        print(f"The Sink Station {self.id} is Free")
+        #print(f"The Sink Station {self.id} is Free")
