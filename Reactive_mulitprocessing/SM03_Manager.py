@@ -4,26 +4,21 @@
 # SuperFastPython.com
 # example of using the queue between processes with a timeout
 import asyncio
-import pickle
-import multiprocessing
 import time
 from time import sleep
 from random import random
 from multiprocessing import Process, Manager, shared_memory, Queue
 from queue import Empty
 
-import multiprocess
-
-from Test_implementation.SM02_opcua_client import start_opcua
-from Test_implementation.SM04_Task_Planning_agent import Task_Planning_agent
-from Test_implementation.SM05_Scheduler_agent_mp import Scheduling_agent
-from Test_implementation.SM06_Task_allocation_mp import Task_Allocator_agent
-from Test_implementation.SM07_Robot_agent_mp import Transfer_robot, Workstation_robot, W_robot, \
+from Reactive_mulitprocessing.SM02_opcua_client import start_opcua
+from Reactive_mulitprocessing.SM04_Task_Planning_agent import Task_Planning_agent
+from Reactive_mulitprocessing.SM05_Scheduler_agent_mp import Scheduling_agent
+from Reactive_mulitprocessing.SM06_Task_allocation_mp import Task_Allocator_agent
+from Reactive_mulitprocessing.SM07_Robot_agent_mp import Transfer_robot, Workstation_robot, W_robot, \
     null_product
-from Test_implementation.SM10_Product_Task import Task
 
 
-# from Test_implementation.SM07_Robot_agent import data_opcua
+# from Reactive_10Robots.SM07_Robot_agent import data_opcua
 
 
 # generate work

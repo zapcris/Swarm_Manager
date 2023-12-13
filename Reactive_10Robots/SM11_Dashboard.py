@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
-from Test_implementation.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
+from Reactive_10Robots.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
 
 def display_cycletime():

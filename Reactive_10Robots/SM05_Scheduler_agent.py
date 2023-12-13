@@ -1,7 +1,7 @@
 from queue import Queue
-from Test_implementation.SM10_Product_Task import Product, Task, Source
+from Reactive_10Robots.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
-from Test_implementation.SM11_Dashboard import production_time
+from Reactive_10Robots.SM11_Dashboard import production_time
 
 
 

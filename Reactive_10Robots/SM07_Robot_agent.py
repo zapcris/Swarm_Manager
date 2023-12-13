@@ -1,8 +1,8 @@
 import asyncio
 from datetime import datetime
 from scipy.spatial import distance
-from Test_implementation.SM04_Task_Planning_agent import Task_Planning_agent, generate_task
-from Test_implementation.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
+from Reactive_10Robots.SM04_Task_Planning_agent import  generate_task
+from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
 production_order = {
     "Name": "Test",
@@ -82,33 +82,7 @@ test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, st
 
 test_product = [p1, p2, p3]
 #################################### Robot agent code ################################################
-event1_exectime = asyncio.Event()
-event2_exectime = asyncio.Event()
-event3_exectime = asyncio.Event()
-event1_opcua = asyncio.Event()
-event2_opcua = asyncio.Event()
-event3_opcua = asyncio.Event()
-event1_chk_exec = asyncio.Event()
-event2_chk_exec = asyncio.Event()
-event3_chk_exec = asyncio.Event()
-event1_pth_clr = asyncio.Event()
-event2_pth_clr = asyncio.Event()
-event3_pth_clr = asyncio.Event()
-wk_1 = asyncio.Event()
-wk_2 = asyncio.Event()
-wk_3 = asyncio.Event()
-wk_4 = asyncio.Event()
-wk_5 = asyncio.Event()
-wk_6 = asyncio.Event()
-wk_7 = asyncio.Event()
-wk_8 = asyncio.Event()
-wk_9 = asyncio.Event()
-wk_10 = asyncio.Event()
-event_part_1 = asyncio.Event()
-event_part_2 = asyncio.Event()
 
-opc_cmd_list = []
-wk_proc_event = 99
 
 
 class Transfer_robot:
@@ -203,6 +177,9 @@ class Transfer_robot:
         task_cost = distance.euclidean(start_pos, end_pos)
         # print("Cleared bid mid-function")
         # if self.data_opcua["rob_busy"][self.id-1] == False :
+        print(f"Robot bid ID {self.id}")
+        print(
+            data_opcua["robot_pos"])
         if self.free == True and data_opcua["rob_busy"][self.id - 1] == False:
             marginal_cost = distance.euclidean(start_pos, data_opcua["robot_pos"][self.id - 1])
         else:
@@ -227,7 +204,7 @@ class Transfer_robot:
 
         print(f"Task triggered to robot {self.id} and execution status is {self.exec_cmd}")
 
-    async def initiate_task2(self, q_initiate_task: asyncio.Queue, W_robot, Ax_station, q_trigger_cmd: asyncio.Queue):
+    async def initiate_task(self, q_initiate_task: asyncio.Queue, W_robot, Ax_station, q_trigger_cmd: asyncio.Queue):
         while True:
 
             task_opcua = await q_initiate_task.get()
@@ -363,7 +340,7 @@ class Transfer_robot:
                     wTime.stop_timer()
                     pass
 
-    async def execution_timer2(self, q_executing_task: asyncio.Queue, q_done_product: asyncio.Queue,
+    async def execution_timer(self, q_executing_task: asyncio.Queue, q_done_product: asyncio.Queue,
                                q_trigger_cmd: asyncio.Queue, q_initiate_process,
                                q_initiate_task: asyncio.Queue,
                                data_opcua, GreedyScheduler, T_robot, W_robot, Ax_station):
@@ -533,7 +510,16 @@ class Transfer_robot:
                     self.wk_loc = 99
                     # self.exec_cmd = False
                     print(f"Robot{self.id} at Base Station")
-                    if T_robot[0].wk_loc == 99 and T_robot[1].wk_loc == 99 and T_robot[2].wk_loc == 99:
+                    # if T_robot[0].wk_loc == 99 and T_robot[1].wk_loc == 99 and T_robot[2].wk_loc == 99:
+                    #     await GreedyScheduler.production_end()
+                    all_based = False
+                    for robot in T_robot:
+                        if robot.wk_loc == 99:
+                            all_based = True
+                        elif robot.wk_loc != 99:
+                            all_based = False
+
+                    if all_based == True:
                         await GreedyScheduler.production_end()
                         self.task.step = 14
 

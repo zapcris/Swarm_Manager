@@ -3,16 +3,14 @@ import itertools
 import queue
 import time
 from multiprocessing import Process, Manager
-from queue import Empty
-
-from SM02_opcua_client import start_opcua, main_function
-from Test_implementation.SM04_Task_Planning_agent import Task_Planning_agent
-from Test_implementation.SM05_Scheduler_agent import Scheduling_agent
-from Test_implementation.SM06_Task_allocation import Task_Allocator_agent
-from Test_implementation.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
+from SM02_opcua_client import start_opcua
+from Reactive_10Robots.SM04_Task_Planning_agent import Task_Planning_agent
+from Reactive_10Robots.SM05_Scheduler_agent import Scheduling_agent
+from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
+from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
     Auxillary_station
 
-import asyncify
+
 
 
 async def waiter(event):
@@ -65,7 +63,7 @@ async def consumer2(queue: asyncio.Queue, index):
 async def release_products(q_done_product, q_task_waiting, q_mission_release):
     while True:
         done_prod = await q_done_product.get()
-        #print(f"product PV={done_prod.pv_Id} and PI={done_prod.pi_Id} released from QUEUE")
+        # print(f"product PV={done_prod.pv_Id} and PI={done_prod.pi_Id} released from QUEUE")
         print("Done Processed Product", done_prod)
         normal_allotment = GreedyScheduler.normalized_production(done_prod)
         # print("normal allotment", normal_allotment)
@@ -102,24 +100,30 @@ async def release_task_execution(q_mission_release):
         # print(robot_id)
         await T_robot[robot_id - 1].trigger_task(task=task_opcua)
 
-        if robot_id == 1 and T_robot[robot_id - 1].exec_cmd == True:
-            # loop.call_soon_threadsafe(event1_chk_exec.set)
-            # event1_chk_exec.set()
-            # q_robot_mission[0].put_nowait("Task_robot1")
-            await q_initiate_task[0].put(task_opcua)
-            print("Triggered event is 1 for robot 1")
-        elif robot_id == 2 and T_robot[robot_id - 1].exec_cmd == True:
-            # loop.call_soon_threadsafe(event2_chk_exec.set)
-            # event2_chk_exec.set()
-            # q_robot_mission[1].put_nowait("Task_robot2")
-            await q_initiate_task[1].put(task_opcua)
-            print("Triggered event is 1 for robot 2")
-        elif robot_id == 3 and T_robot[robot_id - 1].exec_cmd == True:
-            # loop.call_soon_threadsafe(event3_chk_exec.set)
-            # event3_chk_exec.set()
-            # q_robot_mission[2].put_nowait("Task_robot3")
-            await q_initiate_task[2].put(task_opcua)
-            print("Triggered event is 1 for robot 3")
+        for i in range(len(T_robot)):
+            #print(i, robot_id)
+            if i == robot_id-1 and T_robot[i].exec_cmd == True:
+                await q_initiate_task[i].put(task_opcua)
+                print(f"Task Initialized for Robot {robot_id}")
+
+        # if robot_id == 1 and T_robot[robot_id - 1].exec_cmd == True:
+        #     # loop.call_soon_threadsafe(event1_chk_exec.set)
+        #     # event1_chk_exec.set()
+        #     # q_robot_mission[0].put_nowait("Task_robot1")
+        #     await q_initiate_task[0].put(task_opcua)
+        #     print("Triggered event is 1 for robot 1")
+        # elif robot_id == 2 and T_robot[robot_id - 1].exec_cmd == True:
+        #     # loop.call_soon_threadsafe(event2_chk_exec.set)
+        #     # event2_chk_exec.set()
+        #     # q_robot_mission[1].put_nowait("Task_robot2")
+        #     await q_initiate_task[1].put(task_opcua)
+        #     print("Triggered event is 1 for robot 2")
+        # elif robot_id == 3 and T_robot[robot_id - 1].exec_cmd == True:
+        #     # loop.call_soon_threadsafe(event3_chk_exec.set)
+        #     # event3_chk_exec.set()
+        #     # q_robot_mission[2].put_nowait("Task_robot3")
+        #     await q_initiate_task[2].put(task_opcua)
+        #     print("Triggered event is 1 for robot 3")
         Sim_step += 1
         # await asyncio.sleep(2)
         q_mission_release.task_done()
@@ -152,7 +156,7 @@ async def release_opcua_cmd(q_robot_cmd):
         target = int(sub_task[1])
         id = data[1]
         product = data[2]
-        cmd = ["" for _ in range(3)]
+        cmd = ["" for _ in range(len(T_robot))]
         print(f"Task {sub_task} received from Swarm Manager for robot {id} for execution")
 
         match sub_task[0]:
@@ -222,20 +226,26 @@ async def release_opcua_cmd(q_robot_cmd):
             # print(data_opcua["rob_busy"][id - 1])
             if data_opcua["rob_busy"][id - 1] == True:
                 run3 = 0
-        data_opcua["mobile_manipulator"] = ['', '', '']
-        # print("command sent to opcuaclient", cmd)
-        if id == 1 and data_opcua["rob_busy"][0]:
-            # event1_exectime.set()
-            await q_exec_start[0].put("Start")
-            print("Triggered execution_timer event for robot 1")
-        elif id == 2 and data_opcua["rob_busy"][1]:
-            # event2_exectime.set()
-            await q_exec_start[1].put("Start")
-            print("Triggered execution_timer event for robot 2 ")
-        elif id == 3 and data_opcua["rob_busy"][2]:
-            # event3_exectime.set()
-            await q_exec_start[2].put("Start")
-            print("Triggered execution_timer event for robot 3")
+        data_opcua["mobile_manipulator"] = ["", "", "", "", "", "", "", "", "", ""]
+        print("command sent to opcuaclient", cmd)
+        for i in range(len(T_robot)):
+            #print(i, id)
+            if i == id-1 and data_opcua["rob_busy"][i]:
+                await q_exec_start[i].put("Start")
+                print(f"Triggered execution_timer event for Robot {id}")
+
+        # if id == 1 and data_opcua["rob_busy"][0]:
+        #     # event1_exectime.set()
+        #     await q_exec_start[0].put("Start")
+        #     print("Triggered execution_timer event for robot 1")
+        # elif id == 2 and data_opcua["rob_busy"][1]:
+        #     # event2_exectime.set()
+        #     await q_exec_start[1].put("Start")
+        #     print("Triggered execution_timer event for robot 2 ")
+        # elif id == 3 and data_opcua["rob_busy"][2]:
+        #     # event3_exectime.set()
+        #     await q_exec_start[2].put("Start")
+        #     print("Triggered execution_timer event for robot 3")
         # await asyncio.sleep(2)
         q_robot_cmd.task_done()
 
@@ -250,14 +260,14 @@ async def main():
     tasks = [asyncio.create_task(release_task_execution(q_main_to_releaser))]
 
     tasks += [asyncio.create_task(
-        T_robot[0].initiate_task2(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))]
+        T_robot[0].initiate_task(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))]
     tasks += [asyncio.create_task(
-        T_robot[1].initiate_task2(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))]
+        T_robot[1].initiate_task(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))]
     tasks += [asyncio.create_task(
-        T_robot[2].initiate_task2(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))]
+        T_robot[2].initiate_task(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))]
     tasks += [asyncio.create_task(release_opcua_cmd(q_robot_to_opcua))]
 
     task_queue = asyncio.create_task(release_task_execution(q_mission_release=q_main_to_releaser))
@@ -267,97 +277,71 @@ async def main():
     opcua_queue = asyncio.create_task(release_opcua_cmd(q_robot_cmd=q_robot_to_opcua))
 
     T1 = asyncio.create_task(
-        T_robot[0].initiate_task2(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))
+        T_robot[0].initiate_task(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))
     T2 = asyncio.create_task(
-        T_robot[1].initiate_task2(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))
+        T_robot[1].initiate_task(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))
     T3 = asyncio.create_task(
-        T_robot[2].initiate_task2(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
-                                  q_trigger_cmd=q_robot_to_opcua))
+        T_robot[2].initiate_task(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
+                                 q_trigger_cmd=q_robot_to_opcua))
 
     T4 = asyncio.create_task(
-        T_robot[0].execution_timer2(q_executing_task=q_exec_start[0], q_done_product=q_product_release,
-                                    q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                    q_initiate_task=q_initiate_task[0],
-                                    T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                    GreedyScheduler=GreedyScheduler,
-                                    data_opcua=data_opcua))
+        T_robot[0].execution_timer(q_executing_task=q_exec_start[0], q_done_product=q_product_release,
+                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
+                                   q_initiate_task=q_initiate_task[0],
+                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
+                                   GreedyScheduler=GreedyScheduler,
+                                   data_opcua=data_opcua))
     T5 = asyncio.create_task(
-        T_robot[1].execution_timer2(q_executing_task=q_exec_start[1], q_done_product=q_product_release,
-                                    q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                    q_initiate_task=q_initiate_task[1],
-                                    T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                    GreedyScheduler=GreedyScheduler,
-                                    data_opcua=data_opcua))
+        T_robot[1].execution_timer(q_executing_task=q_exec_start[1], q_done_product=q_product_release,
+                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
+                                   q_initiate_task=q_initiate_task[1],
+                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
+                                   GreedyScheduler=GreedyScheduler,
+                                   data_opcua=data_opcua))
     T6 = asyncio.create_task(
-        T_robot[2].execution_timer2(q_executing_task=q_exec_start[2], q_done_product=q_product_release,
-                                    q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                    q_initiate_task=q_initiate_task[2],
-                                    T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                    GreedyScheduler=GreedyScheduler,
-                                    data_opcua=data_opcua))
+        T_robot[2].execution_timer(q_executing_task=q_exec_start[2], q_done_product=q_product_release,
+                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
+                                   q_initiate_task=q_initiate_task[2],
+                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
+                                   GreedyScheduler=GreedyScheduler,
+                                   data_opcua=data_opcua))
+    T_initiate = []
+
+    for i in range(len(T_robot)):
+        print("total robots task initialisation ", i)
+        T_initiate.append(asyncio.create_task(
+            T_robot[i].initiate_task(q_initiate_task=q_initiate_task[i], W_robot=W_robot, Ax_station=Ax_station,
+                                     q_trigger_cmd=q_robot_to_opcua)))
+    T_execution = []
+
+    for i in range(len(T_robot)):
+        print("total robots task execution ", i)
+        T_execution.append(asyncio.create_task(
+            T_robot[i].execution_timer(q_executing_task=q_exec_start[i], q_done_product=q_product_release,
+                                       q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
+                                       q_initiate_task=q_initiate_task[i],
+                                       T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
+                                       GreedyScheduler=GreedyScheduler,
+                                       data_opcua=data_opcua)))
 
     W_process = []
     for i in range(len(W_robot)):
         print("total workstation async process", i)
         W_process.append(asyncio.create_task(W_robot[i].process_execution(q_initiate_process=q_initiate_process[i],
-                                                                        q_done_product=q_product_release)))
+                                                                          q_done_product=q_product_release)))
 
-
-    await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, T1, T2, T3, T4, T5, T6, *W_process)
-
-    # tasks += [asyncio.create_task(
-    #     T_robot[1].initiate_task2(q_triggered_task=q_robot_mission[1]))]
-    # tasks += [asyncio.create_task(
-    #     T_robot[2].initiate_task2(q_triggered_task=q_robot_mission[2]))]
-
-    # tasks += [asyncio.create_task(consumer(q, i, q2)) for i in range(concurrency)]
-    # tasks += [asyncio.create_task(producer(q, q2))]
-    # tasks += [asyncio.create_task(consumer2(q2, i)) for i in range(concurrency)]
-
-    # tasks += [asyncio.create_task(T_robot[0].initiate_task(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))]
-    # tasks += [asyncio.create_task(T_robot[1].initiate_task(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))]
-    # tasks += [
-    #     asyncio.create_task(T_robot[2].initiate_task(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))]
-    # tasks += [asyncio.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr))]
-    # tasks += [asyncio.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr))]
-    # tasks += [asyncio.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr))]
-    # tasks += [asyncio.create_task(T_robot[0].execution_timer(event_main=event1_exectime, event_init_task=event1_chk_exec, loop=loop))]
-    # tasks += [asyncio.create_task(
-    #     T_robot[1].execution_timer(event_main=event1_exectime, event_init_task=event3_chk_exec, loop=loop))]
-    # tasks += [loop.create_task(
-    #     T_robot[2].execution_timer(event_main=event1_exectime, event_init_task=event3_chk_exec, loop=loop))]
-
-    # loop.create_task(consumer(q, 1, q2))
-    # loop.create_task(producer(q, q2))
-    # loop.create_task(consumer2(q2, 1, event))
-    # loop.create_task(main_function(data_opcua))
-    # loop.create_task(T_robot[0].initiate_task(event_frommain=event1_chk_exec, event_toopcua=event1_pth_clr))
-    # loop.create_task(T_robot[1].initiate_task(event_frommain=event2_chk_exec, event_toopcua=event2_pth_clr))
-    # loop.create_task(T_robot[2].initiate_task(event_frommain=event3_chk_exec, event_toopcua=event3_pth_clr))
-    # loop.create_task(T_robot[0].sendtoOPCUA(event_fromchkpath=event1_pth_clr))
-    # loop.create_task(T_robot[1].sendtoOPCUA(event_fromchkpath=event2_pth_clr))
-    # loop.create_task(T_robot[2].sendtoOPCUA(event_fromchkpath=event3_pth_clr))
-    # loop.create_task(T_robot[0].execution_timer(event_main=event1_exectime, event_init_task=event1_chk_exec, loop=loop))
-    # loop.create_task(T_robot[1].execution_timer(event_main=event2_exectime, event_init_task=event2_chk_exec, loop=loop))
-    # loop.create_task(T_robot[2].execution_timer(event_main=event3_exectime, event_init_task=event3_chk_exec, loop=loop))
-    # loop.create_task(W_robot[0].process_execution(event=wk_1))
-    # loop.create_task(W_robot[1].process_execution(event=wk_2))
-    # loop.create_task(W_robot[2].process_execution(event=wk_3))
-    # loop.create_task(W_robot[3].process_execution(event=wk_4))
-    # loop.create_task(W_robot[4].process_execution(event=wk_5))
-    # loop.create_task(W_robot[5].process_execution(event=wk_6))
-    # loop.create_task(W_robot[6].process_execution(event=wk_7))
-    # loop.create_task(W_robot[7].process_execution(event=wk_8))
-    # loop.create_task(W_robot[8].process_execution(event=wk_9))
-    # loop.create_task(W_robot[9].process_execution(event=wk_10))
+    #await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, T1, T2, T3, T4, T5, T6, *W_process)
+    await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, *T_initiate, *T_execution, *W_process)
 
     # await asyncio.gather(producer(q), consumer2(q2, 1), consumer(q, 1, q2) , main_function(data_opcua))
     print("Production Ended")
 
 
 if __name__ == "__main__":
+    total_TRs = 3
+    total_WRs = 10
 
     data_opcua = Manager().dict()
     q_main_to_releaser = asyncio.Queue()
@@ -366,10 +350,10 @@ if __name__ == "__main__":
     # q_initiate_task3 = asyncio.Queue()
     q_product_release = asyncio.Queue()
     q_task_wait = asyncio.Queue()
-    q_initiate_task = [asyncio.Queue() for _ in range(3)]
+    q_initiate_task = [asyncio.Queue() for _ in range(total_TRs)]
     q_robot_to_opcua = asyncio.Queue()
-    q_exec_start = [asyncio.Queue() for _ in range(3)]
-    q_initiate_process = [asyncio.Queue() for _ in range(10)]
+    q_exec_start = [asyncio.Queue() for _ in range(total_TRs)]
+    q_initiate_process = [asyncio.Queue() for _ in range(total_WRs)]
 
     # Initialised opcua data
     data_opcua["brand"] = "Ford"
@@ -414,7 +398,7 @@ if __name__ == "__main__":
     Ax_station = []
 
     ##### Initialization of auxiliary stations#######
-    for i in range(10):
+    for i in range(total_WRs):
         source = Auxillary_station(stn_no=i + 10, order=production_order, product=null_product)
         Ax_station.append(source)
     sink_station = Auxillary_station(stn_no=40, order=production_order, product=null_product)
@@ -428,11 +412,11 @@ if __name__ == "__main__":
 
     q_robot = []
     # for r in data_opcua["rob_busy"]:
-    for r in range(3):
+    for r in range(total_TRs):
         q3 = queue.Queue()
         q_robot.append(q3)
     # for i, R in enumerate(data_opcua["rob_busy"]):
-    for i in range(3):
+    for i in range(total_TRs):
         # print(i+1, R)
         robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i],
                                machine_pos=global_wk_pos)
