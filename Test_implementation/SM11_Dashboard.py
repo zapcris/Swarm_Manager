@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
-from Reactive_majorversion3.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
+from Test_implementation.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
 
 def display_cycletime():
@@ -13,7 +13,7 @@ def production_time2(Finished_products):
     for prod in Finished_products:
         print(prod)
 
-def production_time(Finished_products):
+async def production_time(Finished_products):
     labels = []
     product_times = []
     batch_stime = Finished_products[0].tracking[0].tstamp

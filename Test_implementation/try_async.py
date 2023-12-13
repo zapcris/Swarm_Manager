@@ -1,45 +1,42 @@
 import asyncio
 
-async def waiter():
-    print('waiting for it ...')
+async def producer(queue, max_events):
+    for i in range(max_events):
+        await asyncio.sleep(1)  # Simulate an event every second
+        event = f"Event {i + 1}"
+        await queue.put(event)
+        print(f"Produced: {event}")
 
-    await asyncio.sleep(5)
+    await queue.put(None)  # Signal the end of events
 
-    print('... got it!')
+async def consumer(queue, consumer_name):
+    while True:
+        event = await queue.get()
+        if event is None:
+            # End the consumer loop when the sentinel value is received
+            break
+
+        print(f"{consumer_name} Consumed: {event}")
+        await asyncio.sleep(2)  # Simulate some processing time
 
 async def main():
-    # Create an Event object.
-    event = asyncio.Event()
+    queue1 = asyncio.Queue()
+    queue2 = asyncio.Queue()
+    queue3 = asyncio.Queue()
 
-    # Spawn a Task to wait until 'event' is set.
-    waiter_task = asyncio.create_task(waiter())
-    print("event_created")
+    max_events = 5
 
-    # Sleep for 1 second and se
+    producers = [
+        producer(queue1, max_events),
+    ]
 
-    # Wait until the waiter task is finished.
-    await waiter_task
+    consumers = [
+        consumer(queue1, "Consumer 1"),
+        consumer(queue2, "Consumer 2"),
+        consumer(queue3, "Consumer 3"),
+    ]
 
+    await asyncio.gather(*producers, *consumers)
 
-async def main2():
-    # Create an Event object.
-
-    print("main task running")
-
-    await asyncio.sleep(1)
-
-    print("main task running2")
-    await asyncio.sleep(1)
-
-    print("main task running3")
-
-    await asyncio.sleep(1)
-
-    print("main task running4")
-
-
-
-
-
-asyncio.run(main())
-asyncio.run(main2())
+if __name__ == "__main__":
+    asyncio.run(main())

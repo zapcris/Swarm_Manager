@@ -1,10 +1,9 @@
-import threading
 from queue import Queue
-from Reactive_majorversion3.SM10_Product_Task import Product, Task, Source
+from Test_implementation.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
-from Reactive_majorversion3.SM11_Dashboard import production_time
+from Test_implementation.SM11_Dashboard import production_time
 
-app_close = threading.Event()
+
 
 
 class Scheduling_agent:
@@ -121,16 +120,16 @@ class Scheduling_agent:
         #     app_close.set()
         #     production_time(self.finished_product)
 
-    def production_end(self):
+    async def production_end(self):
         #print("Production completed")
-        for i, product in enumerate(self.finished_product):
-            a =100
+        # for i, product in enumerate(self.finished_product):
+        #     a =100
             #print(f"Finished product {i} is {product}")
             #print(f"It's tracking details are {product.tracking}")
 
-        production_time(self.finished_product)
+        await production_time(self.finished_product)
         #print("Production Stats generating")
-        app_close.set()
+        #app_close.set()
 
 
 
