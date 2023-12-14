@@ -1,36 +1,32 @@
-import os
-import datetime as dt
-import matplotlib.pyplot as plt
-
-file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
-# print(file_time.strftime("%d_%m_%Y_%H_%M"))
-
-curr_time = file_time.strftime("%d_%m_%Y_%H_%M")
-
-folder_name = "results/" + curr_time
-
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-
-target = f"results/{folder_name}.pdf"
-print("The filename", target)
-
-# x = [1, 2, 3]
-# # corresponding y axis values
-# y = [2, 4, 1]
-#
-# # plotting the points
-# plt.plot(x, y)
-#
-# # naming the x axis
-# plt.xlabel('x - axis')
-# # naming the y axis
-# plt.ylabel('y - axis')
-#
-# # giving a title to my graph
-# plt.title('My first graph!')
-#
-# # function to show the plot
-# plt.savefig(target)
+import tkinter as tk
+from itertools import cycle
 
 
+def update_label(new_text):
+    blinking_label.config(text=new_text)
+
+
+def blink():
+    if next(blink_iter):
+        blinking_label.config(fg='black')
+    else:
+        blinking_label.config(fg='white')
+    root.after(500, blink)
+
+
+root = tk.Tk()
+root.title("Blinking Label App")
+
+blinking_label = tk.Label(root, text="Click a button", font=('Helvetica', 16))
+blinking_label.pack(pady=20)
+
+button1 = tk.Button(root, text="Button 1", command=lambda: update_label("Text for Button 1"))
+button1.pack(side=tk.LEFT, padx=10)
+
+button2 = tk.Button(root, text="Button 2", command=lambda: update_label("Text for Button 2"))
+button2.pack(side=tk.RIGHT, padx=10)
+
+blink_iter = cycle([True, False])
+blink()
+
+root.mainloop()

@@ -1,7 +1,11 @@
 import asyncio
 import queue
+import sys
 import time
-
+import pandas as pd
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
 from multiprocessing import Process, Manager
 import pymongo
 from Reactive_10Robots.SM02_opcua_client import start_opcua
@@ -10,6 +14,21 @@ from Reactive_10Robots.SM05_Scheduler_agent import Scheduling_agent
 from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
 from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
     Auxillary_station
+from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
+
+
+class PrintToTXT(object):
+    def write(self, s):
+        txt.insert(END, s)
+
+
+def close(top):
+    # win.destroy()
+    top.quit()
+
+
+def clear(dframe):
+    del dframe
 
 
 def reconfigure_topology():
@@ -80,25 +99,6 @@ async def release_task_execution(q_mission_release):
             if i == robot_id - 1 and T_robot[i].exec_cmd == True:
                 await q_initiate_task[i].put(task_opcua)
                 print(f"Task Initialized for Robot {robot_id}")
-
-        # if robot_id == 1 and T_robot[robot_id - 1].exec_cmd == True:
-        #     # loop.call_soon_threadsafe(event1_chk_exec.set)
-        #     # event1_chk_exec.set()
-        #     # q_robot_mission[0].put_nowait("Task_robot1")
-        #     await q_initiate_task[0].put(task_opcua)
-        #     print("Triggered event is 1 for robot 1")
-        # elif robot_id == 2 and T_robot[robot_id - 1].exec_cmd == True:
-        #     # loop.call_soon_threadsafe(event2_chk_exec.set)
-        #     # event2_chk_exec.set()
-        #     # q_robot_mission[1].put_nowait("Task_robot2")
-        #     await q_initiate_task[1].put(task_opcua)
-        #     print("Triggered event is 1 for robot 2")
-        # elif robot_id == 3 and T_robot[robot_id - 1].exec_cmd == True:
-        #     # loop.call_soon_threadsafe(event3_chk_exec.set)
-        #     # event3_chk_exec.set()
-        #     # q_robot_mission[2].put_nowait("Task_robot3")
-        #     await q_initiate_task[2].put(task_opcua)
-        #     print("Triggered event is 1 for robot 3")
         Sim_step += 1
         # await asyncio.sleep(2)
         q_mission_release.task_done()
@@ -210,20 +210,6 @@ async def release_opcua_cmd(q_robot_cmd):
             if i == id - 1 and data_opcua["rob_busy"][i]:
                 await q_exec_start[i].put("Start")
                 print(f"Triggered execution_timer event for Robot {id}")
-
-        # if id == 1 and data_opcua["rob_busy"][0]:
-        #     # event1_exectime.set()
-        #     await q_exec_start[0].put("Start")
-        #     print("Triggered execution_timer event for robot 1")
-        # elif id == 2 and data_opcua["rob_busy"][1]:
-        #     # event2_exectime.set()
-        #     await q_exec_start[1].put("Start")
-        #     print("Triggered execution_timer event for robot 2 ")
-        # elif id == 3 and data_opcua["rob_busy"][2]:
-        #     # event3_exectime.set()
-        #     await q_exec_start[2].put("Start")
-        #     print("Triggered execution_timer event for robot 3")
-        # await asyncio.sleep(2)
         q_robot_cmd.task_done()
 
 
@@ -263,10 +249,60 @@ async def async_main():
     await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, *T_initiate, *T_execution, *W_process)
 
 
+def run_simulation():
+    ### Perform task creation and allocation process
+    initial_allotment = GreedyScheduler.initialize_production()
+    print("Scheduler Initiated", initial_allotment)
+
+    ### Allocate tasks to the Robots
+    alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1], data_opcua,
+                                                            T_robot)
+    # print(len(alloted_initial_task[0]))
+
+    ##Transfer allocated tasks to task queue####
+    for task in alloted_initial_task[0]:
+        print(f"tasks in the queue:", task)
+        q_main_to_releaser.put_nowait(task)
+
+    asyncio.run(async_main())
+
+
+def open_popup():
+    global txt
+    # top = Toplevel(window)
+    # top.geometry("800x600")
+    top = Toplevel(window)
+    top.geometry('800x600')
+    # top.title("Simulation Window ")
+    # Label(top, text= "Hello World!", font=('Mistral 18 bold')).place(x=150,y= 80)
+    # tk.Button(top, text='Run Simulation', command=lambda: run_simulation()).grid(column=25,
+    #                                                                              row=15, padx=10, pady=25)
+
+    btn = Button(top, text='Run Visual Components Simulation', command=run_simulation)
+    btn.pack(side='top')
+    btn2 = Button(top, text='Close the Simulation', command=lambda: close(top=top))
+    btn2.pack(side='bottom')
+    btn3 = Button(top, text='clear dataframe', command=lambda: clear(dframe=dframe))
+    btn3.pack(side='left')
+
+    ini_string = 'SWARM TOPOLOGY MANAGER'
+    dframe = pd.DataFrame
+    txt = Text(top)
+    txt.pack()
+    sys.stdout = PrintToTXT()
+    print(dframe)
+
+
 if __name__ == "__main__":
+    window = tk.Tk()
+    window.title('Swarm Manager')
+    window.geometry('1920x1080')
     total_TRs = 3
     total_WRs = 10
-
+    T_robot = []
+    W_robot = []
+    Ax_station = []
+    q_robot = []
     data_opcua = Manager().dict()
     q_main_to_releaser = asyncio.Queue()
     q_product_release = asyncio.Queue()
@@ -301,7 +337,7 @@ if __name__ == "__main__":
     opcua_client = Process(target=start_opcua, args=(data_opcua,))
     opcua_client.start()
 
-    # # do reconfiguration
+    # # do reconfiguration based on chosen topology from UI
     # time.sleep(5)
     # reconfigure_topology()
 
@@ -317,10 +353,6 @@ if __name__ == "__main__":
             print("Data initialized")
             break
 
-    T_robot = []
-    W_robot = []
-    Ax_station = []
-
     ##### Initialization of auxiliary stations#######
     for i in range(total_WRs):
         source = Auxillary_station(stn_no=i + 10, order=production_order, product=null_product)
@@ -334,7 +366,6 @@ if __name__ == "__main__":
             wr = Workstation_robot(wk_no=i + 1, order=production_order, product=null_product)
             W_robot.append(wr)
 
-    q_robot = []
     # for r in data_opcua["rob_busy"]:
     for r in range(total_TRs):
         q3 = queue.Queue()
@@ -357,22 +388,76 @@ if __name__ == "__main__":
         order=production_order,
         product_task=Product_task,
         T_robot=T_robot
-
     )
 
-    ### Perform task creation and allocation process
-    initial_allotment = GreedyScheduler.initialize_production()
-    print("Scheduler Initiated", initial_allotment)
+    run_simulation()
 
-    ### Allocate tasks to the Robots
-    alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1], data_opcua,
-                                                            T_robot)
+    'UI implementation for running the simulation : Application hangs on implementation'
 
-    # print(len(alloted_initial_task[0]))
+    # sys.exit()
+    # # label text for title
+    # ttk.Label(window, text="Swarm Manager",
+    #           background='green', foreground="white",
+    #           font=("Times New Roman", 15)).grid(row=0, column=1)
+    #
+    # # label
+    # ttk.Label(window, text="Select the Document :",
+    #           font=("Times New Roman", 10)).grid(column=0,
+    #                                              row=5, padx=10, pady=25)
+    #
+    # ttk.Label(window, text="Select the Topology :",
+    #           font=("Times New Roman", 10)).grid(column=30,
+    #                                              row=20, padx=10, pady=25)
+    #
+    # # Combobox creation
+    # n = tk.StringVar()
+    # n2 = tk.StringVar()
+    # topchoosen = ttk.Combobox(window, width=27, textvariable=n)
+    # toplist = ttk.Combobox(window, width=27, textvariable=n2)
+    #
+    # # Adding combobox drop down list
+    # topchoosen['values'] = read_tree()
+    #
+    # topchoosen.grid(column=1, row=5)
+    # toplist.grid(column=60, row=50)
+    # topchoosen.current()
+    # toplist.current()
+    #
+    # # reconfig = "0,0d20000,6000d0,15000d0,14000d20000,24000d0,31000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    #
+    # b1 = tk.Button(window, text='Select MongoDB doc', command=select_doc).grid(column=30,
+    #                                                                            row=5, padx=10, pady=25)
+    #
+    # b2 = tk.Button(window, text='Select Specific Topology', command=select_top).grid(column=60,
+    #                                                                                  row=5, padx=10, pady=25)
+    # # b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology()).grid(column=90,
+    # #                                              row=5, padx=10, pady=25)
+    # b3 = tk.Button(window, text='Transfer Selected Topology', command=lambda: save(Topology)).grid(column=90,
+    #                                                                                                row=5, padx=10,
+    #                                                                                                pady=25)
+    # b4 = tk.Button(window, text='Transfer Optimal Topology', command=lambda: optimize()).grid(column=90,
+    #                                                                                           row=10, padx=10, pady=25)
+    # b5 = tk.Button(window, text='Run Simulation', command=open_popup).grid(column=25,
+    #                                                                        row=15, padx=10, pady=25)
+    # # b6 = tk.Button(window, text='Run OPCUA Server', command=main).grid(column=25,
+    # #                                                                  row=15, padx=10, pady=25)
+    #
+    # window.mainloop()
 
-    ##Transfer allocated tasks to task queue####
-    for task in alloted_initial_task[0]:
-        print(f"tasks in the queue:", task)
-        q_main_to_releaser.put_nowait(task)
-
-    asyncio.run(async_main())
+    "   ## Code moved to subroutine#####     "
+    # ### Perform task creation and allocation process
+    # initial_allotment = GreedyScheduler.initialize_production()
+    # print("Scheduler Initiated", initial_allotment)
+    #
+    # ### Allocate tasks to the Robots
+    # alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1], data_opcua,
+    #                                                         T_robot)
+    #
+    # # print(len(alloted_initial_task[0]))
+    #
+    # ##Transfer allocated tasks to task queue####
+    # for task in alloted_initial_task[0]:
+    #     print(f"tasks in the queue:", task)
+    #     q_main_to_releaser.put_nowait(task)
+    #
+    # asyncio.run(async_main())

@@ -22,7 +22,7 @@ async def production_time(Finished_products):
     file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
     curr_time = file_time.strftime("%d_%m_%Y_%H_%M")
     folder_name = "results/" + curr_time
-
+    print("geneated folder name", folder_name)
     ### Create folder for saving plots###
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
@@ -124,7 +124,7 @@ async def pie_chart(elements, f_name, folder):
     plt.setp(autotexts, size=8, weight="bold")
     ax.set_title(f_name)
     f_dir = f"{folder}/{f_name}.pdf"
-    print("The filename", f_name)
+    print("The filename", f_dir)
     plt.savefig(f_dir)
 
 
