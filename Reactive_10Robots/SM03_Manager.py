@@ -1,9 +1,10 @@
 import asyncio
-import itertools
 import queue
 import time
+
 from multiprocessing import Process, Manager
-from SM02_opcua_client import start_opcua
+import pymongo
+from Reactive_10Robots.SM02_opcua_client import start_opcua
 from Reactive_10Robots.SM04_Task_Planning_agent import Task_Planning_agent
 from Reactive_10Robots.SM05_Scheduler_agent import Scheduling_agent
 from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
@@ -11,55 +12,28 @@ from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_rob
     Auxillary_station
 
 
+def reconfigure_topology():
+    # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["Topology_Manager"]
+    mycol = mydb["Reconfigure_Topology"]
+    x = mycol.find_one()
+    reconfig = x["Topology"]
+
+    print("Reconfiguration Started")
+
+    # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    print(reconfig)
+    data_opcua["reconfiguration_machine_pos"] = reconfig
+    time.sleep(0.5)
+    data_opcua["do_reconfiguration"] = True
+    time.sleep(1)
+    data_opcua["do_reconfiguration"] = False
+    time.sleep(10)
+    print("Reconfiguration Ended")
 
 
-async def waiter(event):
-    print('waiting for it ...')
-    await event.wait()
-    print('... got it!')
-
-
-async def producer(queue: asyncio.Queue, queue2: asyncio.Queue):
-    """producer emulator, creates ~ 10 tasks per second"""
-    sleep_seconds = 1
-    counter = itertools.count(1)
-    run = 1
-    i = 0
-    while run == 1:
-        await queue.put(next(counter))
-        await queue2.put(next(counter))
-        await asyncio.sleep(sleep_seconds)
-        i += 1
-        print(data_opcua)
-        if i >= 20:
-            run = 0
-            print("Task Ended")
-            # break
-
-
-async def consumer(queue: asyncio.Queue, index, queue2: asyncio.Queue):
-    """slow io-bound consumer emulator, process ~ 5 tasks per second"""
-    sleep_seconds = 4
-    while True:
-        task = await queue.get()
-        print(f"consumer={index}, task={task}, queue_size={queue.qsize()}")
-        await asyncio.sleep(sleep_seconds)
-
-        # await queue2.put(task)
-        queue.task_done()
-
-
-async def consumer2(queue: asyncio.Queue, index):
-    """slow io-bound consumer emulator, process ~ 5 tasks per second"""
-
-    sleep_seconds = 1
-    while True:
-        task = await queue.get()
-        print(f"consumer2={index}, task2={task}, queue_size2={queue.qsize()}")
-        # print(data_opcua)
-        await asyncio.sleep(sleep_seconds)
-
-
+### Product Release Async Queue####
 async def release_products(q_done_product, q_task_waiting, q_mission_release):
     while True:
         done_prod = await q_done_product.get()
@@ -86,6 +60,7 @@ async def release_products(q_done_product, q_task_waiting, q_mission_release):
         q_done_product.task_done()
 
 
+### Task Release based on Products Async Queue####
 async def release_task_execution(q_mission_release):
     global Sim_step
     Sim_step = 0
@@ -101,8 +76,8 @@ async def release_task_execution(q_mission_release):
         await T_robot[robot_id - 1].trigger_task(task=task_opcua)
 
         for i in range(len(T_robot)):
-            #print(i, robot_id)
-            if i == robot_id-1 and T_robot[i].exec_cmd == True:
+            # print(i, robot_id)
+            if i == robot_id - 1 and T_robot[i].exec_cmd == True:
                 await q_initiate_task[i].put(task_opcua)
                 print(f"Task Initialized for Robot {robot_id}")
 
@@ -129,6 +104,7 @@ async def release_task_execution(q_mission_release):
         q_mission_release.task_done()
 
 
+### Task Wait based on unallocated Tasks Async Queue####
 async def task_wait_queue(q_task_waiting, q_mission_release):
     while True:
         awaited_task = await q_task_wait.get()
@@ -148,6 +124,7 @@ async def task_wait_queue(q_task_waiting, q_mission_release):
             await q_task_waiting.put([wait_alloted_task[0], wait_alloted_task[1]])
 
 
+### OPCUA command to Visual Components Async Queue####
 async def release_opcua_cmd(q_robot_cmd):
     while True:
 
@@ -229,8 +206,8 @@ async def release_opcua_cmd(q_robot_cmd):
         data_opcua["mobile_manipulator"] = ["", "", "", "", "", "", "", "", "", ""]
         print("command sent to opcuaclient", cmd)
         for i in range(len(T_robot)):
-            #print(i, id)
-            if i == id-1 and data_opcua["rob_busy"][i]:
+            # print(i, id)
+            if i == id - 1 and data_opcua["rob_busy"][i]:
                 await q_exec_start[i].put("Start")
                 print(f"Triggered execution_timer event for Robot {id}")
 
@@ -250,63 +227,13 @@ async def release_opcua_cmd(q_robot_cmd):
         q_robot_cmd.task_done()
 
 
-async def main():
-    # q = asyncio.Queue()
-    # q2 = asyncio.Queue()
-    # event = asyncio.Event()
-
-    concurrency = 1  # consumers count
-
-    tasks = [asyncio.create_task(release_task_execution(q_main_to_releaser))]
-
-    tasks += [asyncio.create_task(
-        T_robot[0].initiate_task(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))]
-    tasks += [asyncio.create_task(
-        T_robot[1].initiate_task(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))]
-    tasks += [asyncio.create_task(
-        T_robot[2].initiate_task(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))]
-    tasks += [asyncio.create_task(release_opcua_cmd(q_robot_to_opcua))]
-
+async def async_main():
     task_queue = asyncio.create_task(release_task_execution(q_mission_release=q_main_to_releaser))
     product_queue = asyncio.create_task(release_products(q_done_product=q_product_release, q_task_waiting=q_task_wait,
                                                          q_mission_release=q_main_to_releaser))
     wait_queue = asyncio.create_task(task_wait_queue(q_task_waiting=q_task_wait, q_mission_release=q_main_to_releaser))
     opcua_queue = asyncio.create_task(release_opcua_cmd(q_robot_cmd=q_robot_to_opcua))
 
-    T1 = asyncio.create_task(
-        T_robot[0].initiate_task(q_initiate_task=q_initiate_task[0], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))
-    T2 = asyncio.create_task(
-        T_robot[1].initiate_task(q_initiate_task=q_initiate_task[1], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))
-    T3 = asyncio.create_task(
-        T_robot[2].initiate_task(q_initiate_task=q_initiate_task[2], W_robot=W_robot, Ax_station=Ax_station,
-                                 q_trigger_cmd=q_robot_to_opcua))
-
-    T4 = asyncio.create_task(
-        T_robot[0].execution_timer(q_executing_task=q_exec_start[0], q_done_product=q_product_release,
-                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                   q_initiate_task=q_initiate_task[0],
-                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                   GreedyScheduler=GreedyScheduler,
-                                   data_opcua=data_opcua))
-    T5 = asyncio.create_task(
-        T_robot[1].execution_timer(q_executing_task=q_exec_start[1], q_done_product=q_product_release,
-                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                   q_initiate_task=q_initiate_task[1],
-                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                   GreedyScheduler=GreedyScheduler,
-                                   data_opcua=data_opcua))
-    T6 = asyncio.create_task(
-        T_robot[2].execution_timer(q_executing_task=q_exec_start[2], q_done_product=q_product_release,
-                                   q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
-                                   q_initiate_task=q_initiate_task[2],
-                                   T_robot=T_robot, W_robot=W_robot, Ax_station=Ax_station,
-                                   GreedyScheduler=GreedyScheduler,
-                                   data_opcua=data_opcua))
     T_initiate = []
 
     for i in range(len(T_robot)):
@@ -332,11 +259,8 @@ async def main():
         W_process.append(asyncio.create_task(W_robot[i].process_execution(q_initiate_process=q_initiate_process[i],
                                                                           q_done_product=q_product_release)))
 
-    #await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, T1, T2, T3, T4, T5, T6, *W_process)
+    # await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, T1, T2, T3, T4, T5, T6, *W_process)
     await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, *T_initiate, *T_execution, *W_process)
-
-    # await asyncio.gather(producer(q), consumer2(q2, 1), consumer(q, 1, q2) , main_function(data_opcua))
-    print("Production Ended")
 
 
 if __name__ == "__main__":
@@ -345,9 +269,6 @@ if __name__ == "__main__":
 
     data_opcua = Manager().dict()
     q_main_to_releaser = asyncio.Queue()
-    # q_initiate_task1 = asyncio.Queue()
-    # q_initiate_task2 = asyncio.Queue()
-    # q_initiate_task3 = asyncio.Queue()
     q_product_release = asyncio.Queue()
     q_task_wait = asyncio.Queue()
     q_initiate_task = [asyncio.Queue() for _ in range(total_TRs)]
@@ -380,8 +301,11 @@ if __name__ == "__main__":
     opcua_client = Process(target=start_opcua, args=(data_opcua,))
     opcua_client.start()
 
-    while (True):
+    # # do reconfiguration
+    # time.sleep(5)
+    # reconfigure_topology()
 
+    while True:
         time.sleep(2)
         print("Awaiting data from Visual Components")
         # print(data_opcua["machine_pos"])
@@ -451,14 +375,4 @@ if __name__ == "__main__":
         print(f"tasks in the queue:", task)
         q_main_to_releaser.put_nowait(task)
 
-    asyncio.run(main())
-
-    # try:
-    #
-    #     loop = asyncio.new_event_loop()
-    #     asyncio.set_event_loop(loop)
-    #     asyncio.run(main(loop))
-    #     # asyncio.run(main(loop), debug=True)
-    #     # loop.run_forever()
-    # except KeyboardInterrupt:
-    #     pass
+    asyncio.run(async_main())

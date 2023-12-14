@@ -17,7 +17,7 @@ async def main():
     await server.init()
     url = "opc.tcp://127.0.0.1:4840/freeopcua/server/"
     namespace = "http://examples.freeopcua.github.io"
-    #server.set_endpoint("opc.tcp://0.0.0.0:4840/freeopcua/server/")
+    # server.set_endpoint("opc.tcp://0.0.0.0:4840/freeopcua/server/")
     server.set_endpoint(url)
 
     # set up our own namespace, not really necessary but should as spec
@@ -57,8 +57,6 @@ async def main():
     await machine_9_part.set_writable()
     await machine_10_part.set_writable()
     await sink_machine.set_writable()
-
-
 
     ###################################################################
     control_mobile_manipulator = await server.nodes.objects.add_object(idx, "Moble manipulator control")
@@ -136,7 +134,6 @@ async def main():
     await task_time_rob9.set_writable()
     await task_time_rob10.set_writable()
 
-
     ###################################################################
     positions = await server.nodes.objects.add_object(idx, "Positions")
     machine_pos = await positions.add_variable(idx, "machine_pos", "")
@@ -162,10 +159,10 @@ async def main():
     async with server:
         while True:
             await asyncio.sleep(1)
-            #new_val = await myvar.get_value() + 0.1
-            #_logger.info("Set value of %s to %.1f", myvar, new_val)
-            #await myvar.write_value(new_val)
+            # new_val = await myvar.get_value() + 0.1
+            # _logger.info("Set value of %s to %.1f", myvar, new_val)
+            # await myvar.write_value(new_val)
+
 
 if __name__ == "__main__":
-
     asyncio.run(main(), debug=False)

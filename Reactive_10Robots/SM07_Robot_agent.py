@@ -6,7 +6,7 @@ from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Wa
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    "PV": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
                  [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
                  [13, 3, 9, 50],

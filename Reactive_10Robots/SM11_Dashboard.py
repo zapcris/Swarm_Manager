@@ -1,17 +1,13 @@
+import asyncio
 import sys
 from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
+import os
+import datetime as dt
 import matplotlib.pyplot as plt
 from Reactive_10Robots.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
-
-def display_cycletime():
-    return None
-
-def production_time2(Finished_products):
-    for prod in Finished_products:
-        print(prod)
 
 async def production_time(Finished_products):
     labels = []
@@ -23,10 +19,18 @@ async def production_time(Finished_products):
     production_legend = []
     product_sts = []
 
+    file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
+    curr_time = file_time.strftime("%d_%m_%Y_%H_%M")
+    folder_name = "results/" + curr_time
+
+    ### Create folder for saving plots###
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######
         # l = "P_variant:" + str(product.pv_Id) + "," + "P_instance:" + str(product.pi_Id)
-        l = f"var:{product.pv_Id}inst:{product.pi_Id}"
+        l = f"var_{product.pv_Id} and inst_{product.pi_Id}"
         labels.append(l)
         wait_time = 0
         travel_time = 0
@@ -62,7 +66,9 @@ async def production_time(Finished_products):
         d = f"{p} sec {l}"
         production_legend.append(d)
     main_title = f"Production Runtime for: {batch_time}"
-    pie_chart(elements=production_legend, title=main_title)
+    main_fname = "Main_Statistics"
+    await pie_chart(elements=production_legend, f_name=main_fname, folder=folder_name)
+    # pie_chart2(elements=production_legend, title=main_title)
 
     #### Create pie chart for product overview###
     for i, (status, label, times) in enumerate(zip(product_times, labels, product_sts)):
@@ -74,26 +80,12 @@ async def production_time(Finished_products):
         d3 = f"{times[2]} Process"
         product_legend = [d1, d2, d3]
         print(product_legend)
-        pie_chart(elements=product_legend, title=title)
-
-    """""
-    old pie chart
-    # title = f"Production Runtime for: {batch_time}"
-    # 
-    # # Pie chart, where the slices will be ordered and plotted counter-clockwise:
-    # # labels = ['Civil', 'Electrical', 'Mechanical', 'Chemical']
-    # # sizes = [15, 50, 45, 10]
-    # 
-    # fig, ax = plt.subplots()
-    # ax.pie(product_times, labels=labels, autopct='%1.1f%%')
-    # ax.axis('equal')  # Equal aspect ratio ensures the pie chart is circular.
-    # ax.set_title(title)
-    # 
-    # plt.show()
-    """""
+        await pie_chart(elements=product_legend, f_name=label, folder=folder_name)
+        # pie_chart2(elements=production_legend, title=title)
 
 
-def pie_chart(elements, title):
+##Function to plot stats##
+async def pie_chart2(elements, title):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     data = [float(x.split()[0]) for x in elements]
     times = [x.split()[-1] for x in elements]
@@ -109,17 +101,41 @@ def pie_chart(elements, title):
               )
 
     plt.setp(autotexts, size=8, weight="bold")
-
     ax.set_title(title)
-    target = "results/"+title+".pdf"
-    print(target)
     plt.show()
-    #plt.savefig(target)
+
+
+##Function to save stats##
+async def pie_chart(elements, f_name, folder):
+    fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+    data = [float(x.split()[0]) for x in elements]
+    times = [x.split()[-1] for x in elements]
+
+    wedges, texts, autotexts = ax.pie(data, autopct=lambda pct: func(pct, data),
+                                      textprops=dict(color="w"))
+
+    ax.legend(wedges, times,
+              title="Legend",
+              loc="center left",
+              bbox_to_anchor=(1, 0, 0.5, 1),
+              fontsize="x-small",
+              )
+
+    plt.setp(autotexts, size=8, weight="bold")
+    ax.set_title(f_name)
+    f_dir = f"{folder}/{f_name}.pdf"
+    print("The filename", f_name)
+    plt.savefig(f_dir)
 
 
 def func(pct, allvals):
     absolute = int(np.round(pct / 100. * np.sum(allvals)))
     return f"{pct:.1f}%\n({absolute:d} seconds)"
+
+
+async def main():
+    task = asyncio.create_task(production_time(finish_products))
+    await asyncio.gather(task)
 
 
 ###### Dashboard Test ###############
@@ -180,7 +196,7 @@ if __name__ == "__main__":
     stop = p4.tracking[-1].tstamp
     d = (stop - start).total_seconds()
 
-    production_time(finish_products)
+    asyncio.run(main())
 
     # a.calc_time()
     # b.calc_time()
