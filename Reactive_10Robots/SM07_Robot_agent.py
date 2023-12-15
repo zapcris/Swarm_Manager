@@ -6,10 +6,10 @@ from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Wa
 
 production_order = {
     "Name": "Test",
-    "PV": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    "PV": [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
                  [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
-                 [13, 3, 9, 50],
+                 [13, 1, 9, 50],
                  [14, 4, 8, 50],  # [11, 4, 8, 12, 9, 12]
                  [15, 10, 9, 50],
                  [16, 2, 5, 6, 8, 3, 50],
@@ -18,7 +18,7 @@ production_order = {
                  [19, 3, 4, 6, 1, 8, 9, 50],
                  [20, 2, 4, 6, 8, 5, 7, 9, 50]
                  ],
-    "PI": [2, 2, 2, 2, 2, 1, 1, 1, 1, 1],
+    "PI": [1, 1, 1, 2, 2, 1, 1, 1, 1, 1],
     "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
@@ -357,10 +357,10 @@ class Transfer_robot:
             if 1 <= self.wk_loc <= 10:
                 if self.base == True:
                     W_robot[self.wk_loc - 1].booked = False
-                elif self.q1 == True:
-                    W_robot[self.wk_loc - 1].q1_empty = True
-                elif self.q2 == True:
-                    W_robot[self.wk_loc - 1].q2_empty = True
+                # elif self.q1 == True:
+                #     W_robot[self.wk_loc - 1].q1_empty = True
+                # elif self.q2 == True:
+                #     W_robot[self.wk_loc - 1].q2_empty = True
             elif 11 <= self.wk_loc <= 20:
                 Ax_station[self.wk_loc - 11].booked = False
                 # print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
