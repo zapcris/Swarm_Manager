@@ -89,8 +89,8 @@ async def release_task_execution(q_mission_release):
         task_opcua = await q_mission_release.get()
         robot_id = task_opcua["robot"]
         # await asyncio.sleep(1)
-        print(f"Task released to robot {robot_id}")
-        print(f'>got {task_opcua["robot"]}')
+        #print(f"Task released to robot {robot_id}")
+        #print(f'>got {task_opcua["robot"]}')
         # print(robot_id)
         await T_robot[robot_id - 1].trigger_task(task=task_opcua)
 
@@ -98,7 +98,7 @@ async def release_task_execution(q_mission_release):
             # print(i, robot_id)
             if i == robot_id - 1 and T_robot[i].exec_cmd == True:
                 await q_initiate_task[i].put(task_opcua)
-                print(f"Task Initialized for Robot {robot_id}")
+                #print(f"Task Initialized for Robot {robot_id}")
         Sim_step += 1
         # await asyncio.sleep(2)
         q_mission_release.task_done()
@@ -133,8 +133,9 @@ async def release_opcua_cmd(q_robot_cmd):
         target = int(sub_task[1])
         id = data[1]
         product = data[2]
-        cmd = ["" for _ in range(len(T_robot))]
-        print(f"Task {sub_task} received from Swarm Manager for robot {id} for execution")
+        #cmd = ["" for _ in range(len(T_robot))]
+        cmd = ['', '', '', '', '', '', '', '', '', '']
+        #print(f"Task {sub_task} received from Swarm Manager for robot {id} for execution")
 
         match sub_task[0]:
 
@@ -187,12 +188,12 @@ async def release_opcua_cmd(q_robot_cmd):
                 cmd.insert((int(id) - 1), c)
                 # Ax_station[10].booked = True
             case "base":
-                y_pos = -1700 + ((id - 1) * 5000)
+                y_pos = 4032 - ((id - 1) * 2000) ##old -1700 , 5000
                 c = "m" + "," + "-10662" + "," + str(y_pos) + "," + "0"
                 cmd.insert((int(id) - 1), c)
-
-        data_opcua["mobile_manipulator"] = cmd
-        print("OPCUA released command", cmd)
+        opcua_cmd = cmd[:10]
+        data_opcua["mobile_manipulator"] = opcua_cmd
+        #print("OPCUA released command", opcua_cmd)
         # await asyncio.sleep(3)
         # t1 = time.time()
         "Wait for rob_busy"
@@ -204,12 +205,12 @@ async def release_opcua_cmd(q_robot_cmd):
             if data_opcua["rob_busy"][id - 1] == True:
                 run3 = 0
         data_opcua["mobile_manipulator"] = ["", "", "", "", "", "", "", "", "", ""]
-        print("command sent to opcuaclient", cmd)
+        #print("command sent to opcuaclient", opcua_cmd)
         for i in range(len(T_robot)):
             # print(i, id)
             if i == id - 1 and data_opcua["rob_busy"][i]:
                 await q_exec_start[i].put("Start")
-                print(f"Triggered execution_timer event for Robot {id}")
+                #print(f"Triggered execution_timer event for Robot {id}")
         q_robot_cmd.task_done()
 
 
@@ -223,14 +224,14 @@ async def async_main():
     T_initiate = []
 
     for i in range(len(T_robot)):
-        print("total robots task initialisation ", i)
+        #print("total robots task initialisation ", i)
         T_initiate.append(asyncio.create_task(
             T_robot[i].initiate_task(q_initiate_task=q_initiate_task[i], W_robot=W_robot, Ax_station=Ax_station,
                                      q_trigger_cmd=q_robot_to_opcua)))
     T_execution = []
 
     for i in range(len(T_robot)):
-        print("total robots task execution ", i)
+        #print("total robots task execution ", i)
         T_execution.append(asyncio.create_task(
             T_robot[i].execution_timer(q_executing_task=q_exec_start[i], q_done_product=q_product_release,
                                        q_trigger_cmd=q_robot_to_opcua, q_initiate_process=q_initiate_process,
@@ -241,7 +242,7 @@ async def async_main():
 
     W_process = []
     for i in range(len(W_robot)):
-        print("total workstation async process", i)
+        #print("total workstation async process", i)
         W_process.append(asyncio.create_task(W_robot[i].process_execution(q_initiate_process=q_initiate_process[i],
                                                                           q_done_product=q_product_release)))
 
@@ -252,7 +253,7 @@ async def async_main():
 def run_simulation():
     ### Perform task creation and allocation process
     initial_allotment = GreedyScheduler.initialize_production()
-    print("Scheduler Initiated", initial_allotment)
+    #print("Scheduler Initiated", initial_allotment)
 
     ### Allocate tasks to the Robots
     alloted_initial_task = Greedy_Allocator.step_allocation(initial_allotment[0], initial_allotment[1], data_opcua,
@@ -261,7 +262,7 @@ def run_simulation():
 
     ##Transfer allocated tasks to task queue####
     for task in alloted_initial_task[0]:
-        print(f"tasks in the queue:", task)
+        #print(f"tasks in the queue:", task)
         q_main_to_releaser.put_nowait(task)
 
     asyncio.run(async_main())
@@ -297,7 +298,7 @@ if __name__ == "__main__":
     window = tk.Tk()
     window.title('Swarm Manager')
     window.geometry('1920x1080')
-    total_TRs = 3
+    total_TRs = 10
     total_WRs = 10
     T_robot = []
     W_robot = []
@@ -346,11 +347,11 @@ if __name__ == "__main__":
         print("Awaiting data from Visual Components")
         # print(data_opcua["machine_pos"])
 
-        print(data_opcua["machine_pos"])
+        #print(data_opcua["machine_pos"])
         # print(data_opcua["robot_pos"])
         if data_opcua["machine_pos"][0] != [0, 0]:
             global_wk_pos = data_opcua["machine_pos"]
-            print("Data initialized")
+            #print("Data initialized")
             break
 
     ##### Initialization of auxiliary stations#######
@@ -377,11 +378,11 @@ if __name__ == "__main__":
                                machine_pos=global_wk_pos)
         T_robot.append(robot)
 
-    print("Robots initialised numbers", len(T_robot))
+    #print("Robots initialised numbers", len(T_robot))
 
     ##### Initialize Task Allocator agent #########
     Greedy_Allocator = Task_Allocator_agent()
-    print("Task Allocator Initiated")
+    #print("Task Allocator Initiated")
 
     ### Initialize Reactive Scheduler
     GreedyScheduler = Scheduling_agent(

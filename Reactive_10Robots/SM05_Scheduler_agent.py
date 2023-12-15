@@ -28,7 +28,7 @@ class Scheduling_agent:
 
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
-        #print(f"Product {product} added to the finished list")
+        print(f"Product {product} added to the completed list")
         new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0,
                               robot=99,
                               wk=0, released=False, tracking=[])
@@ -120,14 +120,14 @@ class Scheduling_agent:
         #     app_close.set()
         #     production_time(self.finished_product)
 
-    async def production_end(self):
+    def production_end(self):
         #print("Production completed")
         # for i, product in enumerate(self.finished_product):
         #     a =100
             #print(f"Finished product {i} is {product}")
             #print(f"It's tracking details are {product.tracking}")
 
-        await production_time(self.finished_product)
+        production_time(self.finished_product)
         #print("Production Stats generating")
         #app_close.set()
 
@@ -207,7 +207,7 @@ class Scheduling_agent:
         #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
         #     else:
         #         pass
-
+        print("Check this error",new_product.task_list)
         cmd = new_product.task_list[0]
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)

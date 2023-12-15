@@ -6,7 +6,7 @@ class Task_Allocator_agent:
         # self.t_robot = total_tr
 
     def step_allocation(self, task_for_allocation, product_obj, data_opcua, T_robot):
-        print("Step allocation started for robots", len(T_robot))
+        #print("Step allocation started for robots", len(T_robot))
         for i, (task, prod) in enumerate(zip(task_for_allocation, product_obj)):
             #### reset received bid data list for every new task ##############
             self.bid_data = []

@@ -9,28 +9,29 @@ import matplotlib.pyplot as plt
 from Reactive_10Robots.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 
 
-async def production_time(Finished_products):
+def production_time(Finished_products):
     labels = []
     product_times = []
     batch_stime = Finished_products[0].tracking[0].tstamp
     batch_etime = Finished_products[-1].tracking[-1].tstamp
     b_time = (batch_etime - batch_stime).total_seconds()
     batch_time = timedelta(seconds=b_time)
-    production_legend = []
+    main_legend = []
     product_sts = []
 
-    file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
-    curr_time = file_time.strftime("%d_%m_%Y_%H_%M")
+    #file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
+    now = dt.datetime.now()
+    curr_time = now.strftime("%d_%m_%Y_%H_%M")
     folder_name = "results/" + curr_time
     print("geneated folder name", folder_name)
     ### Create folder for saving plots###
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
+    #if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
 
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######
         # l = "P_variant:" + str(product.pv_Id) + "," + "P_instance:" + str(product.pi_Id)
-        l = f"var_{product.pv_Id} and inst_{product.pi_Id}"
+        l = f"PV-{product.pv_Id}_PI-{product.pi_Id}"
         labels.append(l)
         wait_time = 0
         travel_time = 0
@@ -64,28 +65,28 @@ async def production_time(Finished_products):
     ## Create pie chart for production overview###
     for l, p in zip(labels, product_times):
         d = f"{p} sec {l}"
-        production_legend.append(d)
+        main_legend.append(d)
     main_title = f"Production Runtime for: {batch_time}"
     main_fname = "Main_Statistics"
-    await pie_chart(elements=production_legend, f_name=main_fname, folder=folder_name)
+    pie_chart(elements=main_legend, f_name=main_fname, folder=folder_name)
     # pie_chart2(elements=production_legend, title=main_title)
 
     #### Create pie chart for product overview###
     for i, (status, label, times) in enumerate(zip(product_times, labels, product_sts)):
-        product_legend = []
+        prod_legend = []
         title = f"Product {label} time for {status} seconds"
         print(title)
         d1 = f"{times[0]} Transfer"
         d2 = f"{times[1]} Wait"
         d3 = f"{times[2]} Process"
-        product_legend = [d1, d2, d3]
-        print(product_legend)
-        await pie_chart(elements=product_legend, f_name=label, folder=folder_name)
+        prod_legend= [d1, d2, d3]
+        print(prod_legend)
+        pie_chart(elements=prod_legend, f_name=label, folder=folder_name)
         # pie_chart2(elements=production_legend, title=title)
 
 
 ##Function to plot stats##
-async def pie_chart2(elements, title):
+def pie_chart2(elements, title):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     data = [float(x.split()[0]) for x in elements]
     times = [x.split()[-1] for x in elements]
@@ -106,7 +107,7 @@ async def pie_chart2(elements, title):
 
 
 ##Function to save stats##
-async def pie_chart(elements, f_name, folder):
+def pie_chart(elements, f_name, folder):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     data = [float(x.split()[0]) for x in elements]
     times = [x.split()[-1] for x in elements]
