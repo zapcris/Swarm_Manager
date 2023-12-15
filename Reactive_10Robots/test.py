@@ -13,3 +13,20 @@ print("geneated folder name", folder_name)
 cmd = ['', 'a,18', '', '', '', '', '', '', '', '', '']
 new_arr = cmd[:10]
 print(new_arr)
+
+opcua_cmd = "q2"
+
+if opcua_cmd == "pick" or opcua_cmd == "drop" or opcua_cmd == "sink":
+    base = True
+    q1 = False
+    q2 = False
+elif opcua_cmd == "q1":
+    base = False
+    q1 = True
+    q2 = False
+elif opcua_cmd == "q2":
+    base = False
+    q1 = False
+    q2 = True
+
+print(base, q1, q2)

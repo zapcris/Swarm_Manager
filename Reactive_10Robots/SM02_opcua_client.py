@@ -329,7 +329,7 @@ if __name__ == "__main__":
 
         time.sleep(2)
 
-    sys.exit()
+
     data_opcua["create_part"] = 1
     wait_create_parrt(data_opcua)
 
