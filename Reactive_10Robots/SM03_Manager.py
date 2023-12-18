@@ -17,12 +17,9 @@ from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_rob
 from Reactive_10Robots.SM13_statusUI import RobotStatusUI, WorkstationStatusUI, MainApp
 
 
-
-
 def close(top):
     # win.destroy()
     top.quit()
-
 
 
 def reconfigure_topology():
@@ -34,19 +31,17 @@ def reconfigure_topology():
     reconfig_top = reconfig_doc["Topology"]
 
     read_order(reconfig_doc)
-
-
-    # print("Reconfiguration Started")
-    # # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    # print(reconfig_top)
-    # data_opcua["reconfiguration_machine_pos"] = reconfig_top
-    # time.sleep(0.5)
-    # data_opcua["do_reconfiguration"] = True
-    # time.sleep(1)
-    # data_opcua["do_reconfiguration"] = False
-    # time.sleep(10)
-    # print("Reconfiguration Ended")
-
+    #
+    print("Reconfiguration Started")
+    # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    print(reconfig_top)
+    data_opcua["reconfiguration_machine_pos"] = reconfig_top
+    time.sleep(0.5)
+    data_opcua["do_reconfiguration"] = True
+    time.sleep(1)
+    data_opcua["do_reconfiguration"] = False
+    time.sleep(10)
+    print("Reconfiguration Ended")
 
 
 ### Product Release Async Queue####
@@ -126,7 +121,7 @@ async def release_opcua_cmd(q_robot_cmd):
     while True:
 
         data = await q_robot_cmd.get()
-        #print("Check this error", data)
+        # print("Check this error", data)
         sub_task = data[0]
         target = int(sub_task[1])
         id = data[1]
@@ -186,8 +181,11 @@ async def release_opcua_cmd(q_robot_cmd):
                 cmd.insert((int(id) - 1), c)
                 # Ax_station[10].booked = True
             case "base":
-                y_pos = 4032 - ((id - 1) * 2000)  ##old -1700 , 5000
-                c = "m" + "," + "-10662" + "," + str(y_pos) + "," + "0"
+                # y_pos = 4032 - ((id - 1) * 2000)  ##old -1700 , 5000
+                # c = "m" + "," + "-10662" + "," + str(y_pos) + "," + "0"
+                x_pos = 10000 - ((id - 1) * 2000)
+                c = "m" + "," + str(x_pos) + "," + "10000" + "," + "0"
+
                 cmd.insert((int(id) - 1), c)
         opcua_cmd = cmd[:10]
         data_opcua["mobile_manipulator"] = opcua_cmd
@@ -266,12 +264,11 @@ def run_simulation():
     asyncio.run(async_main())
 
 
-
-
 def testing_UI(T_robots, W_robots):
     root = tk.Tk()
     app = MainApp(root, T_robots=T_robots, W_robots=W_robots)
     root.mainloop()
+
 
 if __name__ == "__main__":
     # window = tk.Tk()
@@ -334,11 +331,6 @@ if __name__ == "__main__":
     Global_task = generated_task[1]
     Task_Queue = generated_task[2]
 
-
-
-
-
-
     ##### Initialization of auxiliary stations#######
     for i in range(total_WRs):
         source = Auxillary_station(stn_no=i + 10, order=production_order, product=null_product)
@@ -398,5 +390,5 @@ if __name__ == "__main__":
 
     asyncio.run(async_main())
     opcua_client.join()
-    #testing_client.join()
+    # testing_client.join()
 

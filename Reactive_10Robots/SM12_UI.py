@@ -1,11 +1,11 @@
-import os
-import subprocess
+import matplotlib.pyplot as plt
 import tkinter as tk
 from tkinter import ttk, messagebox
 import numpy as np
 import pymongo
-from sklearn.preprocessing import MinMaxScaler
+#from sklearn.preprocessing import MinMaxScaler
 from itertools import cycle
+from Reactive_10Robots.SM14_Topology_Scaling import scale_graph_uniformly
 
 tree_stat_list = []
 tree_top_list = []
@@ -18,6 +18,7 @@ process_times = []
 selection = ""
 choosen_doc = {}
 wk_type = []
+
 
 def dummy():
     print("Nothing")
@@ -34,13 +35,15 @@ def blink():
         blinking_label.config(fg='white')
     window.after(500, blink)
 
+
 def vc_sequence(batch_sequence):
     new_batch = []
     for i, prod_sequence in enumerate(batch_sequence):
-        prod_sequence.insert(0, 11+i)
+        prod_sequence.insert(0, 11 + i)
         prod_sequence.append(50)
         new_batch.append(prod_sequence)
     return new_batch
+
 
 def read_mongoDB_docs(top_type):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -96,32 +99,58 @@ def select_doc(top_type):
 def topology_visualcomponents(selected_top):
     ## Scale Topology####
 
-    data = []
+    original_coordinates = []
     ## Remove "None" elements from topology###
     for wk_pos in selected_top:
         if wk_pos != None:
-            data.append(wk_pos)
+            original_coordinates.append(wk_pos)
+    print(original_coordinates)
 
-    scaler = MinMaxScaler(feature_range=(0, 40000))  ## Maximum cordinate range in Visual Components
-    print(scaler.fit(data))
-    # print(scaler.data_max_)
-    # print(scaler.transform(data))
-    scaled_top = scaler.transform(data)
-    print("Preliminary scaled topology", scaled_top)
-    insert = np.array([999999, 999999])
-    insert_scaled = np.array([])
-    for i in range(len(selected_top)):
-        if selected_top[i] == None:
-            print("None inserted at position", i + 1)
-            scaled_top = np.insert(scaled_top, i, insert, axis=0)
-    print("Final Scaled Topology", scaled_top)
+    # scaler = MinMaxScaler(feature_range=(20000, 60000))  ## Maximum cordinate range in Visual Components
+    # print(scaler.fit(original_coordinates))
+    # # print(scaler.data_max_)
+    # # print(scaler.transform(data))
+    # scaled_top = scaler.transform(original_coordinates)
+    # print("Preliminary scaled topology", scaled_top)
+    # insert = np.array([999999, 999999])
+    # insert_scaled = np.array([])
+    # for i in range(len(selected_top)):
+    #     if selected_top[i] == None:
+    #         print("None inserted at position", i + 1)
+    #         scaled_top = np.insert(scaled_top, i, insert, axis=0)
+
+    # Create a sample set of coordinates
+    coordinates = np.array(original_coordinates)
+
+    # Desired x and y axis limits
+    desired_x_min, desired_x_max = -16000, 16000
+    desired_y_min, desired_y_max = 11000, 37000
+
+    # Scale the coordinates
+    scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
+
+    # Plot the original and scaled graphs
+    plt.plot(coordinates[:, 0], coordinates[:, 1], 'o', label='Original Coordinates')
+    plt.plot(scaled_coordinates[:, 0], scaled_coordinates[:, 1], 'o', label='Scaled Coordinates')
+    plt.title('Original and Scaled Coordinates')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.legend()
+    plt.grid(True)
+    plt.xlim(desired_x_min, desired_x_max)
+    plt.ylim(desired_y_min, desired_y_max)
+    plt.show()
+
+
+
+    print("Final Scaled Topology", scaled_coordinates)
     reconfig = ""
 
-    for i, wk_pos in enumerate(scaled_top):
-        if scaled_top[i][0] != 999999.0:
+    for i, wk_pos in enumerate(scaled_coordinates):
+        if scaled_coordinates[i][0] != 999999.0:
             pos_str = str(int(wk_pos[0])) + "," + str(int(wk_pos[1])) + "d"
             reconfig = reconfig + pos_str
-        elif scaled_top[i][0] == 999999.0:
+        elif scaled_coordinates[i][0] == 999999.0:
             pos_str = "NULL," + "NULLd"
             reconfig = reconfig + pos_str
     print(reconfig)
@@ -140,7 +169,6 @@ def select_top():
     print("Selected topology is", selected_top)
     # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
     Topology = topology_visualcomponents(selected_top)
-
 
 
 def select_specific(Topology, top_type):
@@ -207,7 +235,6 @@ def select_optimal(top_type):
         update_label(f"Optimized Tree Topology Transferred")
 
 
-
 def optimize():
     global Topology
     "Read optimal topology to MongoDB"
@@ -236,7 +263,6 @@ def optimize():
     else:
         collection2.replace_one({"Name": "Reconfiguration"}, coll_dict2)
     update_label("Optimum Topology Transferred")
-
 
 
 def selection_changed(event):
@@ -296,7 +322,7 @@ if __name__ == "__main__":
     toplist.grid(column=40, row=5)
 
     # Adding combobox drop down list
-    #topchoosen['values'] = read_mongoDB_docs(top_type=selection)
+    # topchoosen['values'] = read_mongoDB_docs(top_type=selection)
     # topchoosen.current()
     # toplist.current()
 
@@ -313,11 +339,13 @@ if __name__ == "__main__":
     b2.grid(column=40, row=10, padx=10, pady=25)
     # b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology()).grid(column=90,
     #                                              row=5, padx=10, pady=25)
-    b3 = tk.Button(window, text='Transfer Topology to VisualComponents', command=lambda: select_specific(Topology=Topology, top_type=selection))
+    b3 = tk.Button(window, text='Transfer Topology to VisualComponents',
+                   command=lambda: select_specific(Topology=Topology, top_type=selection))
     b3.grid(column=60, row=5, padx=10, pady=25)
     b3.config()
 
-    b4 = tk.Button(window, text='Transfer optimized topology for VisualComponents', command=lambda: select_optimal(top_type=selection))
+    b4 = tk.Button(window, text='Transfer optimized topology for VisualComponents',
+                   command=lambda: select_optimal(top_type=selection))
     b4.grid(column=40, row=30, padx=10, pady=25)
 
     # b5 = tk.Button(window, text='Run Visual Components Simulation', command=lambda:dummy()).grid(column=1,

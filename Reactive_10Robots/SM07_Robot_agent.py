@@ -6,13 +6,6 @@ from scipy.spatial import distance
 from Reactive_10Robots.SM04_Task_Planning_agent import generate_task
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
-# production_order["Name"] = reconfig_doc["Name"]
-# production_order["PV"] = [1 if i == True else 0 for i in reconfig_doc["Product_active"]]
-# production_order["sequence"] = reconfig_doc["Production_Sequence"]
-# production_order["PI"] = reconfig_doc["Production_volume"]
-# production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-# production_order["Process_times"] = reconfig_doc["Process_times"]
-
 production_order = {}
 
 
@@ -60,7 +53,6 @@ def read_order(reconfig_doc):
     print("Sequence", production_order["sequence"])
     for times in production_order["Process_times"]:
         print(times)
-
 
 
 capabilities = [[1, 3],
@@ -351,8 +343,8 @@ class Transfer_robot:
                     # print(f"Robot{self.id} Path Clearance Check Finished for case {self.task.step}")
                     self.free = False
                     data = [self.opcua_cmd, self.id, self.new_prod]
-                    #print(data)
-                    await q_trigger_cmd.put(data)
+                    # print(data)
+                    q_trigger_cmd.put_nowait(data)
                     # print(f"Robot{self.id} Triggered OPCUA command", data)
                     self.event_toopcua = False  ## Clear flag for transfer to opcua command
                     q_initiate_task.task_done()
@@ -362,7 +354,7 @@ class Transfer_robot:
                     self.wait = True
                     wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
                                          tr_no=self.id)
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(10)
                     wTime.stop_timer()
                     pass
 
@@ -383,7 +375,7 @@ class Transfer_robot:
                 elif self.base == True and self.opcua_cmd[0] == 'sink':
                     W_robot[self.wk_loc - 1].booked = False
                     ## Adding sleep to compensate delay in simulation during move to sink operation###
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(8)
                     W_robot[self.wk_loc - 1].robot_free = True
                 # elif self.q1 == True:
                 #     W_robot[self.wk_loc - 1].q1_empty = True
@@ -407,6 +399,7 @@ class Transfer_robot:
                 if data_opcua["rob_busy"][self.id - 1] == False:
                     break
                 else:
+                    # await for concurrency###
                     await asyncio.sleep(2)
             if self.task.step < 12:
                 tTime.calc_time()
@@ -418,7 +411,7 @@ class Transfer_robot:
             self.wk_loc = int(self.opcua_cmd[1]) + 1
             # if 1 <= self.wk_loc <= 10 :
             #     W_robot[self.wk_loc - 1].robot_free = False ## Indicating robot occupied target wk location
-            print(f"Robot {self.id} internal opcua command is {self.opcua_cmd}")
+            print(f"Robot {self.id} internal opcua command is {self.opcua_cmd} with product {self.product.pv_Id} {self.product.pi_Id}")
             # print(f"Robot {self.id} is at Station {self.wk_loc} with status : base {self.base}, q1 {self.q1}, q2 {self.q2}")
             # print(f"Task Step value is {self.task.step}")
             # self.locate_robot()
@@ -435,6 +428,7 @@ class Transfer_robot:
                         self.task.step = 2
                     ## Robot occupying the workstation space when performing pickup task
                     if 1 <= self.task.command[0] <= 10:
+                        print(f"Robot {self.id} occupying workstation {self.wk_loc} for PICKUP")
                         W_robot[self.wk_loc - 1].robot_free = False
                     # print(f"Robot{self.id} picked up the product and will movie to drop wk")
                     await asyncio.sleep(5)  ##giving time for visual animation of pickup action
@@ -445,7 +439,7 @@ class Transfer_robot:
                     if 1 <= self.task.command[1] <= 10 and (W_robot[self.task.command[1] - 1].q1_empty == False or
                                                             W_robot[self.task.command[1] - 1].q2_empty == False):
                         ###Time delay to allow the robots at drop workstation queue##
-                        await asyncio.sleep(8)
+                        await asyncio.sleep(4)
                     #########opcua_cmd_event(id=self.id, loop=loop)
                     q_initiate_task.put_nowait(self.task)
                     # print(f"Task Continued in Robot {self.id}")

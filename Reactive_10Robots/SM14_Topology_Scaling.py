@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,24 +25,29 @@ def scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_m
     return scaled_coordinates
 
 
-# Create a sample set of coordinates
-coordinates = np.array([[16, 14], [2, 21], [17, 21], [8, 20], [12, 22], [22, 13], [12, 16], [8, 12], [10, 7], [3, 2]])
 
-# Desired x and y axis limits
-desired_x_min, desired_x_max = -16000, 16000
-desired_y_min, desired_y_max = 13000, 40000
+if __name__ == '__main__':
 
-# Scale the coordinates
-scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
-print(scaled_coordinates)
-# Plot the original and scaled graphs
-plt.plot(coordinates[:, 0], coordinates[:, 1], 'o', label='Original Coordinates')
-plt.plot(scaled_coordinates[:, 0], scaled_coordinates[:, 1], 'o', label='Scaled Coordinates')
-plt.title('Original and Scaled Coordinates')
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-plt.legend()
-plt.grid(True)
-plt.xlim(desired_x_min, desired_x_max)
-plt.ylim(desired_y_min, desired_y_max)
-plt.show()
+    # Create a sample set of coordinates
+    coordinates = np.array(
+        [[16, 14], [2, 21], [17, 21], [8, 20], [12, 22], [22, 13], [12, 16], [8, 12], [10, 7], [3, 2]])
+
+    # Desired x and y axis limits
+    desired_x_min, desired_x_max = -16000, 16000
+    desired_y_min, desired_y_max = 13000, 40000
+
+    # Scale the coordinates
+    scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
+
+    # Plot the original and scaled graphs
+    plt.plot(coordinates[:, 0], coordinates[:, 1], 'o', label='Original Coordinates')
+    plt.plot(scaled_coordinates[:, 0], scaled_coordinates[:, 1], 'o', label='Scaled Coordinates')
+    plt.title('Original and Scaled Coordinates')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.legend()
+    plt.grid(True)
+    plt.xlim(desired_x_min, desired_x_max)
+    plt.ylim(desired_y_min, desired_y_max)
+    plt.show()
+
