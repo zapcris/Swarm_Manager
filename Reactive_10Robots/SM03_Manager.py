@@ -12,7 +12,7 @@ from Reactive_10Robots.SM04_Task_Planning_agent import Task_Planning_agent
 from Reactive_10Robots.SM05_Scheduler_agent import Scheduling_agent
 from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
 from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
-    Auxillary_station
+    Auxillary_station, read_order
 # from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
 from Reactive_10Robots.SM13_statusUI import RobotStatusUI, WorkstationStatusUI, MainApp
 
@@ -25,8 +25,6 @@ def close(top):
 
 
 
-
-
 def reconfigure_topology():
     # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -35,17 +33,19 @@ def reconfigure_topology():
     reconfig_doc = mycol.find_one()
     reconfig_top = reconfig_doc["Topology"]
 
+    read_order(reconfig_doc)
 
-    print("Reconfiguration Started")
-    # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    print(reconfig_top)
-    data_opcua["reconfiguration_machine_pos"] = reconfig_top
-    time.sleep(0.5)
-    data_opcua["do_reconfiguration"] = True
-    time.sleep(1)
-    data_opcua["do_reconfiguration"] = False
-    time.sleep(10)
-    print("Reconfiguration Ended")
+
+    # print("Reconfiguration Started")
+    # # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
+    # print(reconfig_top)
+    # data_opcua["reconfiguration_machine_pos"] = reconfig_top
+    # time.sleep(0.5)
+    # data_opcua["do_reconfiguration"] = True
+    # time.sleep(1)
+    # data_opcua["do_reconfiguration"] = False
+    # time.sleep(10)
+    # print("Reconfiguration Ended")
 
 
 
@@ -126,6 +126,7 @@ async def release_opcua_cmd(q_robot_cmd):
     while True:
 
         data = await q_robot_cmd.get()
+        #print("Check this error", data)
         sub_task = data[0]
         target = int(sub_task[1])
         id = data[1]
@@ -305,20 +306,9 @@ if __name__ == "__main__":
     data_opcua["do_reconfiguration"] = False
     data_opcua["reconfiguration_machine_pos"] = ""
 
-    ### instantiate order and generation of task list to that order
-    test_order = Task_Planning_agent(input_order=production_order)
-    generated_task = test_order.task_list()
-    Product_task = generated_task[0]
-    Global_task = generated_task[1]
-    Task_Queue = generated_task[2]
-
     ## Start opcua client - New Process###
     opcua_client = Process(target=start_opcua, args=(data_opcua,))
     opcua_client.start()
-
-    # # do reconfiguration based on chosen topology from UI
-    # time.sleep(5)
-    # reconfigure_topology()
 
     while True:
         time.sleep(2)
@@ -330,6 +320,24 @@ if __name__ == "__main__":
             global_wk_pos = data_opcua["machine_pos"]
             # print("Data initialized")
             break
+
+    # # do reconfiguration based on chosen topology from UI
+    time.sleep(5)
+    reconfigure_topology()
+
+    time.sleep(10)
+
+    ### instantiate order and generation of task list to that order
+    test_order = Task_Planning_agent(input_order=production_order)
+    generated_task = test_order.task_list()
+    Product_task = generated_task[0]
+    Global_task = generated_task[1]
+    Task_Queue = generated_task[2]
+
+
+
+
+
 
     ##### Initialization of auxiliary stations#######
     for i in range(total_WRs):

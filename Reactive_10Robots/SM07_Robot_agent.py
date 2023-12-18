@@ -6,8 +6,6 @@ from scipy.spatial import distance
 from Reactive_10Robots.SM04_Task_Planning_agent import generate_task
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
-
-
 # production_order["Name"] = reconfig_doc["Name"]
 # production_order["PV"] = [1 if i == True else 0 for i in reconfig_doc["Product_active"]]
 # production_order["sequence"] = reconfig_doc["Production_Sequence"]
@@ -15,49 +13,55 @@ from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Wa
 # production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 # production_order["Process_times"] = reconfig_doc["Process_times"]
 
+production_order = {}
 
 
-##WOrking Production Order
-production_order = {
-    "Name": "Test",
-    "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
-                 [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
-                 [13, 7, 9, 50],
-                 [14, 4, 8, 50],  # [11, 4, 8, 12, 9, 12]
-                 [15, 10, 9, 50],
-                 [16, 2, 5, 7, 3, 50],
-                 [17, 3, 6, 8, 2, 4, 3, 50],
-                 [18, 4, 5, 3, 7, 50],
-                 [19, 3, 4, 1, 8, 9, 50],
-                 [20, 2, 4, 5, 7, 9, 50]
-                 ],
-    "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
-    "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
-                      [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
-                      ]
-}
-
-# Events = {
-#     "brand": "Ford",
-#     "rob_execution": [False, False, False],
-#     "rob_mission": ["", "", ""],
-#     "rob_product": [[int, int], [int, int], [int, int]],
-#     "machine_status": [False for stat in range(10)],
-#     "machine_product": [[int, int] for product in range(10)],
-#     "elapsed_time": [int for et in range(10)],
-#     "Product_finished": []
-#
+# ##WOrking Production Order
+# production_order = {
+#     "Name": "Test",
+#     "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
+#                  [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
+#                  [13, 7, 9, 50],
+#                  [14, 4, 8, 50],  # [11, 4, 8, 12, 9, 12]
+#                  [15, 10, 9, 50],
+#                  [16, 2, 5, 7, 3, 50],
+#                  [17, 3, 6, 8, 2, 4, 3, 50],
+#                  [18, 4, 5, 3, 7, 50],
+#                  [19, 3, 4, 1, 8, 9, 50],
+#                  [20, 2, 4, 5, 7, 9, 50]
+#                  ],
+#     "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
+#     "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#     "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+#                       [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+#                       [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
+#                       [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
+#                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+#                       [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
+#                       ]
 # }
+
+def read_order(reconfig_doc):
+    production_order["Name"] = "Test"
+    production_order["PV"] = [1 if i == True else 0 for i in reconfig_doc["Product_active"]]
+    production_order["sequence"] = reconfig_doc["Production_Sequence"]
+    production_order["PI"] = reconfig_doc["Production_volume"]
+    production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    production_order["Process_times"] = reconfig_doc["Process_times"]
+    #
+    print("Name", production_order["Name"])
+    print("Products", production_order["PV"])
+    print("Volume", production_order["PI"])
+    print("Sequence", production_order["sequence"])
+    for times in production_order["Process_times"]:
+        print(times)
+
+
 
 capabilities = [[1, 3],
                 [2, 4],
@@ -347,7 +351,7 @@ class Transfer_robot:
                     # print(f"Robot{self.id} Path Clearance Check Finished for case {self.task.step}")
                     self.free = False
                     data = [self.opcua_cmd, self.id, self.new_prod]
-                    # print(data)
+                    #print(data)
                     await q_trigger_cmd.put(data)
                     # print(f"Robot{self.id} Triggered OPCUA command", data)
                     self.event_toopcua = False  ## Clear flag for transfer to opcua command

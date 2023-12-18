@@ -1,3 +1,4 @@
+import sys
 from queue import Queue
 
 # queue = Queue(maxsize=2)
@@ -18,9 +19,20 @@ from queue import Queue
 # production_order["Name"] = "Test"
 #
 # print(production_order)
-xyz = [True, True, True, False, True, True]
+batch = [[1, 4, 6, 7],
+         [2, 3, 6, 6],
+         [6, 7, 4, 3],
+         [5, 8, 4, 3, 2, 5, ]]
 
-gen = [1 if i==True else 0 for i in xyz]
 
-for x in gen:
-    print(x)
+def vc_sequence(batch_sequence):
+    new_batch = []
+    for i, prod_sequence in enumerate(batch_sequence):
+        prod_sequence.insert(0, 11+i)
+        prod_sequence.append(50)
+        new_batch.append(prod_sequence)
+
+    return new_batch
+
+
+print(vc_sequence(batch))

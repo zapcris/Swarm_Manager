@@ -17,6 +17,7 @@ prod_sequence = []
 process_times = []
 selection = ""
 choosen_doc = {}
+wk_type = []
 
 def dummy():
     print("Nothing")
@@ -33,6 +34,13 @@ def blink():
         blinking_label.config(fg='white')
     window.after(500, blink)
 
+def vc_sequence(batch_sequence):
+    new_batch = []
+    for i, prod_sequence in enumerate(batch_sequence):
+        prod_sequence.insert(0, 11+i)
+        prod_sequence.append(50)
+        new_batch.append(prod_sequence)
+    return new_batch
 
 def read_mongoDB_docs(top_type):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -71,6 +79,7 @@ def select_doc(top_type):
     global prod_sequence
     global prod_name
     global process_times
+    global wk_type
     tree_stat_list = read_doc["Statistical_Fitness"]
     tree_top_list = read_doc["Estimated_Topologies"]
     print("selected_document", tree_stat_list)
@@ -139,6 +148,8 @@ def select_specific(Topology, top_type):
     global prod_volume
     global prod_active
     global prod_sequence
+    global process_times
+    global wk_type
     "Connect to MongoDB"
     client = pymongo.MongoClient("mongodb://localhost:27017")
     db = client["Topology_Manager"]
@@ -150,7 +161,9 @@ def select_specific(Topology, top_type):
                  "Product_name": prod_name,
                  "Production_volume": prod_volume,
                  "Product_active": prod_active,
-                 "Production_Sequence": prod_sequence}
+                 "Production_Sequence": vc_sequence(prod_sequence),
+                 "Process_times": process_times,
+                 "WK_type": wk_type}
     # coll_dict = {"Topologies": topologies}
 
     total_doc = collection.count_documents({})
@@ -166,6 +179,7 @@ def select_specific(Topology, top_type):
 
 def select_optimal(top_type):
     global choosen_doc
+    global wk_type
     optimal_top = topology_visualcomponents(choosen_doc["Optimized_Topology"])
     print("Optimal topology string generated", optimal_top)
     "Read write topology to MongoDB"
@@ -178,8 +192,9 @@ def select_optimal(top_type):
                   "Product_name": choosen_doc["Product_name"],
                   "Production_volume": choosen_doc["Product_volume"],
                   "Product_active": choosen_doc["Product_active"],
-                  "Production_Sequence": choosen_doc["Process_Sequence"],
-                  "Process_times": choosen_doc["Process_times"]}
+                  "Production_Sequence": vc_sequence(choosen_doc["Process_Sequence"]),
+                  "Process_times": choosen_doc["Process_times"],
+                  "WK_type": wk_type}
 
     total_doc = collection2.count_documents({})
     if total_doc == 0:
