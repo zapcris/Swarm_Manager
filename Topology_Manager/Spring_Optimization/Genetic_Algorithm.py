@@ -307,13 +307,14 @@ def run_GA():
 
 
         nx.draw(OptmialGraph, topology_htable[final_fitness][0], with_labels=True)
-        plt.savefig('optimal topology found from GA recursion')
+        #plt.savefig('optimal topology found from GA recursion')
+        plt.savefig("Optimized_Spring.pdf", format="pdf", bbox_inches="tight")
         plt.clf()
 
     elif min(offspring_fitness) <= 100:
         print("Fitness value found below 500:", min(offspring_fitness))
         nx.draw(OptmialGraph, topology_htable[min(offspring_fitness)][0], with_labels=True)
-        plt.show('optimal topology found without GA recursion')
+        plt.savefig("Optimized_Spring.pdf", format="pdf", bbox_inches="tight")
         plt.clf()
 
     width_dict = Counter(OptmialGraph.edges())
@@ -375,7 +376,7 @@ def run_GA():
                  "Product_volume": prod_volume,
                  "Product_active": prod_active,
                  "Process_Sequence": batch_seq,
-                 "Production_order": Qty_order,
+                 "Process_times": process_times,
                  "Statistical_Fitness": top_keys,
                  "Estimated_Topologies": topologies, "Optimized_Topology": optimized_top}
     # coll_dict = {"Topologies": topologies}
@@ -392,7 +393,8 @@ def run_GA():
                      "Product_name": prod_name,
                      "Product_active": prod_active,
                      "Process_Sequence": batch_seq,
-                     "Product_volume": prod_volume}
+                     "Product_volume": prod_volume,
+                     "Process_times": process_times}
         # coll_dict = {"Topologies": topologies}
 
         total_doc = collection.count_documents({})

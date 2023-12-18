@@ -1,5 +1,5 @@
 import random
-# from .utils import Get_Distance_Or_Flow
+#from .utils import Get_Distance_Or_Flow
 import sys
 # from orderlist_db import database
 from tkinter import *
@@ -43,7 +43,6 @@ def read_orderlist():
         for j in range(0, len(natch_seq[i])):
             natch_seq[i][j] = int(natch_seq[i][j])
     print("modified batch sequence", natch_seq)
-
 
 
 def close():
@@ -91,10 +90,4 @@ print("The Batch Sequence from the sheet")
 
 print(dframe)
 
-
-
-
-
 root.mainloop()
-
-

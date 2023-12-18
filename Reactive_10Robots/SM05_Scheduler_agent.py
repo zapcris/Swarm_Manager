@@ -69,6 +69,7 @@ class Scheduling_agent:
         if len(self.remaining_variant) > 0:
             new_product = self.add_new_variant(product_tList)
             #print("New product added", new_product)
+            print("Scheduler returned from 1", new_product)
             return new_product
         elif len(self.remaining_variant) == 0:
             for i, var in enumerate(self.remaining_instance):
@@ -77,17 +78,20 @@ class Scheduling_agent:
                         curr_inst = self.order["PI"][i] - var
                         new_product = self.add_new_instance(i+1, curr_inst, product_tList)
                         product_added = True
+                        print("Scheduler returned from 2", new_product)
                         return new_product
                         #print("New product added into production", new_product)
                     elif act.pv_Id == i+1 and var > 0 and product.pv_Id != i+1 and product_added == False:
                         curr_inst = self.order["PI"][i] - var
                         new_product = self.add_new_instance(i+1, curr_inst, product_tList)
                         product_added = True
+                        print("Scheduler returned from 3", new_product)
                         return new_product
                     elif act.pv_Id == i+1 and var > 0 and product.pv_Id == i+1 and product_added == False:
                         new_product = self.add_new_instance(product.pv_Id, product.pi_Id, product_tList)
                         #print("Next instance of same product variant is preferred")
                         product_added = True
+                        print("Scheduler returned from 4", new_product)
                         return new_product
 
         else:
@@ -207,7 +211,7 @@ class Scheduling_agent:
         #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
         #     else:
         #         pass
-        print("Check this error",new_product.task_list)
+        print("Check this error",new_product)
         cmd = new_product.task_list[0]
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)

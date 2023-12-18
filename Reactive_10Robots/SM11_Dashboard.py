@@ -19,13 +19,13 @@ def production_time(Finished_products):
     main_legend = []
     product_sts = []
 
-    #file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
+    # file_time = dt.datetime.fromtimestamp(os.path.getmtime(__file__))
     now = dt.datetime.now()
     curr_time = now.strftime("%d_%m_%Y_%H_%M")
     folder_name = "results/" + curr_time
-    print("geneated folder name", folder_name)
+    print("generated folder name", folder_name)
     ### Create folder for saving plots###
-    #if not os.path.exists(folder_name):
+    # if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
     for i, product in enumerate(Finished_products):
@@ -51,6 +51,7 @@ def production_time(Finished_products):
             elif obj.sts == "Process":
                 process_time += obj.dtime
 
+
             elif obj.sts == "Sink":
                 prod_etime = obj.tstamp
 
@@ -60,6 +61,8 @@ def production_time(Finished_products):
         product_sts.append(prod_stat)
         tdiff = (prod_etime - prod_stime).total_seconds()
         product_times.append(tdiff)
+        idle_time = tdiff - (travel_time + wait_time + process_time)
+        prod_stat.append(idle_time)
     print(product_sts)
 
     ## Create pie chart for production overview###
@@ -68,20 +71,22 @@ def production_time(Finished_products):
         main_legend.append(d)
     main_title = f"Production Runtime for: {batch_time}"
     main_fname = "Main_Statistics"
-    pie_chart(elements=main_legend, f_name=main_fname, folder=folder_name)
+    legend_title = f"Order makespan-{int(b_time)} seconds"
+    pie_chart(elements=main_legend, f_name=main_fname, folder=folder_name, title=legend_title)
     # pie_chart2(elements=production_legend, title=main_title)
 
     #### Create pie chart for product overview###
     for i, (status, label, times) in enumerate(zip(product_times, labels, product_sts)):
         prod_legend = []
-        title = f"Product {label} time for {status} seconds"
-        print(title)
+        title = f"Product makespan-{int(status)} seconds"
+        # print(title)
         d1 = f"{times[0]} Transfer"
-        d2 = f"{times[1]} Wait"
+        d2 = f"{times[1]} Blockage"
         d3 = f"{times[2]} Process"
-        prod_legend= [d1, d2, d3]
+        d4 = f"{times[3]} Idle"
+        prod_legend = [d1, d2, d3, d4]
         print(prod_legend)
-        pie_chart(elements=prod_legend, f_name=label, folder=folder_name)
+        pie_chart(elements=prod_legend, f_name=label, folder=folder_name, title=title)
         # pie_chart2(elements=production_legend, title=title)
 
 
@@ -107,22 +112,27 @@ def pie_chart2(elements, title):
 
 
 ##Function to save stats##
-def pie_chart(elements, f_name, folder):
+def pie_chart(elements, f_name, folder, title):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     data = [float(x.split()[0]) for x in elements]
     times = [x.split()[-1] for x in elements]
+    prod_legends = []
+    for (secs, name) in zip(data, times):
+        z = str(name) + ' for ' + str(int(secs)) + ' seconds'
+        prod_legends.append(z)
 
     wedges, texts, autotexts = ax.pie(data, autopct=lambda pct: func(pct, data),
                                       textprops=dict(color="w"))
 
-    ax.legend(wedges, times,
-              title="Legend",
+    ax.legend(wedges, prod_legends,
+              title=title,
+              title_fontsize="x-small",
               loc="center left",
               bbox_to_anchor=(1, 0, 0.5, 1),
-              fontsize="x-small",
+              fontsize="xx-small",
               )
 
-    plt.setp(autotexts, size=8, weight="bold")
+    plt.setp(autotexts, size=4, weight="bold")
     ax.set_title(f_name)
     f_dir = f"{folder}/{f_name}.pdf"
     print("The filename", f_dir)
@@ -131,7 +141,8 @@ def pie_chart(elements, f_name, folder):
 
 def func(pct, allvals):
     absolute = int(np.round(pct / 100. * np.sum(allvals)))
-    return f"{pct:.1f}%\n({absolute:d} seconds)"
+    #return f"{pct:.1f}%\n({absolute:d} seconds)"
+    return f"{pct:.1f}%"
 
 
 async def main():
@@ -163,9 +174,21 @@ if __name__ == "__main__":
     p4 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
 
+    p5 = Product(pv_Id=1, pi_Id=3, task_list=[], inProduction=True, finished=False,
+                 last_instance=3, robot=0, wk=0, released=False, tracking=[])
+    p6 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+                 last_instance=3, robot=0, wk=0, released=False, tracking=[])
+    p7 = Product(pv_Id=2, pi_Id=3, task_list=[], inProduction=True, finished=False,
+                 last_instance=3, robot=0, wk=0, released=False, tracking=[])
+    p8 = Product(pv_Id=1, pi_Id=5, task_list=[], inProduction=True, finished=False,
+                 last_instance=3, robot=0, wk=0, released=False, tracking=[])
+
     p1.tracking.append(c)
     p1.tracking.append(a)
     p1.tracking.append(b)
+    p4.tracking.append(c)
+    p5.tracking.append(a)
+    p6.tracking.append(b)
 
     p2.tracking.append(c)
     p2.tracking.append(a)

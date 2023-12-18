@@ -1,8 +1,14 @@
-from Greedy_implementation.SM10_Product_Task import Product
+import numpy as np
 
-product = Product(pv_Id=1, pi_Id=1, task_list=[[1,11], [12 ,11]],
-                            inProduction=True, finished=False, last_instance=1, robot=0,
-                            wk=0,released=False)
+prod_span = 3000
+
+cumulative_throughput = np.zeros(prod_span)
+
+arr = [100,200,300,400,500,600,700,800,900,1000,1200,1300,1400,1500,1600]
 
 
-print(product.task_list[0])
+offset = 1
+
+for i in range(3):
+    cumulative_throughput[offset:arr[i] + offset] = 10
+    print(cumulative_throughput)

@@ -1,6 +1,7 @@
 import pymongo
 import json
 import random
+from datetime import datetime
 import sys
 import time
 from random import randint
@@ -16,7 +17,6 @@ import EoN
 from production_performance import prod_efficiency
 
 
-
 def rand_index(gen):
     r1 = (random.randint(2, 6))
     r2 = (random.randint(6, 10))
@@ -29,25 +29,40 @@ def rand_index(gen):
     else:
         rand_index(gen + 1)
 
+
 G_pos = {}
 Batch_sequence = {}
 Qty_order = []
+prod_name = []
+prod_volume = []
+prod_active = []
+process_times = [[]]
+
 
 def read_db():
     global Batch_sequence
     global G_pos
     global Qty_order
+    global prod_name
+    global prod_volume
+    global prod_active
+    global process_times
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
     mycol = mydb["Optimal_Topology"]
     read_doc = mycol.find_one({"Name": "Optimal_Spring"})
-    Batch_sequence = read_doc["Batch_Sequence"]
-    Qty_order = read_doc["Qty_order"]
-    pos = read_doc["Topology"]
-    for index, value in enumerate(pos):
+    prod_name = read_doc["Product_name"]
+    prod_volume = read_doc["Product_volume"]
+    prod_active = read_doc["Product_active"]
+    process_times = read_doc["Process_times"]
+    Batch_sequence = read_doc["Process_Sequence"]
+    Qty_order = read_doc["Product_volume"]
+    spring_pos = read_doc["Topology"]
+    for index, value in enumerate(spring_pos):
         print(index, value)
         if value != None:
-            G_pos.update({index+1: (value[0], value[1])})
+            G_pos.update({index + 1: (value[0], value[1])})
+
 
 read_db()
 print(Batch_sequence)
@@ -55,10 +70,7 @@ print(Qty_order)
 print(G_pos)
 
 
-
-#G_pos = {1: (9, 4), 2: (18, 13), 3: (22, 8), 4: (18, 10), 5: (13, 0), 6: (15, 4), 7: (24, 22), 8: (12, 6), 9: (10, 11), 10: (14, 16), 11: (26, 15), 12: (30, 4), 13: (17, 17), 14: (0, 2), 15: (19, 24), 16: (22, 12), 17: (26, 20), 19: (23, 33), 20: (27, 28)}
-
-
+# G_pos = {1: (9, 4), 2: (18, 13), 3: (22, 8), 4: (18, 10), 5: (13, 0), 6: (15, 4), 7: (24, 22), 8: (12, 6), 9: (10, 11), 10: (14, 16), 11: (26, 15), 12: (30, 4), 13: (17, 17), 14: (0, 2), 15: (19, 24), 16: (22, 12), 17: (26, 20), 19: (23, 33), 20: (27, 28)}
 
 
 # Batch_sequence = [[1, 5, 9, 10, 2, 11, 13, 15, 7, 20],
@@ -72,9 +84,10 @@ print(G_pos)
 def max_value(input_list):
     return max([sublist[-1] for sublist in input_list])
 
-#Qty_order = [10, 30, 50, 20, 60, 20, 40]
-#Qty_order = [100,100,100,100,100,100,100]
-#Qty_order = [1, 1, 1, 1, 1, 1, 1]
+
+# Qty_order = [10, 30, 50, 20, 60, 20, 40]
+# Qty_order = [100,100,100,100,100,100,100]
+# Qty_order = [1, 1, 1, 1, 1, 1, 1]
 
 PI_weight = []
 for i in range(len(Qty_order)):
@@ -82,9 +95,9 @@ for i in range(len(Qty_order)):
 
 print("weighted list for Product Instances:", PI_weight)
 
-len_graph = [100, 100 ,100, 100,100, 100, 100]
+len_graph = [100, 100, 100, 100, 100, 100, 100]
 
-#print(prod_efficiency(Batch_sequence, G_pos, PI_weight, len_graph))
+# print(prod_efficiency(Batch_sequence, G_pos, PI_weight, len_graph))
 
 
 ## Start of the Spanning Tree solution to the problem#####
@@ -103,20 +116,16 @@ for i in range(len(Batch_sequence)):
         if not edge in edge_list:
             edge_list.append(edge)  #### edge list of non repeating edges
 
-
 #### Check the Bus and Ring topology###
 V = max_value(Batch_sequence)
-E = V-1
-adj1 = [[] for i in range(V+1)]
+E = V - 1
+adj1 = [[] for i in range(V + 1)]
 for edge in edge_list:
     addEdge(adj1, edge[0], edge[1])
-
 
 checkBusTopology(adj1, V, E)
 
 checkRingTopology(adj1, V, E)
-
-
 
 ### Generate a graph from the Genetic STage 1 Force directed output####
 G = nx.MultiGraph()
@@ -172,35 +181,33 @@ for i, chr_Tree in enumerate(random_pop):
     print("Multigraph", chr_Tree)
     print(chr_Tree.edges())
     pos = draw_hierarchy_pos(chr_Tree, root=1, width=grid_size, height=grid_size)
-    #pos = EoN.hierarchy_pos(chr_Tree, root=1, width=grid_size)
-    #pos = hierarchy_pos3(chr_Tree,root=1,width=grid_size,xcenter=14)
-    #pos = graphviz_layout(G, prog='dot')
-    #print(f"The node positions for the plot {i + 1}", pos)
+    # pos = EoN.hierarchy_pos(chr_Tree, root=1, width=grid_size)
+    # pos = hierarchy_pos3(chr_Tree,root=1,width=grid_size,xcenter=14)
+    # pos = graphviz_layout(G, prog='dot')
+    # print(f"The node positions for the plot {i + 1}", pos)
     tree_pos.append(pos)
     plt.figure()
     plt.title(f"The plot belongs to initial population {i + 1} ")
     nx.draw(chr_Tree, pos, with_labels=True)
 
-    #plt.grid(True)
+    # plt.grid(True)
     plt.grid(which='major', axis='both', linestyle='-')
-    #plt.pause(0.05)
+    # plt.pause(0.05)
     plt.show()
-
 
 ##### calculate fitness function for random population
 cross_gen_fitness = []
 random_fitness = []
-perf_fitness= []
+perf_fitness = []
 print("Taking a pause")
 time.sleep(1)  # Pause 1 seconds
 print("pause ended")
 
 topology_htable = dict()
 for i, (chr_Tree, pos) in enumerate(zip(random_pop, tree_pos)):
-    fit_val = fitness_function(chr_Tree, Batch_sequence, PI_weight,pos)
+    fit_val = fitness_function(chr_Tree, Batch_sequence, PI_weight, pos)
     random_fitness.append(fit_val[0])
     topology_htable.update({fit_val[0]: (fit_val[1], fit_val[2])})
-
 
     time.sleep(0.05)
     # print(i, random_fitness[i])
@@ -213,7 +220,6 @@ cross_gen_fitness.append(random_fitness)
 print("TREE Fitness values for population", random_fitness)
 print("Euclidean Fitness values for population", random_fitness)
 print("Performance fitness of population", perf_fitness)
-
 
 sorted_fitness = sorted(random_fitness)
 pIndex_1 = random_fitness.index(sorted_fitness[0])
@@ -369,7 +375,7 @@ def genetic_stage2(parent1, parent2, gen):
 
     logical_off = [off1_tree, off2_tree]  # off3_tree, off4_tree]
     offspring_trees = []
-    off_pos =[]
+    off_pos = []
     # print("pause started")
     # time.sleep(5)
     # print("resumed")
@@ -377,7 +383,7 @@ def genetic_stage2(parent1, parent2, gen):
     for i, off_tree in enumerate(logical_off):
         pos_off = draw_hierarchy_pos(off_tree, root=1, width=grid_size, height=grid_size)
 
-        #pos_off = EoN.hierarchy_pos(off_tree, root=1, width=grid_size)
+        # pos_off = EoN.hierarchy_pos(off_tree, root=1, width=grid_size)
         off_pos.append(pos_off)
         # pos_off = EoN.hierarchy_pos(off_tree, root=1, width=40)
         plt.figure()
@@ -388,15 +394,15 @@ def genetic_stage2(parent1, parent2, gen):
         plt.show()
         offspring_trees.append(convert_logical_spatial(off_tree, pos_off))
 
-    for i, (off_top,pos) in enumerate(zip(offspring_trees,off_pos)):
-        fit_off = fitness_function(off_top, Batch_sequence, PI_weight,pos)
+    for i, (off_top, pos) in enumerate(zip(offspring_trees, off_pos)):
+        fit_off = fitness_function(off_top, Batch_sequence, PI_weight, pos)
         offspring_fitness.append(fit_off[0])
         topology_htable.update({fit_off[0]: (fit_off[1], fit_off[2])})
 
     cross_gen_fitness.append(offspring_fitness)
     print(f'The fitness list of generation {gen} is {offspring_fitness}')
 
-    #if min(offspring_fitness) <= 2000 or gen >= 3:
+    # if min(offspring_fitness) <= 2000 or gen >= 3:
     if gen >= 2:
         print("fitness of this generation", offspring_fitness)
         print("Recurssion Ended ")
@@ -416,7 +422,6 @@ def genetic_stage2(parent1, parent2, gen):
 
 genetic_stage2(parent1, parent2, 1)
 
-
 min_fit = 0
 gen_fit = 0
 for i, fit in enumerate(cross_gen_fitness):
@@ -435,26 +440,45 @@ else:
     print(f" Fittest value found is : {min_fit} in generation {gen_fit}")
 
 "Find the perfromance of the fittest topology"
-#perf_fitness.append(prod_efficiency(Batch_sequence, pos, Qty_order, fit_val[1]))
+# perf_fitness.append(prod_efficiency(Batch_sequence, pos, Qty_order, fit_val[1]))
 print("Fittest topology is", topology_htable[min_fit][1])
 print(prod_efficiency(Batch_sequence, topology_htable[min_fit][1], Qty_order, topology_htable[min_fit][0]))
 
-#print("Topology hash table" ,topology_htable)
+##Save Fittest/Optimal Tree Topology
+
+### Draw the optimal topology#####
+
+OptmialTree = nx.MultiGraph()
+n_list = unique_values_in_list_of_lists(Batch_sequence)
+e_list = []
+for i in range(len(Batch_sequence)):
+    for j in range(len(Batch_sequence[i]) - 1):
+        # print(graph[i][j], graph[i][j+1])
+        edges = [Batch_sequence[i][j], Batch_sequence[i][j + 1]]
+        e_list.append(edges)
+
+OptmialTree.add_nodes_from(n_list)
+OptmialTree.add_edges_from(e_list)
+
+nx.draw(OptmialTree, topology_htable[min_fit][1], with_labels=True)
+#plt.savefig('optimal_topology_found.pdf ')
+plt.savefig("Optimized_Tree.pdf", format="pdf", bbox_inches="tight")
+plt.clf()
+
+# print("Topology hash table" ,topology_htable)
 top_keys = []
 for fit in topology_htable:
     k = fit
     top_keys.append(k)
 
-
 topologies = []
 
-
 for fit_val in top_keys:
-    #topologies.append(topology_htable[fit_val][1])
+    # topologies.append(topology_htable[fit_val][1])
     top_dict = topology_htable[fit_val][1]
     top = [None] * max_value(Batch_sequence)
     for key, value in top_dict.items():
-        top[key-1] = value
+        top[key - 1] = value
     topologies.append(top)
 
 optimized_top = [None] * max_value(Batch_sequence)
@@ -465,20 +489,30 @@ optimized_top = [None] * max_value(Batch_sequence)
 for i in range(len(optimized_top)):
     for key, value in topology_htable[min_fit][1].items():
         # print(key, value)
-        if i == key-1:
-             # print(i)
+        if i == key - 1:
+            # print(i)
             optimized_top[i] = list(dict.fromkeys(value))
 
-#print(topologies)
-
+# print(topologies)
+_time = datetime.now()
+current_dateTime = _time.strftime("%Y-%m-%d-%H-%M-%S")
 "Connect to MongoDB"
 client = pymongo.MongoClient("mongodb://localhost:27017")
 db = client["Topology_Manager"]
 collection = db["Tree_Topologies"]
 
-coll_dict = { "Batch_Sequence": Batch_sequence, "Production_order": Qty_order, "Statistical_Fitness": top_keys,
-              "Topologies": topologies, "Optimized_Topology": optimized_top}
-#coll_dict = {"Topologies": topologies}
+# coll_dict = {"Batch_Sequence": Batch_sequence, "Production_order": Qty_order, "Statistical_Fitness": top_keys,
+#              "Topologies": topologies, "Optimized_Topology": optimized_top}
+
+coll_dict = {"Timestamp": current_dateTime,
+             "Product_name": prod_name,
+             "Product_volume": prod_volume,
+             "Product_active": prod_active,
+             "Process_Sequence": Batch_sequence,
+             "Process_times": process_times,
+             "Statistical_Fitness": top_keys,
+             "Estimated_Topologies": topologies, "Optimized_Topology": optimized_top}
+# coll_dict = {"Topologies": topologies}
 
 x = collection.insert_one(coll_dict)
 
@@ -489,14 +523,21 @@ def save(Topology):
     db = client["Topology_Manager"]
     collection = db["Optimal_Topology"]
 
-    coll_dict = {"Name": "Optimal_Tree", "Topology": Topology, "Batch_Sequence": Batch_sequence, "Qty_order": Qty_order}
+    # coll_dict = {"Name": "Optimal_Tree", "Topology": Topology, "Batch_Sequence": Batch_sequence, "Qty_order": Qty_order}
     # coll_dict = {"Topologies": topologies}
-    read_doc = collection.find_one({"Name": "Optimal_Spring"})
+    coll_dict = {"Name": "Optimal_Tree", "Topology": Topology,
+                 "Product_name": prod_name,
+                 "Product_active": prod_active,
+                 "Process_Sequence": Batch_sequence,
+                 "Product_volume": prod_volume,
+                 "Process_times": process_times}
+
+    read_doc = collection.find_one({"Name": "Optimal_Tree"})
 
     total_doc = collection.count_documents({})
-    if total_doc == 0 :
+    if total_doc == 0:
         collection.insert_one(coll_dict)
-    elif total_doc == 1 and  read_doc["Name"] != "Optimal_Tree":
+    elif total_doc == 1 and read_doc["Name"] != "Optimal_Tree":
         collection.insert_one(coll_dict)
     else:
         collection.replace_one({"Name": "Optimal_Tree"}, coll_dict)

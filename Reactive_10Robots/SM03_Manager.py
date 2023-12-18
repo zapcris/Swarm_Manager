@@ -13,12 +13,10 @@ from Reactive_10Robots.SM05_Scheduler_agent import Scheduling_agent
 from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
 from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
     Auxillary_station
-#from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
+# from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
+from Reactive_10Robots.SM13_statusUI import RobotStatusUI, WorkstationStatusUI, MainApp
 
 
-class PrintToTXT(object):
-    def write(self, s):
-        txt.insert(END, s)
 
 
 def close(top):
@@ -26,8 +24,7 @@ def close(top):
     top.quit()
 
 
-def clear(dframe):
-    del dframe
+
 
 
 def reconfigure_topology():
@@ -35,20 +32,21 @@ def reconfigure_topology():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
     mycol = mydb["Reconfigure_Topology"]
-    x = mycol.find_one()
-    reconfig = x["Topology"]
+    reconfig_doc = mycol.find_one()
+    reconfig_top = reconfig_doc["Topology"]
+
 
     print("Reconfiguration Started")
-
     # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    print(reconfig)
-    data_opcua["reconfiguration_machine_pos"] = reconfig
+    print(reconfig_top)
+    data_opcua["reconfiguration_machine_pos"] = reconfig_top
     time.sleep(0.5)
     data_opcua["do_reconfiguration"] = True
     time.sleep(1)
     data_opcua["do_reconfiguration"] = False
     time.sleep(10)
     print("Reconfiguration Ended")
+
 
 
 ### Product Release Async Queue####
@@ -267,36 +265,17 @@ def run_simulation():
     asyncio.run(async_main())
 
 
-def open_popup():
-    global txt
-    # top = Toplevel(window)
-    # top.geometry("800x600")
-    top = Toplevel(window)
-    top.geometry('800x600')
-    # top.title("Simulation Window ")
-    # Label(top, text= "Hello World!", font=('Mistral 18 bold')).place(x=150,y= 80)
-    # tk.Button(top, text='Run Simulation', command=lambda: run_simulation()).grid(column=25,
-    #                                                                              row=15, padx=10, pady=25)
 
-    btn = Button(top, text='Run Visual Components Simulation', command=run_simulation)
-    btn.pack(side='top')
-    btn2 = Button(top, text='Close the Simulation', command=lambda: close(top=top))
-    btn2.pack(side='bottom')
-    btn3 = Button(top, text='clear dataframe', command=lambda: clear(dframe=dframe))
-    btn3.pack(side='left')
 
-    ini_string = 'SWARM TOPOLOGY MANAGER'
-    dframe = pd.DataFrame
-    txt = Text(top)
-    txt.pack()
-    sys.stdout = PrintToTXT()
-    print(dframe)
-
+def testing_UI(T_robots, W_robots):
+    root = tk.Tk()
+    app = MainApp(root, T_robots=T_robots, W_robots=W_robots)
+    root.mainloop()
 
 if __name__ == "__main__":
-    window = tk.Tk()
-    window.title('Swarm Manager')
-    window.geometry('1920x1080')
+    # window = tk.Tk()
+    # window.title('Swarm Manager')
+    # window.geometry('1920x1080')
     total_TRs = 10
     total_WRs = 10
     T_robot = []
@@ -352,9 +331,6 @@ if __name__ == "__main__":
             # print("Data initialized")
             break
 
-
-
-
     ##### Initialization of auxiliary stations#######
     for i in range(total_WRs):
         source = Auxillary_station(stn_no=i + 10, order=production_order, product=null_product)
@@ -408,58 +384,11 @@ if __name__ == "__main__":
         print(f"tasks in the queue:", task)
         q_main_to_releaser.put_nowait(task)
 
+    ## Start Testing tkinter UI - New Process###
+    # testing_client = Process(target=testing_UI, args=(T_robot, W_robot,))
+    # testing_client.start()
+
     asyncio.run(async_main())
     opcua_client.join()
-
-    'UI implementation for running the simulation : Application hangs on implementation'
-
-    # sys.exit()
-    # # label text for title
-    # ttk.Label(window, text="Swarm Manager",
-    #           background='green', foreground="white",
-    #           font=("Times New Roman", 15)).grid(row=0, column=1)
-    #
-    # # label
-    # ttk.Label(window, text="Select the Document :",
-    #           font=("Times New Roman", 10)).grid(column=0,
-    #                                              row=5, padx=10, pady=25)
-    #
-    # ttk.Label(window, text="Select the Topology :",
-    #           font=("Times New Roman", 10)).grid(column=30,
-    #                                              row=20, padx=10, pady=25)
-    #
-    # # Combobox creation
-    # n = tk.StringVar()
-    # n2 = tk.StringVar()
-    # topchoosen = ttk.Combobox(window, width=27, textvariable=n)
-    # toplist = ttk.Combobox(window, width=27, textvariable=n2)
-    #
-    # # Adding combobox drop down list
-    # topchoosen['values'] = read_tree()
-    #
-    # topchoosen.grid(column=1, row=5)
-    # toplist.grid(column=60, row=50)
-    # topchoosen.current()
-    # toplist.current()
-    #
-    # # reconfig = "0,0d20000,6000d0,15000d0,14000d20000,24000d0,31000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    #
-    # b1 = tk.Button(window, text='Select MongoDB doc', command=select_doc).grid(column=30,
-    #                                                                            row=5, padx=10, pady=25)
-    #
-    # b2 = tk.Button(window, text='Select Specific Topology', command=select_top).grid(column=60,
-    #                                                                                  row=5, padx=10, pady=25)
-    # # b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology()).grid(column=90,
-    # #                                              row=5, padx=10, pady=25)
-    # b3 = tk.Button(window, text='Transfer Selected Topology', command=lambda: save(Topology)).grid(column=90,
-    #                                                                                                row=5, padx=10,
-    #                                                                                                pady=25)
-    # b4 = tk.Button(window, text='Transfer Optimal Topology', command=lambda: optimize()).grid(column=90,
-    #                                                                                           row=10, padx=10, pady=25)
-    # b5 = tk.Button(window, text='Run Simulation', command=open_popup).grid(column=25,
-    #                                                                        row=15, padx=10, pady=25)
-    # # b6 = tk.Button(window, text='Run OPCUA Server', command=main).grid(column=25,
-    # #                                                                  row=15, padx=10, pady=25)
-    #
-    # window.mainloop()
+    #testing_client.join()
 
