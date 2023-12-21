@@ -1,47 +1,103 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import math
+import os
+import queue
+import datetime as dt
+from scipy.spatial import distance
+
+produts = [1, 2, 3, 4, 5, 6, 7, 8]
+priority = [1, 1, 1, 1, 4, 7, 6, 1]
+test = [(1, 4), (1, 5), (1, 6)]
+
+waiting_list = queue.PriorityQueue()
+pqueue = queue.PriorityQueue(maxsize=3)
+
+for test in test:
+    q_data = test
+    if not pqueue.full():
+        pqueue.put_nowait(q_data)
+        print(pqueue.qsize())
+    else:
+        waiting_list.put(q_data)
+print("The waiting priority queue", waiting_list.queue)
+
+print("The queue", pqueue.queue)
+
+for i, data in enumerate(pqueue.queue):
+    print(f"")
+
+if pqueue.queue[0][1] == 4:
+    print(f"Robot3 queued for base position")
+
+for data in pqueue.queue:
+    print(data[1])
+
+queue_pos = 0
+for i, robot in enumerate(pqueue.queue):
+    if robot[1] == 6:
+        queue_pos = i + 1
+
+print("queue position", queue_pos)
+
+item = pqueue.get()
+
+a = [10, 20, 40]
+
+a.pop(0)
+
+print(a)
+
+a.append(99)
+
+print(a)
 
 
-def scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max):
-    # Extract x and y values from the coordinates
-    x_values, y_values = coordinates[:, 0], coordinates[:, 1]
-
-    # Calculate current range of x and y values
-    x_range = np.max(x_values) - np.min(x_values)
-    y_range = np.max(y_values) - np.min(y_values)
-
-    # Calculate scaling factors for x and y
-    scaling_factor_x = (desired_x_max - desired_x_min) / x_range
-    scaling_factor_y = (desired_y_max - desired_y_min) / y_range
-
-    # Scale the x and y values
-    scaled_x_values = (x_values - np.min(x_values)) * scaling_factor_x + desired_x_min
-    scaled_y_values = (y_values - np.min(y_values)) * scaling_factor_y + desired_y_min
-
-    # Combine scaled x and y values back into coordinates
-    scaled_coordinates = np.column_stack((scaled_x_values, scaled_y_values))
-
-    return scaled_coordinates
+def maintain_max_3_elements(arr, new_element):
+    if len(arr) < 3:
+        arr.append(new_element)
+        arr.sort(reverse=True)
+    elif new_element > arr[-1]:
+        arr.pop()
+        arr.append(new_element)
+        arr.sort(reverse=True)
 
 
-# Create a sample set of coordinates
-coordinates = np.array([[16, 14], [2, 21], [17, 21], [8, 20], [12, 22], [22, 13], [12, 16], [8, 12], [10, 7], [3, 2]])
+# Example usage:
+my_array = [10, 5, 8]
 
-# Desired x and y axis limits
-desired_x_min, desired_x_max = -16000, 16000
-desired_y_min, desired_y_max = 13000, 40000
+print("Original array:", my_array)
 
-# Scale the coordinates
-scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
-print(scaled_coordinates)
-# Plot the original and scaled graphs
-plt.plot(coordinates[:, 0], coordinates[:, 1], 'o', label='Original Coordinates')
-plt.plot(scaled_coordinates[:, 0], scaled_coordinates[:, 1], 'o', label='Scaled Coordinates')
-plt.title('Original and Scaled Coordinates')
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-plt.legend()
-plt.grid(True)
-plt.xlim(desired_x_min, desired_x_max)
-plt.ylim(desired_y_min, desired_y_max)
-plt.show()
+maintain_max_3_elements(my_array, 12)
+print("After adding 12:", my_array)
+
+maintain_max_3_elements(my_array, 6)
+print("After adding 6:", my_array)
+
+maintain_max_3_elements(my_array, 15)
+print("After adding 15:", my_array)
+
+task = 30
+robot = [10, 20, 40, 50, 70]
+
+if any(task for x in robot):
+    print("Found")
+
+# id = 1
+# str = f"Robot {id}"
+# process_queue = ["" for _ in range(3)]
+#
+# process_queue.append(str)
+#
+# print(process_queue)
+#
+# process_queue.pop
+
+
+while not pqueue.empty():
+    item = pqueue.get()
+    # print("order", item)
+p1 = [9806.01443856, 14251.0105294]
+p2 = [8001.0, 38301.0]
+p3 = [8001, 10001]
+a = math.dist(p1, p2)
+print("Distance:", a)
+

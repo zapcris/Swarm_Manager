@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
+from pathlib import Path
 import os
 import datetime as dt
 import matplotlib.pyplot as plt
@@ -26,7 +27,9 @@ def production_time(Finished_products):
     print("generated folder name", folder_name)
     ### Create folder for saving plots###
     # if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
+    #os.makedirs(folder_name)
+    os.makedirs(folder_name, exist_ok=True)
+
 
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######

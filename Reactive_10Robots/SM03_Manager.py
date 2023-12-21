@@ -1,10 +1,7 @@
 import asyncio
 import queue
-import sys
 import time
-import pandas as pd
 import tkinter as tk
-from tkinter import *
 from multiprocessing import Process, Manager
 import pymongo
 from Reactive_10Robots.SM02_opcua_client import start_opcua
@@ -14,7 +11,8 @@ from Reactive_10Robots.SM06_Task_allocation import Task_Allocator_agent
 from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_robot, null_product, Transfer_robot, \
     Auxillary_station, read_order
 # from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
-from Reactive_10Robots.SM13_statusUI import RobotStatusUI, WorkstationStatusUI, MainApp
+from Reactive_10Robots.SM13_statusUI import RobotStatusUI, WorkstationStatusUI, MainApp, serialise_robot, \
+    serialise_workstation
 
 
 def close(top):
@@ -28,8 +26,8 @@ def reconfigure_topology():
     mydb = myclient["Topology_Manager"]
     mycol = mydb["Reconfigure_Topology"]
     reconfig_doc = mycol.find_one()
-    reconfig_top = reconfig_doc["Topology"]
-
+    reconfig_top = reconfig_doc["Topology_str"]
+    positions = reconfig_doc["Topology"]
     read_order(reconfig_doc)
     #
     print("Reconfiguration Started")
@@ -42,6 +40,7 @@ def reconfigure_topology():
     data_opcua["do_reconfiguration"] = False
     time.sleep(10)
     print("Reconfiguration Ended")
+    return positions
 
 
 ### Product Release Async Queue####
@@ -52,17 +51,15 @@ async def release_products(q_done_product, q_task_waiting, q_mission_release):
         print("Done Processed Product", done_prod)
         normal_allotment = GreedyScheduler.normalized_production(done_prod)
         # print("normal allotment", normal_allotment)
-        # print("Allocation Started for task", normal_allotment[0])
+        print("Allocation Started for task", normal_allotment[0])
         alloted_normal_task = Greedy_Allocator.normal_allocation(normal_allotment[0], normal_allotment[1],
                                                                  T_robot=T_robot, data_opcua=data_opcua)
-        # print("alloted normal task", alloted_normal_task)
-
+        print("alloted normal task", alloted_normal_task)
         # for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
         if alloted_normal_task[0].allocation == True:
             # print(f"tasks entered in the queue:", alloted_normal_task[0])
             await q_mission_release.put(alloted_normal_task[0])
             # print("Task released to Main Releaser")
-
         elif alloted_normal_task[0].allocation == False:
             # print("Task again queued in waiting list")
             await asyncio.sleep(10)
@@ -81,10 +78,10 @@ async def release_task_execution(q_mission_release):
         task_opcua = await q_mission_release.get()
         robot_id = task_opcua["robot"]
         # await asyncio.sleep(1)
-        # print(f"Task released to robot {robot_id}")
+        print(f"Task released to robot {robot_id}")
         # print(f'>got {task_opcua["robot"]}')
         # print(robot_id)
-        await T_robot[robot_id - 1].trigger_task(task=task_opcua)
+        T_robot[robot_id - 1].trigger_task(task=task_opcua)
 
         for i in range(len(T_robot)):
             # print(i, robot_id)
@@ -205,7 +202,7 @@ async def release_opcua_cmd(q_robot_cmd):
         for i in range(len(T_robot)):
             # print(i, id)
             if i == id - 1 and data_opcua["rob_busy"][i]:
-                await q_exec_start[i].put("Start")
+                q_exec_start[i].put_nowait("Start")
                 # print(f"Triggered execution_timer event for Robot {id}")
         q_robot_cmd.task_done()
 
@@ -280,6 +277,7 @@ if __name__ == "__main__":
     W_robot = []
     Ax_station = []
     q_robot = []
+    Wk_positions = []
     data_opcua = Manager().dict()
     q_main_to_releaser = asyncio.Queue()
     q_product_release = asyncio.Queue()
@@ -314,15 +312,17 @@ if __name__ == "__main__":
         print(data_opcua["machine_pos"])
         # print(data_opcua["robot_pos"])
         if data_opcua["machine_pos"][0] != [0, 0]:
-            global_wk_pos = data_opcua["machine_pos"]
+            initial_wk_pos = data_opcua["machine_pos"]
             # print("Data initialized")
             break
 
     # # do reconfiguration based on chosen topology from UI
     time.sleep(5)
-    reconfigure_topology()
 
+    Wk_positions = reconfigure_topology()
+    print("Before Reconfiguration", Wk_positions)
     time.sleep(10)
+    print("After Reconfiguration", data_opcua["machine_pos"])
 
     ### instantiate order and generation of task list to that order
     test_order = Task_Planning_agent(input_order=production_order)
@@ -352,7 +352,7 @@ if __name__ == "__main__":
     for i in range(total_TRs):
         # print(i+1, R)
         robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i],
-                               machine_pos=global_wk_pos)
+                               machine_pos = Wk_positions)
         T_robot.append(robot)
 
     # print("Robots initialised numbers", len(T_robot))
@@ -383,6 +383,15 @@ if __name__ == "__main__":
     for task in alloted_initial_task[0]:
         print(f"tasks in the queue:", task)
         q_main_to_releaser.put_nowait(task)
+
+    # robots_sts = Manager().list()
+    # workstation_sts = Manager().list()
+    #
+    # for robot, wk in zip(T_robot, W_robot):
+    #     robots_sts.append(serialise_robot(robot))
+    #     workstation_sts.append(serialise_workstation(wk))
+
+
 
     ## Start Testing tkinter UI - New Process###
     # testing_client = Process(target=testing_UI, args=(T_robot, W_robot,))

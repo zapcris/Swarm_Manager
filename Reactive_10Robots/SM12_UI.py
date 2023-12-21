@@ -9,7 +9,8 @@ from Reactive_10Robots.SM14_Topology_Scaling import scale_graph_uniformly
 
 tree_stat_list = []
 tree_top_list = []
-Topology = "NONE"
+Topology = []
+Topology_str = "NONE"
 prod_name = []
 prod_volume = []
 prod_active = []
@@ -18,6 +19,11 @@ process_times = []
 selection = ""
 choosen_doc = {}
 wk_type = []
+
+
+
+
+
 
 
 def dummy():
@@ -127,7 +133,7 @@ def topology_visualcomponents(selected_top):
     desired_y_min, desired_y_max = 11000, 37000
 
     # Scale the coordinates
-    scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
+    Topology, scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)
 
     # Plot the original and scaled graphs
     plt.plot(coordinates[:, 0], coordinates[:, 1], 'o', label='Original Coordinates')
@@ -142,8 +148,8 @@ def topology_visualcomponents(selected_top):
     plt.show()
 
 
-
     print("Final Scaled Topology", scaled_coordinates)
+    print("Final Topology", Topology)
     reconfig = ""
 
     for i, wk_pos in enumerate(scaled_coordinates):
@@ -155,29 +161,31 @@ def topology_visualcomponents(selected_top):
             reconfig = reconfig + pos_str
     print(reconfig)
     # Topology = reconfig
-    return reconfig
+    return Topology, reconfig
 
 
 def select_top():
     global tree_stat_list
     global tree_top_list
     global Topology
+    global Topology_str
     sel_top = float(toplist.get())
     # print(tree_stat_list)
     # print(tree_top_list)
     selected_top = tree_top_list[tree_stat_list.index(sel_top)]
     print("Selected topology is", selected_top)
     # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
-    Topology = topology_visualcomponents(selected_top)
+    Topology, Topology_str = topology_visualcomponents(selected_top)
 
 
-def select_specific(Topology, top_type):
+def select_specific(Topology, Topology_str, top_type):
     global prod_name
     global prod_volume
     global prod_active
     global prod_sequence
     global process_times
     global wk_type
+    select_top = topology_visualcomponents(choosen_doc["Optimized_Topology"])
     "Connect to MongoDB"
     client = pymongo.MongoClient("mongodb://localhost:27017")
     db = client["Topology_Manager"]
@@ -186,6 +194,7 @@ def select_specific(Topology, top_type):
     coll_dict = {"Name": "Reconfiguration",
                  "Type": f"Manual_{top_type}",
                  "Topology": Topology,
+                 "Topology_str": Topology_str,
                  "Product_name": prod_name,
                  "Production_volume": prod_volume,
                  "Product_active": prod_active,
@@ -216,7 +225,8 @@ def select_optimal(top_type):
     collection2 = db2["Reconfigure_Topology"]
     coll_dict2 = {"Name": "Reconfiguration",
                   "Type": f"Optimal_{top_type}",
-                  "Topology": optimal_top,
+                  "Topology": optimal_top[0],
+                  "Topology_str": optimal_top[1],
                   "Product_name": choosen_doc["Product_name"],
                   "Production_volume": choosen_doc["Product_volume"],
                   "Product_active": choosen_doc["Product_active"],
@@ -276,8 +286,8 @@ def selection_changed(event):
     )
     topchoosen['values'] = read_mongoDB_docs(top_type=selection)
     topchoosen.current()
-    toplist.current()
     topchoosen.set('')
+    toplist.current()
     toplist.set('')
     update_label(f"Select a Topology")
 
@@ -340,7 +350,7 @@ if __name__ == "__main__":
     # b3 = tk.Button(window, text='Reconfigure Topology', command=lambda: reconfigure_topology()).grid(column=90,
     #                                              row=5, padx=10, pady=25)
     b3 = tk.Button(window, text='Transfer Topology to VisualComponents',
-                   command=lambda: select_specific(Topology=Topology, top_type=selection))
+                   command=lambda: select_specific(Topology=Topology, top_type=selection, Topology_str=Topology_str))
     b3.grid(column=60, row=5, padx=10, pady=25)
     b3.config()
 

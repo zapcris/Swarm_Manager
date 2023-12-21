@@ -4,8 +4,6 @@ from datetime import datetime
 from Reactive_10Robots.SM11_Dashboard import production_time
 
 
-
-
 class Scheduling_agent:
 
     def __init__(self, order, product_task, T_robot):
@@ -23,36 +21,48 @@ class Scheduling_agent:
         self.running_task = []
         self.finished_variant = []
         self.q = Queue()
-        self.planned_batch = int
+        self.planned_batch = 0
         self.planned_variants = []
+        self.total_prod = 0
 
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
+        self.total_prod = self.planned_batch - sum(self.remaining_instance)
         print(f"Product {product} added to the completed list")
         new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0,
                               robot=99,
                               wk=0, released=False, tracking=[])
         for old_prod in self.active_products:
-            if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:
+            if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:  ### and self.total_prod < len(self.robots) - 2:
                 fin_pv = product.pv_Id
                 fin_pi = product.pi_Id
                 index = self.active_products.index(old_prod)
-                if product.pi_Id >= product.last_instance:
+                if product.pi_Id >= product.last_instance and len(self.remaining_variant) > 0:
+                    print(
+                        f"Sinked Product {product.pv_Id} Instance {product.pi_Id} has last instance {product.last_instance}")
+                    print("Trying to add new variant into production")
+                    print("Active Active products:", self.active_products)
+                    print("Active Finished Products:", self.finished_product)
+                    print("Active Finished Variants", self.finished_variant)
+                    print("Remaining product list", self.remaining_instance)
                     self.finished_variant.append(product.pv_Id)
-                    #print(f"Product Variant {fin_pv} inserted into FINISHED VARIANT LIST")
+                    # print(f"Product Variant {fin_pv} inserted into FINISHED VARIANT LIST")
                     self.active_products.pop(index)
-                    #print(f"The product variant {fin_pv} deleted from the Scheduler Active product list")
+                    # print(f"The product variant {fin_pv} deleted from the Scheduler Active product list")
                     new_product = self.add_new_variant(product_tList)
                     #### added new product variant if product was last instance#####
-                elif product.pi_Id < product.last_instance:
-                    #print(f"The product variant {fin_pv} instance decremented in remaining order list inside Scheduler")
+                elif product.pi_Id < product.last_instance and sum(self.remaining_instance) > 0:
+                    print(f"Sinked Product {product.pv_Id} Instance {product.pi_Id} has last instance {product.last_instance}")
+                    print("Trying to add new instance into production")
+                    # print(f"The product variant {fin_pv} instance decremented in remaining order list inside Scheduler")
                     self.active_products.pop(index)
-                    #print(f"The product Instance {fin_pi} deleted from the Scheduler")
+                    # print(f"The product Instance {fin_pi} deleted from the Scheduler")
                     new_product = self.add_new_instance(fin_pv, fin_pi, product_tList)
                     #### added new instance if product wasn't the last one#####
 
-            #else:
-                #print("The product to be deleted not found in the active product list inside scheduler")
+            else:
+                print("The product to be deleted not found in the active product list inside scheduler")
+                new_product = None
 
         return new_product
 
@@ -66,41 +76,44 @@ class Scheduling_agent:
                  The last priority is to new instance of self variant.
         """
         product_added = False
-        if len(self.remaining_variant) > 0:
+        self.total_prod = self.planned_batch - sum(self.remaining_instance)
+        if len(self.remaining_variant) > 0:  ####and self.total_prod < len(self.robots) - 2:
             new_product = self.add_new_variant(product_tList)
-            #print("New product added", new_product)
+            # print("New product added", new_product)
             print("Scheduler returned from 1", new_product)
             return new_product
         elif len(self.remaining_variant) == 0:
             for i, var in enumerate(self.remaining_instance):
                 for act in self.active_products:
-                    if act.pv_Id != i+1 and var > 0 and product_added == False:
+                    if act.pv_Id != i + 1 and var > 0 and product_added == False:  ###and self.total_prod < len(self.robots) - 2:
                         curr_inst = self.order["PI"][i] - var
-                        new_product = self.add_new_instance(i+1, curr_inst, product_tList)
+                        new_product = self.add_new_instance(i + 1, curr_inst, product_tList)
                         product_added = True
                         print("Scheduler returned from 2", new_product)
                         return new_product
-                        #print("New product added into production", new_product)
-                    elif act.pv_Id == i+1 and var > 0 and product.pv_Id != i+1 and product_added == False:
+                        # print("New product added into production", new_product)
+                    elif act.pv_Id == i + 1 and var > 0 and product.pv_Id != i + 1 and product_added == False:  ### and self.total_prod < len(
+                        ## self.robots) - 2:
                         curr_inst = self.order["PI"][i] - var
-                        new_product = self.add_new_instance(i+1, curr_inst, product_tList)
+                        new_product = self.add_new_instance(i + 1, curr_inst, product_tList)
                         product_added = True
                         print("Scheduler returned from 3", new_product)
                         return new_product
-                    elif act.pv_Id == i+1 and var > 0 and product.pv_Id == i+1 and product_added == False:
+                    elif act.pv_Id == i + 1 and var > 0 and product.pv_Id == i + 1 and product_added == False:  ### and self.total_prod < len(
+                        ###   self.robots) - 2:
                         new_product = self.add_new_instance(product.pv_Id, product.pi_Id, product_tList)
-                        #print("Next instance of same product variant is preferred")
+                        # print("Next instance of same product variant is preferred")
                         product_added = True
                         print("Scheduler returned from 4", new_product)
                         return new_product
 
         else:
-            #print("No product to be added in the production")
+            # print("No product to be added in the production")
             return None
 
     def add_new_variant(self, product_tList):
-        #print(f"Remaining variants in production: {self.remaining_variant}")
-        #print("Remaining instances in production", self.remaining_instance)
+        # print(f"Remaining variants in production: {self.remaining_variant}")
+        # print("Remaining instances in production", self.remaining_instance)
         if len(self.remaining_variant) > 0:
             new_variant = self.remaining_variant.pop(0)
             self.remaining_instance[new_variant - 1] -= 1
@@ -113,7 +126,7 @@ class Scheduling_agent:
             new_prod_var.tracking.append(ct)
 
             self.active_products.append(new_prod_var)
-            #print(f"New Product Variant {new_variant} and {new_prod_var}  added to active list")
+            # print(f"New Product Variant {new_variant} and {new_prod_var}  added to active list")
             return new_prod_var
         ## Old logic trunacated : Production end
         # elif len(self.finished_product) == self.planned_batch:
@@ -125,43 +138,42 @@ class Scheduling_agent:
         #     production_time(self.finished_product)
 
     def production_end(self):
-        #print("Production completed")
+        # print("Production completed")
         # for i, product in enumerate(self.finished_product):
         #     a =100
-            #print(f"Finished product {i} is {product}")
-            #print(f"It's tracking details are {product.tracking}")
-
-        production_time(self.finished_product)
-        #print("Production Stats generating")
-        #app_close.set()
-
-
-
+        # print(f"Finished product {i} is {product}")
+        # print(f"It's tracking details are {product.tracking}")
+        print("Total Finished products", len(self.finished_product))
+        print("Total Planned Batch is", self.planned_batch)
+        if len(self.finished_product) >= self.planned_batch:
+            production_time(self.finished_product)
+        # print("Production Stats generating")
+        # app_close.set()
 
     def add_new_instance(self, pv_Id, pi_Id, product_tList):
         ## new task list injected into the current product object ########
-        #print(f"Remaining variants in production: {self.remaining_variant}")
-        #print("Remaining instances in production", self.remaining_instance)
+        # print(f"Remaining variants in production: {self.remaining_variant}")
+        # print("Remaining instances in production", self.remaining_instance)
         self.planned_variants.index(pv_Id)
-        self.remaining_instance[pv_Id-1] -= 1
-        #print("Remaining instance list", self.remaining_instance)
-        #print("TASK LIST ", product_tList)
+        self.remaining_instance[pv_Id - 1] -= 1
+        # print("Remaining instance list", self.remaining_instance)
+        # print("TASK LIST ", product_tList)
         new_instance = Product(pv_Id=pv_Id, pi_Id=pi_Id + 1, task_list=product_tList[pv_Id - 1], inProduction=True,
                                finished=False,
                                last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False, tracking=[])
         ct = Source(tstamp=datetime.now())
         new_instance.tracking.append(ct)
         self.active_products.append(new_instance)
-        #print(f"New Product {new_instance}  added to active list")
+        # print(f"New Product {new_instance}  added to active list")
         return new_instance
 
     def initialize_production(self):
-        #print(self.order["PV"])
-        self.planned_batch = 0
+        # print(self.order["PV"])
+        # self.planned_batch = 0
         for pv, pi in zip(self.order["PV"], self.order["PI"]):
             c = pv * pi
             self.planned_batch += c
-        #print("Total batch size", self.planned_batch)
+        # print("Total batch size", self.planned_batch)
         for i, (pv, pi) in enumerate(zip((self.order["PV"]), (self.order["PI"]))):
             if pv == 1:
                 self.remaining_variant.append(i + 1)
@@ -169,62 +181,64 @@ class Scheduling_agent:
                 self.remaining_instance.append(pi)
             else:
                 self.remaining_instance.append(0)
-        #print("Remaining order list", self.remaining_variant)
-        #print("Remaining instance list", self.remaining_instance)
+        # print("Remaining order list", self.remaining_variant)
+        # print("Remaining instance list", self.remaining_instance)
         #### Initialization of Products based on total available robots ######
         if len(self.remaining_variant) >= len(self.robots):
             for i, r in enumerate(self.robots):
-                ########### encapsulated task sequence object for every product instance #######
-                variant = self.remaining_variant.pop(0)
-                self.remaining_instance[variant-1] -= 1
-                #print("Remaining instance list", self.remaining_instance)
-                p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
-                ct = Source(tstamp=datetime.now())
-                p.tracking.append(ct)
-                #print(f"First instance of product type {variant} and product {p} generated for production")
-                self.active_products.append(p)
-                # self.pCount = i + 1
+                if i <= len(self.robots):  ###- 3:  ## Only allow total robots -2 products###
+                    ########### encapsulated task sequence object for every product instance #######
+                    variant = self.remaining_variant.pop(0)
+                    self.remaining_instance[variant - 1] -= 1
+                    # print("Remaining instance list", self.remaining_instance)
+                    p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True,
+                                finished=False,
+                                last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
+                    ct = Source(tstamp=datetime.now())
+                    p.tracking.append(ct)
+                    # print(f"First instance of product type {variant} and product {p} generated for production")
+                    self.active_products.append(p)
+                    # self.pCount = i + 1
         else:  ###### if total robots greater than product variants############
             iterate_order = self.remaining_variant
             for i in range(len(iterate_order)):
                 variant = self.remaining_variant.pop(0)
-                self.remaining_instance[variant-1] -= 1
-                #print("Remaining instance list", self.remaining_instance)
+                self.remaining_instance[variant - 1] -= 1
+                # print("Remaining instance list", self.remaining_instance)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
                             last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
                 ct = Source(tstamp=datetime.now())
                 p.tracking.append(ct)
-                #print(f"First instance of product type {variant} and product {p} generated for production")
+                # print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
                 # self.pCount = i + 1
         initial_allocation = self.initial_evaluation()
         return initial_allocation, self.active_products
 
     def normalized_production(self, new_product):
-        #task_for_allocation = []
-        #global task_for_allocation
-        #for new_product in product_list:
+        # task_for_allocation = []
+        # global task_for_allocation
+        # for new_product in product_list:
         # for act_prod in self.active_products:
         #     if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
         #         act_prod = new_product
         #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
         #     else:
         #         pass
-        print("Check this error",new_product)
+        print("Check this error", new_product)
         cmd = new_product.task_list[0]
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
-               type = 1
+            type = 1  ## Task initiate from Source###
         elif (1 <= cmd[0] <= 10) or (1 <= cmd[1] <= 10):
-            type = 6
+            type = 7  ### Task Initiate Workstation###
         else:
-            type = 10
+            type = 11  ### Task Initiate for Sink###
         TA = Task(id=1, type=type, command=cmd, pV=new_product.pv_Id, pI=new_product.pi_Id,
-                    allocation=False,
-                    status="Pending", robot=999, step=type)
-        #print("New task created ", TA)
+                  allocation=False,
+                  status="Pending", robot=999, step=type)
+        # print("New task created ", TA)
 
         task_for_allocation = TA
         return task_for_allocation, new_product
@@ -235,13 +249,13 @@ class Scheduling_agent:
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
             cmd = product.task_list[0]
-            #print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
+            # print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if 11 <= cmd[0] <= 20:
-                type = 1
+                type = 1  ### Task initiate from Source###
             elif (1 <= cmd[0] <= 10) or (1 <= cmd[1] <= 10):
-                type = 6
+                type = 7  ### Task Initiate Workstation###
             else:
-                type = 10
+                type = 11  ### Task Initiate for Sink###
             TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
                       status="Pending", robot=999, step=1)
             tasks_for_allocation.append(TA)

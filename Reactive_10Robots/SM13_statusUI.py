@@ -2,6 +2,32 @@ import time
 import tkinter as tk
 
 
+def serialise_robot(T_robot):
+    robot = {}
+    robot["id"] = T_robot.id
+    robot["Free"] = T_robot.free
+    robot["base"] = T_robot.base
+    robot["q1"] = T_robot.q1
+    robot["q2"] = T_robot.q2
+    robot["wk_loc"] = T_robot.wk_loc
+    robot["executing"] = T_robot.executing
+
+    return robot
+
+
+def serialise_workstation(W_robot):
+    workstation = {}
+    workstation["id"] = W_robot.id
+    workstation["processing"] = W_robot.free
+    workstation["product_free"] = W_robot.product_free
+    workstation["robot_fre"] = W_robot.robot_free
+    workstation["booked"] = W_robot.booked
+    workstation["q1_empty"] = W_robot.q1_empty
+    workstation["q2_empty"] = W_robot.q2_empty
+
+    return workstation
+
+
 class Robot:
     def __init__(self, id):
         self.id = id
