@@ -5,86 +5,86 @@ from datetime import datetime
 from Reactive_10Robots.SM04_Task_Planning_agent import generate_task
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
-# production_order = {}
+production_order = {}
 
 
 # ##WOrking Production Order
-production_order = {
-    "Name": "Test",
-    "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "PV_priority": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
-                 [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
-                 [13, 1, 9, 50],
-                 [14, 1, 8, 50],  # [11, 4, 8, 12, 9, 12]
-                 [15, 10, 9, 50],
-                 [16, 2, 5, 7, 3, 50],
-                 [17, 3, 6, 8, 2, 4, 3, 50],
-                 [18, 8, 5, 7, 50],
-                 [19, 7, 4, 1, 50],
-                 [20, 5, 4, 9, 50]
-                 ],
-    "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
-    "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "WK_capabilities": [[1, 3],
-                        [2, 4],
-                        [3, 8],
-                        [4, 9],
-                        [5, 1],
-                        [6, 3],
-                        [7, 4],
-                        [8, 2],
-                        [9, 1],
-                        [10, 5]
-                        ],
-    "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
-                      [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                      [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                      [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
-                      ]
-}
+# production_order = {
+#     "Name": "Test",
+#     "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#     "PV_priority": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
+#                  [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
+#                  [13, 1, 9, 50],
+#                  [14, 1, 8, 50],  # [11, 4, 8, 12, 9, 12]
+#                  [15, 10, 9, 50],
+#                  [16, 2, 5, 7, 3, 50],
+#                  [17, 3, 6, 8, 2, 4, 3, 50],
+#                  [18, 8, 5, 7, 50],
+#                  [19, 7, 4, 1, 50],
+#                  [20, 5, 4, 9, 50]
+#                  ],
+#     "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
+#     "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#     "WK_capabilities": [[1], ##[[1, 3],
+#                         [2],  ##[2, 4],
+#                         [3],  ##[3, 8],
+#                         [4],  ##[4, 9],
+#                         [5],  ##[5, 1],
+#                         [6],  ##[6, 3],
+#                         [7],  ##[7, 4],
+#                         [8],  ##[8, 2],
+#                         [9],  ##[9, 1],
+#                         [10]  ##[10, 5]
+#                         ],       ##],
+#     "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+#                       [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+#                       [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
+#                       [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
+#                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+#                       [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+#                       [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
+#                       ]
+# }
 
 
 def read_order(reconfig_doc):
-    # production_order["Name"] = "Test"
-    # production_order["PV"] = [1 if i == True else 0 for i in reconfig_doc["Product_active"]]
-    # production_order["sequence"] = reconfig_doc["Production_Sequence"]
-    # production_order["PI"] = reconfig_doc["Production_volume"]
-    # production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    # production_order["PV_priority"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    # production_order["WK_capabilities"] = [[1, 3],
-    #                                        [2, 4],
-    #                                        [3, 8],
-    #                                        [4, 9],
-    #                                        [5, 1],
-    #                                        [6, 3],
-    #                                        [7, 4],
-    #                                        [8, 2],
-    #                                        [9, 1],
-    #                                        [10, 5]
-    #                                        ]
-    # production_order["Process_times"] = reconfig_doc["Process_times"]
-    # production_order["Process_times"] = [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],
-    #                                      # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-    #                                      [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],
-    #                                      # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-    #                                      [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],
-    #                                      # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-    #                                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-    #                                      [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
-    #                                      [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
-    #                                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-    #                                      [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
-    #                                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-    #                                      [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
-    #                                      ]
-    #
+    production_order["Name"] = "Test"
+    production_order["PV"] = [1 if i == True else 0 for i in reconfig_doc["Product_active"]]
+    production_order["sequence"] = reconfig_doc["Production_Sequence"]
+    production_order["PI"] = reconfig_doc["Production_volume"]
+    production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    production_order["PV_priority"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    production_order["WK_capabilities"] = [[1, 3],
+                                           [2, 4],
+                                           [3, 8],
+                                           [4, 9],
+                                           [5, 1],
+                                           [6, 3],
+                                           [7, 4],
+                                           [8, 2],
+                                           [9, 1],
+                                           [10, 5]
+                                           ]
+    production_order["Process_times"] = reconfig_doc["Process_times"]
+    production_order["Process_times"] = [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],
+                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                                         [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],
+                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                                         [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],
+                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                                         [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+                                         [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
+                                         [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
+                                         [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                                         [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
+                                         [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+                                         [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
+                                         ]
+
     print("Name", production_order["Name"])
     print("Products", production_order["PV"])
     print("Volume", production_order["PI"])
@@ -324,9 +324,9 @@ class Transfer_robot:
                     elif (self.id not in W_robot[drop - 1].pqueue) and W_robot[drop - 1].wait_q:
                         if W_robot[drop - 1].wait_q[0] == self.id:
                             self.q3 = True
-                            print(f"Robot {self.id} is 1st in waiting queue for workstation {drop - 1}")
+                            print(f"Robot {self.id} is 1st in waiting queue for workstation {drop}")
                         else:
-                            print(f"Robot {self.id} is not in waiting queue for workstation {drop - 1}")
+                            print(f"Robot {self.id} is not in waiting queue for workstation {drop}")
 
                     ### New logic to shuffle order of queue based on priority####
 
@@ -383,13 +383,13 @@ class Transfer_robot:
                 case 7:  # This case is for pickup processed product from workstations
                     print(f"Robot {self.id} is at workstation {self.wk_loc}")
                     print(f"Workstation {pickup} Robot Free status is {W_robot[pickup - 1].robot_free}")
-                    # if (self.wk_loc == pickup and self.base == True) or (
-                    #         self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True):
-                    W_robot[pickup - 1].booked = True
-                    self.opcua_cmd = ["pick", str(pickup - 1)]
-                    self.path_clear = True
-                    print(f"Path cleared for Robot {self.id} for pickup at workstation {pickup}")
-                    self.task.step = 8  ###Clearance for task execution
+                    if (self.wk_loc == pickup and self.base == True) or (
+                             self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True):
+                        W_robot[pickup - 1].booked = True
+                        self.opcua_cmd = ["pick", str(pickup - 1)]
+                        self.path_clear = True
+                        print(f"Path cleared for Robot {self.id} for pickup at workstation {pickup}")
+                        self.task.step = 8  ###Clearance for task execution
                     ## Reserved case 8,9,10 for queuing pickup worksation mission###
 
                 case 11:  ## Case for dropping product to Sink Station###
@@ -457,7 +457,7 @@ class Transfer_robot:
                     W_robot[self.wk_loc - 1].booked = False
                     W_robot[self.wk_loc - 1].robot_free = True
             elif 11 <= self.wk_loc <= 20:
-                Ax_station[self.wk_loc - 11].booked = False
+                    Ax_station[self.wk_loc - 11].booked = False
                 # print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
             elif self.wk_loc == 50:
                 Ax_station[10].booked = False
@@ -485,11 +485,8 @@ class Transfer_robot:
             exec_time = (datetime.now() - start_time).total_seconds()
             # print(f"Robot {self.id} took {exec_time:,.2f} seconds to run for the task step {self.task.step}")
             self.wk_loc = int(self.opcua_cmd[1]) + 1
-            ## Indicate workstation about the robot number ####
-            if 1 <= self.wk_loc <= 10:
-                W_robot[self.wk_loc - 1].t_robot = self.id
-            print(
-                f"Robot {self.id} internal opcua command is {self.opcua_cmd} with product {self.product.pv_Id} {self.product.pi_Id}")
+            # print(
+            #     f"Robot {self.id} internal opcua command is {self.opcua_cmd} with product {self.product.pv_Id} {self.product.pi_Id}")
             # print(f"Robot {self.id} is at Station {self.wk_loc} with status : base {self.base}, q1 {self.q1}, q2 {self.q2}")
             # print(f"Task Step value is {self.task.step}")
             # print(self.task.step)
@@ -514,6 +511,7 @@ class Transfer_robot:
                     self.base = True
                     self.q1 = False
                     self.q2 = False
+                    self.q3 = False
                     self.assigned_task = False
                     W_robot[self.wk_loc - 1].product_free = False
                     W_robot[self.wk_loc - 1].robot_free = False
@@ -550,6 +548,7 @@ class Transfer_robot:
                     self.base = False
                     self.q1 = True
                     self.q2 = False
+                    self.q3 = False
                     self.task.step = 3
                     self.exec_cmd = True
                     ## Send task back to task initialization routine###
@@ -560,6 +559,7 @@ class Transfer_robot:
                     self.base = False
                     self.q1 = False
                     self.q2 = True
+                    self.q3 = False
                     self.task.step = 3
                     self.exec_cmd = True
                     ## Send task back to task initialization routine###
@@ -922,7 +922,7 @@ class Transfer_robot:
                     # print("Generated TASK from new function", new_task_list)
                     new_product = GreedyScheduler.robot_done(product=self.product, product_tList=new_task_list)
                     print(
-                        f"The product status after loading by robot {self.id} in workstation {self.wk_loc}is {new_product}", )
+                        f"The product status after loading by robot {self.id} in workstation {self.wk_loc}is {new_product}")
                     ### Check for new product in remaining list once product loaded into the workstation
                     if new_product == None or (new_product.pv_Id == 0 and new_product.pi_Id == 0):
                         # print("No new product to generate")
@@ -1028,11 +1028,9 @@ class Workstation_robot:
         self.q1_empty = True
         self.q2_empty = True
         self.processing = False
-        # self.process_queue = queue.PriorityQueue(maxsize=3)
-        # self.wait_queue = queue.PriorityQueue()
         self.pqueue = []
         self.wait_q = []
-        # self.t_robot = 0
+
 
     def __await__(self):
         async def closure():

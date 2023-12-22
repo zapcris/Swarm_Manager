@@ -107,3 +107,17 @@ if 40 in a and a:
     print("element popped from array", a.pop(0))
 else:
     print("Error")
+c = [0 for _ in range(3)]
+print(c)
+c = [0 for _ in range(2)]
+print(c)
+condition = 3
+mission = 5
+if condition == 1:
+    c.insert(0, mission)
+elif condition == 2:
+    c.insert(1, mission)
+else:
+    c.insert(2, mission)
+
+print(c)

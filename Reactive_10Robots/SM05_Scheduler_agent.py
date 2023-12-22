@@ -25,7 +25,7 @@ class Scheduling_agent:
         self.planned_batch = 0
         self.planned_variants = []
         self.total_prod = 0
-        self.priority_q = queue.PriorityQueue()
+        self.mission_q = []
 
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
@@ -230,9 +230,14 @@ class Scheduling_agent:
         #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
         #     else:
         #         pass
+
+        ## Old logic here
         print("Check this error", new_product)
+        ## old logic -without capability
         cmd = new_product.task_list[0]
 
+        ## Generate Task command based on the capabilities of the Workstations
+        #cmd = self.generate_task(product=new_product, W_robot=W_robot)
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
@@ -252,31 +257,13 @@ class Scheduling_agent:
     ######## Dispatch Task to Task Allocator for broadcasting ###################
     def initial_evaluation(self, W_robot):
         tasks_for_allocation = []
-        #cmd = [0, 0]
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
             cmd = product.task_list[0]
-            'Testing code for Capability based task assignment'
-            # cmd[0] = mission[0]
-            # wk_id = (0, 0)
-            # ## Check for process capability inside Workstation and free status#####
-            # for wk in W_robot:
-            #     if mission[1] in wk.capability:
-            #         if wk.booked == False and wk.product_free == True and wk.robot_free == True: ## Indicates not present or incoming robot
-            #             wk_id = (1, wk.id)
-            #             self.priority_q.put_nowait(wk_id)
-            #         elif wk.booked == False and wk.product_free == True and wk.robot_free == False: ## Indicates robot is leaving with the product
-            #             wk_id = (2, wk.id)
-            #             self.priority_q.put_nowait(wk_id)
-            #         else:
-            #             wk_id = (3, wk.id)
-            #             self.priority_q.put_nowait(wk_id)
-            #     else:
-            #         print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
-            # data =  self.priority_q.get_nowait()
-            # cmd[1] = data[1]
-            # print(f"Task {cmd} generated for mission {mission}")
-            # self.priority_q.queue.clear()
+
+            ## New capability based task assignment
+            #cmd = self.generate_task(product=product, W_robot=W_robot)
+
             # print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if 11 <= cmd[0] <= 20:
                 type = 1  ### Task initiate from Source###
@@ -287,5 +274,36 @@ class Scheduling_agent:
             TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
                       status="Pending", robot=999, step=1)
             tasks_for_allocation.append(TA)
+        print("Check Takss", tasks_for_allocation)
 
         return tasks_for_allocation
+
+
+    def generate_task(self, product, W_robot):
+        cmd = [0, 0]
+        self.mission_q = [99 for _ in range(2)]  ## 99 denoting empty mission
+        mission = product.task_list[0]
+        'Testing code for Capability based task assignment'
+        cmd[0] = mission[0]
+        # wk_id = (0, 0)
+        ## Check for process capability inside Workstation and free status#####
+        for wk in W_robot:
+            if mission[1] in wk.capability:
+                if wk.booked == False and wk.product_free == True and wk.robot_free == True:  ## Indicates not present or incoming robot
+                    self.mission_q.insert(0, wk.id)
+                elif wk.booked == False and wk.product_free == True and wk.robot_free == False:  ## Indicates robot is leaving with the product
+                    self.mission_q.insert(1, wk.id)
+                else:
+                    self.mission_q.insert(2, wk.id)
+            # else:
+            #     print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
+        if self.mission_q[0] != 99:
+            cmd[1] = self.mission_q[0]
+        elif self.mission_q[0] == 99 and self.mission_q[1] != 99:
+            cmd[1] = self.mission_q[1]
+        else:
+            cmd[1] = self.mission_q[2]
+        print(f"Task {cmd} generated for mission {mission}")
+        return cmd
+
+

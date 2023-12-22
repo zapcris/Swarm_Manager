@@ -324,7 +324,7 @@ if __name__ == "__main__":
             break
 
     # # do reconfiguration based on chosen topology from UI
-    Wk_positions = reconfigure_topology(reconfig=False, default_postions=initial_wk_pos)
+    Wk_positions = reconfigure_topology(reconfig=True, default_postions=initial_wk_pos)
     print("Before Reconfiguration", Wk_positions)
     print("After Reconfiguration", data_opcua["machine_pos"])
 
