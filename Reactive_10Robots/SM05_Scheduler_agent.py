@@ -1,3 +1,4 @@
+import queue
 from queue import Queue
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
@@ -24,6 +25,7 @@ class Scheduling_agent:
         self.planned_batch = 0
         self.planned_variants = []
         self.total_prod = 0
+        self.priority_q = queue.PriorityQueue()
 
     def prod_completed(self, product, product_tList):
         self.finished_product.append(product)
@@ -31,7 +33,7 @@ class Scheduling_agent:
         print(f"Product {product} added to the completed list")
         new_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0,
                               robot=99,
-                              wk=0, released=False, tracking=[])
+                              wk=0, released=False, tracking=[], priority=0)
         for old_prod in self.active_products:
             if old_prod.pv_Id == product.pv_Id and old_prod.pi_Id == product.pi_Id:  ### and self.total_prod < len(self.robots) - 2:
                 fin_pv = product.pv_Id
@@ -121,7 +123,7 @@ class Scheduling_agent:
                                    inProduction=True,
                                    finished=False,
                                    last_instance=self.order["PI"][new_variant - 1], robot=0, wk=0, released=False,
-                                   tracking=[])
+                                   tracking=[], priority=self.order["PV_priority"][new_variant-1])
             ct = Source(tstamp=datetime.now())
             new_prod_var.tracking.append(ct)
 
@@ -160,14 +162,15 @@ class Scheduling_agent:
         # print("TASK LIST ", product_tList)
         new_instance = Product(pv_Id=pv_Id, pi_Id=pi_Id + 1, task_list=product_tList[pv_Id - 1], inProduction=True,
                                finished=False,
-                               last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False, tracking=[])
+                               last_instance=self.order["PI"][pv_Id - 1], robot=0, wk=0, released=False,
+                               tracking=[], priority=self.order["PV_priority"][pv_Id-1])
         ct = Source(tstamp=datetime.now())
         new_instance.tracking.append(ct)
         self.active_products.append(new_instance)
         # print(f"New Product {new_instance}  added to active list")
         return new_instance
 
-    def initialize_production(self):
+    def initialize_production(self, W_robot):
         # print(self.order["PV"])
         # self.planned_batch = 0
         for pv, pi in zip(self.order["PV"], self.order["PI"]):
@@ -193,7 +196,8 @@ class Scheduling_agent:
                     # print("Remaining instance list", self.remaining_instance)
                     p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True,
                                 finished=False,
-                                last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
+                                last_instance=self.order["PI"][i], robot=0, wk=0, released=False,
+                                tracking=[], priority=self.order["PV_priority"][variant-1])
                     ct = Source(tstamp=datetime.now())
                     p.tracking.append(ct)
                     # print(f"First instance of product type {variant} and product {p} generated for production")
@@ -206,16 +210,17 @@ class Scheduling_agent:
                 self.remaining_instance[variant - 1] -= 1
                 # print("Remaining instance list", self.remaining_instance)
                 p = Product(pv_Id=variant, pi_Id=1, task_list=self.product_task[i], inProduction=True, finished=False,
-                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False, tracking=[])
+                            last_instance=self.order["PI"][i], robot=0, wk=0, released=False,
+                            tracking=[], priority=self.order["PV_priority"][variant-1])
                 ct = Source(tstamp=datetime.now())
                 p.tracking.append(ct)
                 # print(f"First instance of product type {variant} and product {p} generated for production")
                 self.active_products.append(p)
                 # self.pCount = i + 1
-        initial_allocation = self.initial_evaluation()
+        initial_allocation = self.initial_evaluation(W_robot=W_robot)
         return initial_allocation, self.active_products
 
-    def normalized_production(self, new_product):
+    def normalized_production(self, new_product, W_robot):
         # task_for_allocation = []
         # global task_for_allocation
         # for new_product in product_list:
@@ -227,6 +232,7 @@ class Scheduling_agent:
         #         pass
         print("Check this error", new_product)
         cmd = new_product.task_list[0]
+
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
@@ -244,11 +250,33 @@ class Scheduling_agent:
         return task_for_allocation, new_product
 
     ######## Dispatch Task to Task Allocator for broadcasting ###################
-    def initial_evaluation(self):
+    def initial_evaluation(self, W_robot):
         tasks_for_allocation = []
+        #cmd = [0, 0]
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
             cmd = product.task_list[0]
+            'Testing code for Capability based task assignment'
+            # cmd[0] = mission[0]
+            # wk_id = (0, 0)
+            # ## Check for process capability inside Workstation and free status#####
+            # for wk in W_robot:
+            #     if mission[1] in wk.capability:
+            #         if wk.booked == False and wk.product_free == True and wk.robot_free == True: ## Indicates not present or incoming robot
+            #             wk_id = (1, wk.id)
+            #             self.priority_q.put_nowait(wk_id)
+            #         elif wk.booked == False and wk.product_free == True and wk.robot_free == False: ## Indicates robot is leaving with the product
+            #             wk_id = (2, wk.id)
+            #             self.priority_q.put_nowait(wk_id)
+            #         else:
+            #             wk_id = (3, wk.id)
+            #             self.priority_q.put_nowait(wk_id)
+            #     else:
+            #         print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
+            # data =  self.priority_q.get_nowait()
+            # cmd[1] = data[1]
+            # print(f"Task {cmd} generated for mission {mission}")
+            # self.priority_q.queue.clear()
             # print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if 11 <= cmd[0] <= 20:
                 type = 1  ### Task initiate from Source###

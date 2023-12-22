@@ -101,3 +101,9 @@ p3 = [8001, 10001]
 a = math.dist(p1, p2)
 print("Distance:", a)
 
+a = [20]
+
+if 40 in a and a:
+    print("element popped from array", a.pop(0))
+else:
+    print("Error")

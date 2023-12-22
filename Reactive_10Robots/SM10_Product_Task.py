@@ -34,6 +34,7 @@ class Task:
 class Product:
     pv_Id: int
     pi_Id: int
+    priority: int
     task_list: []
     inProduction: False
     finished: False
