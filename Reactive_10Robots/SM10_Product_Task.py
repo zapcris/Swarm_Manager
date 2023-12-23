@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 
-
 @dataclass
 class Task:
     id: int
@@ -35,7 +34,9 @@ class Product:
     pv_Id: int
     pi_Id: int
     priority: int
-    task_list: []
+    mission_list: []
+    current_mission: []
+    task: []
     inProduction: False
     finished: False
     last_instance: int
@@ -63,9 +64,9 @@ class Product:
         object.__setattr__(self, 'wk', 0)
         object.__setattr__(self, 'robot', robot)
 
-    def to_wk(self, wk):
-        object.__setattr__(self, 'robot', 0)
-        object.__setattr__(self, 'wk', wk)
+    # def to_wk(self, wk):
+    #     object.__setattr__(self, 'robot', 0)
+    #     object.__setattr__(self, 'wk', wk)
 
     def pfinished(self):
         object.__setattr__(self, 'finished', True)
@@ -74,12 +75,21 @@ class Product:
     # def reset_Instance(self):
     #     object.__setattr__(self, 'last_instance', 0)
 
-    def remove_task(self):
-        if len(self.task_list) > 0:
-            #print(f"Task {self.task_list[0]} removed from the product {self.pv_Id, self.pi_Id}")
-            self.task_list.pop(0)
+    # def remove_task(self):
+    #     if len(self.task_list) > 0:
+    #         #print(f"Task {self.task_list[0]} removed from the product {self.pv_Id, self.pi_Id}")
+    #         self.task_list.pop(0)
+    #
+    #     return self
 
-        return self
+    def process_done(self, wk_id):
+        self.wk = wk_id
+        if self.mission_list:
+            self.current_mission = self.mission_list.pop(0)
+        else:
+            raise Exception(f"Product{self.pv_Id}{self.pi_Id} has no missions left on workstation{self.wk}")
+        self.task = [99, 99]
+
 
 
 @dataclass
@@ -132,7 +142,3 @@ class Source:
 class Sink:
     tstamp: datetime
     sts: str = "Sink"
-
-
-
-

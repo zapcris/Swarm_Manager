@@ -14,22 +14,19 @@ from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_rob
 from Reactive_10Robots.SM13_statusUI import MainApp
 
 
-def close(top):
-    # win.destroy()
-    top.quit()
-
-
 def reconfigure_topology(reconfig, default_postions):
     # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
-    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    mydb = myclient["Topology_Manager"]
-    mycol = mydb["Reconfigure_Topology"]
-    reconfig_doc = mycol.find_one()
-    reconfig_top = reconfig_doc["Topology_str"]
-    positions = reconfig_doc["Topology"]
-    read_order(reconfig_doc)
+
     #
     if reconfig == True:
+        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        mydb = myclient["Topology_Manager"]
+        mycol = mydb["Reconfigure_Topology"]
+        reconfig_doc = mycol.find_one()
+        reconfig_top = reconfig_doc["Topology_str"]
+        positions = reconfig_doc["Topology"]
+        read_order(reconfig_doc)
+
         print("Reconfiguration Started")
         # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
         print(reconfig_top)
@@ -40,6 +37,7 @@ def reconfigure_topology(reconfig, default_postions):
         data_opcua["do_reconfiguration"] = False
         time.sleep(10)
         print("Reconfiguration Ended")
+
     else:
         positions = default_postions
         print("No Reconfiguration Requested")
@@ -324,16 +322,16 @@ if __name__ == "__main__":
             break
 
     # # do reconfiguration based on chosen topology from UI
-    Wk_positions = reconfigure_topology(reconfig=True, default_postions=initial_wk_pos)
+    Wk_positions = reconfigure_topology(reconfig=False, default_postions=initial_wk_pos)
     print("Before Reconfiguration", Wk_positions)
     print("After Reconfiguration", data_opcua["machine_pos"])
 
     ### instantiate order and generation of task list to that order
     test_order = Task_Planning_agent(input_order=production_order)
-    generated_task = test_order.task_list()
-    Product_task = generated_task[0]
-    Global_task = generated_task[1]
-    Task_Queue = generated_task[2]
+    generated_missions = test_order.task_list()
+    Product_missions = generated_missions[0]
+    Global_missions = generated_missions[1]
+    mission_Queue = generated_missions[2]
 
     ##### Initialization of auxiliary stations#######
     for i in range(total_WRs):
@@ -355,7 +353,7 @@ if __name__ == "__main__":
     # for i, R in enumerate(data_opcua["rob_busy"]):
     for i in range(total_TRs):
         # print(i+1, R)
-        robot = Transfer_robot(id=i + 1, global_task=Global_task, product=None, tqueue=q_robot[i],
+        robot = Transfer_robot(id=i + 1, global_task=Global_missions, product=None, tqueue=q_robot[i],
                                machine_pos=Wk_positions)
         T_robot.append(robot)
 
@@ -368,7 +366,7 @@ if __name__ == "__main__":
     ### Initialize Reactive Scheduler
     GreedyScheduler = Scheduling_agent(
         order=production_order,
-        product_task=Product_task,
+        product_missions=Product_missions,
         T_robot=T_robot
     )
 
@@ -395,8 +393,6 @@ if __name__ == "__main__":
     #     robots_sts.append(serialise_robot(robot))
     #     workstation_sts.append(serialise_workstation(wk))
 
-
-
     ## Start Testing tkinter UI - New Process###
     # testing_client = Process(target=testing_UI, args=(T_robot, W_robot,))
     # testing_client.start()
@@ -404,4 +400,3 @@ if __name__ == "__main__":
     asyncio.run(async_main())
     opcua_client.join()
     # testing_client.join()
-

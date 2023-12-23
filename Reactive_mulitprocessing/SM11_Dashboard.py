@@ -137,13 +137,13 @@ if __name__ == "__main__":
     b = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
     c = Source(tstamp=datetime.now())
     w = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=0, drop=0, tr_no=1)
-    p1 = Product(pv_Id=1, pi_Id=1, task_list=[], inProduction=True, finished=False,
+    p1 = Product(pv_Id=1, pi_Id=1, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p2 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+    p2 = Product(pv_Id=1, pi_Id=2, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p3 = Product(pv_Id=2, pi_Id=1, task_list=[], inProduction=True, finished=False,
+    p3 = Product(pv_Id=2, pi_Id=1, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p4 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+    p4 = Product(pv_Id=1, pi_Id=2, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
 
     p1.tracking.append(c)

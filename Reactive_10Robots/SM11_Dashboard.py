@@ -3,7 +3,6 @@ import sys
 from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
-from pathlib import Path
 import os
 import datetime as dt
 import matplotlib.pyplot as plt
@@ -168,22 +167,22 @@ if __name__ == "__main__":
     b = Process_time(stime=datetime.now(), etime=datetime.now(), dtime=0, wk_no=1)
     c = Source(tstamp=datetime.now())
     w = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=0, drop=0, tr_no=1)
-    p1 = Product(pv_Id=1, pi_Id=1, task_list=[], inProduction=True, finished=False,
+    p1 = Product(pv_Id=1, pi_Id=1, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p2 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+    p2 = Product(pv_Id=1, pi_Id=2, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p3 = Product(pv_Id=2, pi_Id=1, task_list=[], inProduction=True, finished=False,
+    p3 = Product(pv_Id=2, pi_Id=1, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p4 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+    p4 = Product(pv_Id=1, pi_Id=2, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
 
-    p5 = Product(pv_Id=1, pi_Id=3, task_list=[], inProduction=True, finished=False,
+    p5 = Product(pv_Id=1, pi_Id=3, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p6 = Product(pv_Id=1, pi_Id=2, task_list=[], inProduction=True, finished=False,
+    p6 = Product(pv_Id=1, pi_Id=2, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p7 = Product(pv_Id=2, pi_Id=3, task_list=[], inProduction=True, finished=False,
+    p7 = Product(pv_Id=2, pi_Id=3, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
-    p8 = Product(pv_Id=1, pi_Id=5, task_list=[], inProduction=True, finished=False,
+    p8 = Product(pv_Id=1, pi_Id=5, mission_list=[], inProduction=True, finished=False,
                  last_instance=3, robot=0, wk=0, released=False, tracking=[])
 
     p1.tracking.append(c)

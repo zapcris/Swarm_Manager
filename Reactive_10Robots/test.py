@@ -109,8 +109,8 @@ else:
     print("Error")
 c = [0 for _ in range(3)]
 print(c)
-c = [0 for _ in range(2)]
-print(c)
+d= [0 for _ in range(2)]
+print(d)
 condition = 3
 mission = 5
 if condition == 1:
@@ -121,3 +121,38 @@ else:
     c.insert(2, mission)
 
 print(c)
+
+x = -1
+release = False
+sink_queue = []
+while True:
+    try:
+        x = int(input("Please enter a number: "))
+        break
+    except ValueError:
+
+        print("Oops!  That was no valid number.  Try again...")
+
+sink_queue.append(x)
+print("Entered queue", sink_queue)
+
+
+while True:
+    try:
+        x = int(input("Please enter a number: "))
+        break
+    except ValueError:
+
+        print("Oops!  That was no valid number.  Try again...")
+
+sink_queue.append(x)
+print("Entered queue", sink_queue)
+
+while True:
+    try:
+        release = bool(input("Please enter a TRUE/FALSE: "))
+        break
+    except ValueError:
+        print("Oops!  That was no valid number.  Try again...")
+
+print(sink_queue.pop(0))

@@ -65,17 +65,17 @@ capabilities = [[1, 3],
 # q_product_done = asyncio.Queue()
 # q_task_wait = asyncio.Queue()
 
-null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
+null_product = Product(pv_Id=0, pi_Id=0, mission_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False, tracking=[])
 null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=99, step=0)
 
-p1 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 1], [2, 5]], inProduction=False, finished=False, last_instance=1,
+p1 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 1], [2, 5]], inProduction=False, finished=False, last_instance=1,
              robot=0,
              wk=0, released=False, tracking=[])
-p2 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 2], [2, 8]], inProduction=False, finished=False, last_instance=1,
+p2 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 2], [2, 8]], inProduction=False, finished=False, last_instance=1,
              robot=0,
              wk=0, released=False, tracking=[])
-p3 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 3], [3, 6]], inProduction=False, finished=False, last_instance=1,
+p3 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 3], [3, 6]], inProduction=False, finished=False, last_instance=1,
              robot=0,
              wk=0, released=False, tracking=[])
 test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, status="null", robot=1, step=0)
@@ -596,7 +596,7 @@ class Workstation_robot:
             await asyncio.sleep(process_time)
             self.processing = False
             # print(f"Process task on workstation {self.id} finished")
-            self.assingedProduct.task_list.pop(0)
+            self.assingedProduct.mission_list.pop(0)
             # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
             # print(f"Done workstation {self.id}")
             self.process_done = True

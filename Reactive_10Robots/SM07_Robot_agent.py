@@ -5,50 +5,73 @@ from datetime import datetime
 from Reactive_10Robots.SM04_Task_Planning_agent import generate_task
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
+
+#### Initialization data###############
+
 production_order = {}
+
+null_product = Product(pv_Id=0, pi_Id=0, mission_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
+                       wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
+null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=99, step=0)
+
+p1 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 1], [2, 5]], inProduction=False, finished=False, last_instance=1,
+             robot=0,
+             wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
+p2 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 2], [2, 8]], inProduction=False, finished=False, last_instance=1,
+             robot=0,
+             wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
+p3 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 3], [3, 6]], inProduction=False, finished=False, last_instance=1,
+             robot=0,
+             wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
+test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, status="null", robot=1, step=0)
+
+test_product = [p1, p2, p3]
+
+
+
 
 
 # ##WOrking Production Order
-# production_order = {
-#     "Name": "Test",
-#     "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-#     "PV_priority": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-#     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
-#                  [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
-#                  [13, 1, 9, 50],
-#                  [14, 1, 8, 50],  # [11, 4, 8, 12, 9, 12]
-#                  [15, 10, 9, 50],
-#                  [16, 2, 5, 7, 3, 50],
-#                  [17, 3, 6, 8, 2, 4, 3, 50],
-#                  [18, 8, 5, 7, 50],
-#                  [19, 7, 4, 1, 50],
-#                  [20, 5, 4, 9, 50]
-#                  ],
-#     "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
-#     "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-#     "WK_capabilities": [[1], ##[[1, 3],
-#                         [2],  ##[2, 4],
-#                         [3],  ##[3, 8],
-#                         [4],  ##[4, 9],
-#                         [5],  ##[5, 1],
-#                         [6],  ##[6, 3],
-#                         [7],  ##[7, 4],
-#                         [8],  ##[8, 2],
-#                         [9],  ##[9, 1],
-#                         [10]  ##[10, 5]
-#                         ],       ##],
-#     "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-#                       [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-#                       [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-#                       [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
-#                       [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
-#                       [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-#                       [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
-#                       [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-#                       [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
-#                       ]
-# }
+production_order = {
+    "Name": "Test",
+    "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "PV_priority": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
+                 [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
+                 [13, 1, 9, 50],
+                 [14, 1, 8, 50],  # [11, 4, 8, 12, 9, 12]
+                 [15, 10, 9, 50],
+                 [16, 2, 5, 7, 3, 50],
+                 [17, 3, 6, 8, 2, 4, 3, 50],
+                 [18, 8, 5, 7, 50],
+                 [19, 7, 4, 1, 50],
+                 [20, 5, 4, 9, 50]
+                 ],
+    "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
+    "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "WK_capabilities": [[1, 3], ##[[1, 3],
+                        [2, 4],  ##[2, 4],
+                        [3, 8],  ##[3, 8],
+                        [4, 9],  ##[4, 9],
+                        [5, 1],  ##[5, 1],
+                        [6, 3],  ##[6, 3],
+                        [7, 4],  ##[7, 4],
+                        [8, 2],  ##[8, 2],
+                        [9, 1],  ##[9, 1],
+                        [10, 5]  ##[10, 5]
+                        ],       ##],
+    "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
+                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+                      [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
+                      [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
+                      [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
+                      [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
+                      [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
+                      ]
+}
 
 
 def read_order(reconfig_doc):
@@ -106,29 +129,8 @@ capabilities = [[1, 3],
                 ]
 
 ################################# Taken from Robot_Agent###############################################################
-#### Initialization data###############
 
 
-# q_robot_to_opcua = asyncio.Queue()
-# q_product_done = asyncio.Queue()
-# q_task_wait = asyncio.Queue()
-
-null_product = Product(pv_Id=0, pi_Id=0, task_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
-                       wk=0, released=False, tracking=[], priority=1)
-null_Task = Task(id=0, type=0, command=[], pV=0, pI=0, allocation=False, status="null", robot=99, step=0)
-
-p1 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 1], [2, 5]], inProduction=False, finished=False, last_instance=1,
-             robot=0,
-             wk=0, released=False, tracking=[], priority=1)
-p2 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 2], [2, 8]], inProduction=False, finished=False, last_instance=1,
-             robot=0,
-             wk=0, released=False, tracking=[], priority=1)
-p3 = Product(pv_Id=1, pi_Id=1, task_list=[[11, 3], [3, 6]], inProduction=False, finished=False, last_instance=1,
-             robot=0,
-             wk=0, released=False, tracking=[], priority=1)
-test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, status="null", robot=1, step=0)
-
-test_product = [p1, p2, p3]
 
 
 #################################### Robot agent code ################################################
@@ -284,12 +286,18 @@ class Transfer_robot:
                     # print("Case1 activated", pickup, self.event_toopcua, Ax_station[
                     #    pickup - 11].booked)
                     ########Pickup part from source position########
+                    if self.id not in Ax_station[pickup - 11].wait_q:
+                        Ax_station[pickup - 11].wait_q.append(self.id)
+                    else:
+                        print(f"Robot {self.id} already queued for source part {pickup}")
                     if 11 <= pickup <= 20 and self.event_toopcua == False and Ax_station[
-                        pickup - 11].booked == False:
+                        pickup - 11].booked == False and Ax_station[pickup - 11].wait_q[0] == self.id:
                         self.opcua_cmd = ["pick", str(pickup - 1)]
                         self.path_clear = True
                         self.task.step = 2
                         Ax_station[pickup - 11].booked = True
+                        Ax_station[pickup - 11].wait_q.pop(0) ## clear queue entry
+
                     # elif 1 <= pickup <= 10 and W_robot[pickup - 1].robot_free == True:
                     #     self.task.step = 7
                     # print(
@@ -393,11 +401,18 @@ class Transfer_robot:
                     ## Reserved case 8,9,10 for queuing pickup worksation mission###
 
                 case 11:  ## Case for dropping product to Sink Station###
-                    if drop == 50 and self.event_toopcua == False and Ax_station[10].booked == False:
+                    if self.id not in Ax_station[10].wait_q:
+                        Ax_station[10].wait_q.append(self.id)
+                    else:
+                        print(f"Robot {self.id} already in sink queue")
+                    print(f"Robot {self.id} queued for sink {Ax_station[10].wait_q}")
+                    if (drop == 50 and self.event_toopcua == False and Ax_station[10].booked == False
+                            and Ax_station[10].wait_q[0] == self.id):
                         self.opcua_cmd = ["sink", str(pickup - 1)]
                         self.path_clear = True
                         self.task.step = 12
                         Ax_station[10].booked = True
+                        Ax_station[10].wait_q.pop(0)
 
                 case 13:
                     ##Move to Base Station#####
@@ -1069,7 +1084,8 @@ class Workstation_robot:
             self.processing = False
             print(f"Process task on workstation {self.id} finished")
             ### Decrement task inside product object after successful process execution###
-            self.assingedProduct.task_list.pop(0)
+            #self.assingedProduct.mission_list.pop(0)
+            self.assingedProduct.process_done(wk_id=self.id)
             # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
             # print(f"Done workstation {self.id}")
             self.process_done = True
@@ -1114,6 +1130,7 @@ class Auxillary_station:
         self.product_free = True
         self.robot_free = True
         self.booked = False
+        self.wait_q = []
 
     def source_station(self, product):
         return None

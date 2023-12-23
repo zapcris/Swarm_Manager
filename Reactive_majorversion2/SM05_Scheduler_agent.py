@@ -208,7 +208,7 @@ class Scheduling_agent:
         #     else:
         #         pass
 
-        cmd = new_product.task_list[0]
+        cmd = new_product.mission_list[0]
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
@@ -230,8 +230,8 @@ class Scheduling_agent:
         tasks_for_allocation = []
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
-            cmd = product.task_list[0]
-            print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
+            cmd = product.mission_list[0]
+            print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.mission_list)
             if 11 <= cmd[0] <= 20:
                 type = 1
             elif (1 <= cmd[0] <= 10) or (1 <= cmd[1] <= 10):
