@@ -122,6 +122,20 @@ else:
 
 print(c)
 
+
+W_robot = [1,2,3,4,5,6,7,8,9,10]
+wk_options = [99 for _ in W_robot]
+print(wk_options)
+wk_id = 4
+wk_pqueue = [3,6,8,9]
+wk_pqueue2 = [3,6,8,9]
+
+wk_options.insert((wk_id-1), len(wk_pqueue))
+wk_options.insert((wk_id+1), len(wk_pqueue2))
+print(wk_options)
+
+print(wk_options.index(min(wk_options)))
+
 x = -1
 release = False
 sink_queue = []
@@ -156,3 +170,5 @@ while True:
         print("Oops!  That was no valid number.  Try again...")
 
 print(sink_queue.pop(0))
+
+

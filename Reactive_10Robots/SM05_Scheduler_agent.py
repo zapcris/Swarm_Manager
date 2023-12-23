@@ -239,10 +239,10 @@ class Scheduling_agent:
         ## Old logic here
         print("Check this error", new_product)
         ## old logic -without capability
-        cmd = new_product.mission_list[0]
+        #cmd = new_product.mission_list[0]
 
         ## Generate Task command based on the capabilities of the Workstations
-        #cmd = self.generate_task(product=new_product, W_robot=W_robot)
+        cmd = self.generate_task(product=new_product, W_robot=W_robot)
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
@@ -264,10 +264,10 @@ class Scheduling_agent:
         tasks_for_allocation = []
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
-            cmd = product.mission_list[0]
+            #cmd = product.mission_list[0]
 
             ## New capability based task assignment
-            #cmd = self.generate_task(product=product, W_robot=W_robot)
+            cmd = self.generate_task(product=product, W_robot=W_robot)
 
             # print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if 11 <= cmd[0] <= 20:
@@ -279,7 +279,7 @@ class Scheduling_agent:
             TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
                       status="Pending", robot=999, step=1)
             tasks_for_allocation.append(TA)
-        print("Check Takss", tasks_for_allocation)
+        print("Check Task", tasks_for_allocation)
 
         return tasks_for_allocation
 
@@ -315,11 +315,21 @@ class Scheduling_agent:
         #     ## No multi-capabilties for auxillary stations (source/sink)
         #     cmd[1] = mission[1]
         if 1 <= mission[1] <= 10:
-            wk_options = []
+            wk_options = [99 for _ in W_robot]
+            print(wk_options)
             for wk in W_robot:
                 if mission[1] in wk.capability:
-                    wk_options.append(wk.pqueue)
-
+                    ## Check for length of process queue and store in list##
+                    wk_options.insert((wk.id-1), len(wk.pqueue))
+            least_busy = min(wk_options)
+            best_fit = wk_options.index(least_busy)
+            if least_busy != 99:
+                cmd[1] = best_fit+1
+            else:
+                raise Exception(f"ERROR : TASK not generated for the mission {mission}")
+        else:
+            ## No multi-capabilties for auxillary stations (source/sink)
+            cmd[1] = mission[1]
 
         print(f"Task {cmd} generated for mission {mission}")
         product.current_mission = mission
