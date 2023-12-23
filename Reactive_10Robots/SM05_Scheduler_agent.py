@@ -291,29 +291,36 @@ class Scheduling_agent:
         cmd[0] = product.wk
         # wk_id = (0, 0)
         ## Check for process capability inside Workstation and free status#####
+        # if 1 <= mission[1] <= 10:
+        #     for wk in W_robot:
+        #         if mission[1] in wk.capability:
+        #             if wk.booked == False and wk.product_free == True and wk.robot_free == True:  ## Indicates not present or incoming robot
+        #                 self.mission_q.insert(0, wk.id)
+        #             elif wk.booked == False and wk.product_free == True and wk.robot_free == False:  ## Indicates robot is leaving with the product
+        #                 self.mission_q.insert(1, wk.id)
+        #             else:
+        #                 self.mission_q.insert(2, wk.id)
+        #         # else:
+        #         #     print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
+        #         print(f"Task queue generated for mission {mission} is {self.mission_q}")
+        #     if self.mission_q[0] != 99:
+        #         cmd[1] = self.mission_q[0]
+        #     elif self.mission_q[0] == 99 and self.mission_q[1] != 99:
+        #         cmd[1] = self.mission_q[1]
+        #     elif self.mission_q[0] == 99 and self.mission_q[1]==99 and self.mission_q[2] != 99:
+        #         cmd[1] = self.mission_q[2]
+        #     else:
+        #         raise Exception(f"ERROR : TASK not generated for the mission {mission}")
+        # else:
+        #     ## No multi-capabilties for auxillary stations (source/sink)
+        #     cmd[1] = mission[1]
         if 1 <= mission[1] <= 10:
+            wk_options = []
             for wk in W_robot:
                 if mission[1] in wk.capability:
-                    if wk.booked == False and wk.product_free == True and wk.robot_free == True:  ## Indicates not present or incoming robot
-                        self.mission_q.insert(0, wk.id)
-                    elif wk.booked == False and wk.product_free == True and wk.robot_free == False:  ## Indicates robot is leaving with the product
-                        self.mission_q.insert(1, wk.id)
-                    else:
-                        self.mission_q.insert(2, wk.id)
-                # else:
-                #     print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
-                print(f"Task queue generated for mission {mission} is {self.mission_q}")
-            if self.mission_q[0] != 99:
-                cmd[1] = self.mission_q[0]
-            elif self.mission_q[0] == 99 and self.mission_q[1] != 99:
-                cmd[1] = self.mission_q[1]
-            elif self.mission_q[0] == 99 and self.mission_q[1]==99 and self.mission_q[2] != 99:
-                cmd[1] = self.mission_q[2]
-            else:
-                raise Exception(f"ERROR : TASK not generated for the mission {mission}")
-        else:
-            ## No multi-capabilties for auxillary stations (source/sink)
-            cmd[1] = mission[1]
+                    wk_options.append(wk.pqueue)
+
+
         print(f"Task {cmd} generated for mission {mission}")
         product.current_mission = mission
         product.task = cmd
