@@ -59,7 +59,7 @@ def hierarchy_pos2(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.
        xcenter: horizontal location of root
     '''
 
-    def h_recur(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5,
+    def h_recur(G, root, width=1., vert_gap = 1.0, vert_loc = 0, xcenter = 0.5,
                   pos = None, parent = None, parsed = [] ):
         if(root not in parsed):
             parsed.append(root)
@@ -80,10 +80,10 @@ def hierarchy_pos2(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.
                                         parent = root, parsed = parsed)
         return pos
 
-    return h_recur(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5)
+    return h_recur(G, root, width=1., vert_gap = 1.0, vert_loc = 0, xcenter = 0.5)
 
 
-def hierarchy_pos3(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
+def hierarchy_pos3(G, root=None, width=1., vert_gap=1.0, vert_loc=0, xcenter=0.5):
     '''
     From Joel's answer at https://stackoverflow.com/a/29597209/2966723.
     Licensed under Creative Commons Attribution-Share Alike
@@ -118,7 +118,7 @@ def hierarchy_pos3(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5
         else:
             root = random.choice(list(G.nodes))
 
-    def _hierarchy_pos(G, root, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5, pos=None, parent=None):
+    def _hierarchy_pos(G, root, width=1., vert_gap=1.0, vert_loc=0, xcenter=0.5, pos=None, parent=None):
         '''
         see hierarchy_pos docstring for most arguments
 

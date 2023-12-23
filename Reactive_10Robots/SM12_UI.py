@@ -129,8 +129,8 @@ def topology_visualcomponents(selected_top):
     coordinates = np.array(original_coordinates)
 
     # Desired x and y axis limits
-    desired_x_min, desired_x_max = -16000, 16000
-    desired_y_min, desired_y_max = 11000, 37000
+    desired_x_min, desired_x_max = -16000, 14000
+    desired_y_min, desired_y_max = 16000, 40000
 
     # Scale the coordinates
     Topology, scaled_coordinates = scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_min, desired_y_max)

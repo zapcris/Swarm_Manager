@@ -85,7 +85,9 @@ class Product:
     def process_done(self, wk_id):
         self.wk = wk_id
         if self.mission_list:
-            self.current_mission = self.mission_list.pop(0)
+            self.mission_list.pop(0)
+            self.current_mission = self.mission_list[0]
+            print(f"Current mission updated for product {self.pv_Id} {self.current_mission}")
         else:
             raise Exception(f"Product{self.pv_Id}{self.pi_Id} has no missions left on workstation{self.wk}")
         self.task = [99, 99]

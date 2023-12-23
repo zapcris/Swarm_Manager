@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from datetime import datetime
 import numpy as np
@@ -46,6 +45,7 @@ class chromosome:
 
 def max_value(input_list):
     return max([sublist[-1] for sublist in input_list])
+
 
 def run_GA():
     global open_filename
@@ -143,7 +143,7 @@ def run_GA():
         btop = create_batch_topology(init_population[i].sequence, i + 1, init_population[i].k_val,
                                      init_population[i].iter_nr)
         fitness_list.append(btop[0])
-        topology_htable.update({btop[0]: (btop[1], btop[2],init_population[i].k_val,init_population[i].iter_nr)})
+        topology_htable.update({btop[0]: (btop[1], btop[2], init_population[i].k_val, init_population[i].iter_nr)})
         # print(btop)
 
     print("Fitness list:", fitness_list)
@@ -180,7 +180,8 @@ def run_GA():
         off_top = create_batch_topology(off_population[i].sequence, i + 1, off_population[i].k_val,
                                         off_population[i].iter_nr)
         offspring_fitness.append(off_top[0])
-        topology_htable.update({off_top[0]: (off_top[1],off_top[2],off_population[i].k_val,off_population[i].iter_nr)})
+        topology_htable.update(
+            {off_top[0]: (off_top[1], off_top[2], off_population[i].k_val, off_population[i].iter_nr)})
         # print("OFF spring topologies:", i + 1, off_top)
 
     print(min(offspring_fitness))
@@ -219,7 +220,7 @@ def run_GA():
             top = create_batch_topology(new_population[i].sequence, i + 1, new_population[i].k_val,
                                         new_population[i].iter_nr)
             fit_list.append(top[0])
-            topology_htable.update({top[0]: (top[1], top[2],new_population[i].k_val,new_population[i].iter_nr)})
+            topology_htable.update({top[0]: (top[1], top[2], new_population[i].k_val, new_population[i].iter_nr)})
 
         print("The current population fitness list:", fit_list)
 
@@ -246,7 +247,7 @@ def run_GA():
             otop = create_batch_topology(off_population[i].sequence, i + 1, off_population[i].k_val,
                                          off_population[i].iter_nr)
             offspr_fitness.append(otop[0])
-            topology_htable.update({otop[0]: (otop[1], otop[2],off_population[i].k_val,off_population[i].iter_nr)})
+            topology_htable.update({otop[0]: (otop[1], otop[2], off_population[i].k_val, off_population[i].iter_nr)})
             # print("OFF spring topologies:", i + 1, otop)
 
         print("fitness list of offspring in this iteration:", offspr_fitness)
@@ -305,9 +306,8 @@ def run_GA():
         print("The least possible fitness value:", final_fitness)
         print("The topology of the fittest value:", topology_htable[final_fitness])
 
-
         nx.draw(OptmialGraph, topology_htable[final_fitness][0], with_labels=True)
-        #plt.savefig('optimal topology found from GA recursion')
+        # plt.savefig('optimal topology found from GA recursion')
         plt.savefig("Optimized_Spring.pdf", format="pdf", bbox_inches="tight")
         plt.clf()
 
@@ -323,9 +323,9 @@ def run_GA():
     print("The frequency of edges", edge_width)
 
     "Production performance of the fittest solution"
-    #Qty_order = [10, 30, 50, 20, 60, 20, 40, 30, 40, 20]
+    # Qty_order = [10, 30, 50, 20, 60, 20, 40, 30, 40, 20]
     Qty_order = prod_volume
-    #Qty_order = [1, 1, 1, 1, 1, 1, 1]
+    # Qty_order = [1, 1, 1, 1, 1, 1, 1]
     print("Positions of Optimal Topology", topology_htable[final_fitness][0])
     print(prod_efficiency(batch_seq, topology_htable[final_fitness][0], Qty_order, topology_htable[final_fitness][1]))
 
@@ -358,11 +358,9 @@ def run_GA():
     for i in range(len(optimized_top)):
         for key, value in topology_htable[final_fitness][0].items():
             # print(key, value)
-            if i == key-1:
+            if i == key - 1:
                 # print(i)
                 optimized_top[i] = list(dict.fromkeys(value))
-
-
 
     _time = datetime.now()
     current_dateTime = _time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -371,7 +369,7 @@ def run_GA():
     db = client["Topology_Manager"]
     collection = db["Spring_Topologies"]
 
-    coll_dict = {"Timestamp" : current_dateTime,
+    coll_dict = {"Timestamp": current_dateTime,
                  "Product_name": prod_name,
                  "Product_volume": prod_volume,
                  "Product_active": prod_active,
@@ -404,4 +402,4 @@ def run_GA():
             collection.replace_one({"Name": "Optimal_Spring"}, coll_dict)
 
     ## Save Spring optimal topology for Tree Optimization####
-    save(optimized_top)
+    #save(optimized_top)

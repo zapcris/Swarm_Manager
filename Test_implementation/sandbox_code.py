@@ -7,7 +7,7 @@ from threading import Thread
 from time import sleep
 
 
-from Greedy_implementation.SM07_Robot_agent import Events, data_opcua,production_order
+from Greedy_implementation_ISM2023.SM07_Robot_agent import Events, data_opcua,production_order
 
 tracemalloc.start()
 

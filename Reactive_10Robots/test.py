@@ -1,158 +1,106 @@
-import math
-import os
-import queue
-import datetime as dt
-from scipy.spatial import distance
+from datetime import datetime
 
-produts = [1, 2, 3, 4, 5, 6, 7, 8]
-priority = [1, 1, 1, 1, 4, 7, 6, 1]
-test = [(1, 4), (1, 5), (1, 6)]
+import pandas as pd
 
-waiting_list = queue.PriorityQueue()
-pqueue = queue.PriorityQueue(maxsize=3)
+excel_file_path = 'products.xlsx'
+data = [[] for i in range(100)]
+data2 = [[] for i in range(100)]
+product_stats = [[200, 100, 400, 500], [200, 100, 400, 500], [200, 100, 400, 500], [200, 100, 400, 500]]
+makespan = [1000, 2000, 3000, 5000]
+prod_name = ["Product 1", "Product 2", "Product 3", "Product 4"]
+column = ["Station", "Position", "Start time", "Stop time", "Total_Time"]
+column2 = ["Product", "Makespan", "Transfer time", "Blockage time", "Process time", "Idle time"]
+print(data)
+excel_writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
 
-for test in test:
-    q_data = test
-    if not pqueue.full():
-        pqueue.put_nowait(q_data)
-        print(pqueue.qsize())
-    else:
-        waiting_list.put(q_data)
-print("The waiting priority queue", waiting_list.queue)
+obj1 = {"sts": "Source",
+        "tstamp": datetime.now()
+        }
 
-print("The queue", pqueue.queue)
+obj2 = {"sts": "Transfer",
+        "dtime": 100.23,
+        "tr_no": 2,
+        "drop": 4,
+        }
 
-for i, data in enumerate(pqueue.queue):
-    print(f"")
+obj3 = {"sts": "Transfer",
+        "dtime": 100.23,
+        "tr_no": 3,
+        "drop": 4,
+        }
 
-if pqueue.queue[0][1] == 4:
-    print(f"Robot3 queued for base position")
+obj4 = {"sts": "Wait",
+        "dtime": 20.23,
+        "tr_no": 4,
+        "drop": 6,
+        }
 
-for data in pqueue.queue:
-    print(data[1])
+obj5 = {"sts": "Process",
+        "dtime": 45.23,
+        "wk_no" : 7
+        }
 
-queue_pos = 0
-for i, robot in enumerate(pqueue.queue):
-    if robot[1] == 6:
-        queue_pos = i + 1
+obj6 = {"sts": "Sink",
+        "tstamp": datetime.now()
+        }
 
-print("queue position", queue_pos)
+objects = [obj1, obj2, obj3, obj4, obj5, obj6]
 
-item = pqueue.get()
+print(object)
 
-a = [10, 20, 40]
+for i, obj in enumerate(objects):
+    print(i, obj)
+    if obj["sts"] == "Source":
+        data[i].append(obj["sts"])
+        data[i].append(None)
+        data[i].append(obj["tstamp"].strftime("%m/%d/%Y, %H:%M:%S"))
+        data[i].append(None)
+        data[i].append(None)
+    elif obj["sts"] == "Transfer":
+        str = f"{obj["sts"]} "
+        data[i].append(str)
+        str2 = f" To workstation {obj["drop"]} by Robot {obj["tr_no"]} "
+        data[i].append(str2)
+        data[i].append(None)
+        data[i].append(None)
+        data[i].append(int(obj["dtime"]))
+    elif obj["sts"] == "Wait":
+        str = f"{obj["sts"]} "
+        data[i].append(str)
+        str2 = f"At workstation {obj["drop"]} by Robot {obj["tr_no"]} "
+        data[i].append(str2)
+        data[i].append(None)
+        data[i].append(None)
+        data[i].append(int(obj["dtime"]))
+    elif obj["sts"]== "Process":
+        str = f"{obj["sts"]} "
+        data[i].append(str)
+        str2 = f"At workstation {obj["wk_no"]}  "
+        data[i].append(str2)
+        data[i].append(None)
+        data[i].append(None)
+        data[i].append(int(obj["dtime"]))
+    elif obj["sts"] == "Sink":
+        data[i].append(obj["sts"])
+        data[i].append(None)
+        data[i].append(None)
+        data[i].append(obj["tstamp"].strftime("%m/%d/%Y, %H:%M:%S"))
+        data[i].append(None)
 
-a.pop(0)
+for i, (name, times, span) in enumerate(zip(prod_name, product_stats, makespan)):
+    data2[i].append(name)
+    data2[i].append(span)
+    data2[i].append(times[0])
+    data2[i].append(times[1])
+    data2[i].append(times[2])
+    data2[i].append(times[3])
 
-print(a)
-
-a.append(99)
-
-print(a)
-
-
-def maintain_max_3_elements(arr, new_element):
-    if len(arr) < 3:
-        arr.append(new_element)
-        arr.sort(reverse=True)
-    elif new_element > arr[-1]:
-        arr.pop()
-        arr.append(new_element)
-        arr.sort(reverse=True)
-
-
-# Example usage:
-my_array = [10, 5, 8]
-
-print("Original array:", my_array)
-
-maintain_max_3_elements(my_array, 12)
-print("After adding 12:", my_array)
-
-maintain_max_3_elements(my_array, 6)
-print("After adding 6:", my_array)
-
-maintain_max_3_elements(my_array, 15)
-print("After adding 15:", my_array)
-
-task = 30
-robot = [10, 20, 40, 50, 70]
-
-if any(task for x in robot):
-    print("Found")
-
-# id = 1
-# str = f"Robot {id}"
-# process_queue = ["" for _ in range(3)]
-#
-# process_queue.append(str)
-#
-# print(process_queue)
-#
-# process_queue.pop
-
-
-while not pqueue.empty():
-    item = pqueue.get()
-    # print("order", item)
-p1 = [9806.01443856, 14251.0105294]
-p2 = [8001.0, 38301.0]
-p3 = [8001, 10001]
-a = math.dist(p1, p2)
-print("Distance:", a)
-
-a = [20]
-
-if 40 in a and a:
-    print("element popped from array", a.pop(0))
-else:
-    print("Error")
-c = [0 for _ in range(3)]
-print(c)
-d= [0 for _ in range(2)]
-print(d)
-condition = 3
-mission = 5
-if condition == 1:
-    c.insert(0, mission)
-elif condition == 2:
-    c.insert(1, mission)
-else:
-    c.insert(2, mission)
-
-print(c)
-
-x = -1
-release = False
-sink_queue = []
-while True:
-    try:
-        x = int(input("Please enter a number: "))
-        break
-    except ValueError:
-
-        print("Oops!  That was no valid number.  Try again...")
-
-sink_queue.append(x)
-print("Entered queue", sink_queue)
-
-
-while True:
-    try:
-        x = int(input("Please enter a number: "))
-        break
-    except ValueError:
-
-        print("Oops!  That was no valid number.  Try again...")
-
-sink_queue.append(x)
-print("Entered queue", sink_queue)
-
-while True:
-    try:
-        release = bool(input("Please enter a TRUE/FALSE: "))
-        break
-    except ValueError:
-        print("Oops!  That was no valid number.  Try again...")
-
-print(sink_queue.pop(0))
+df = pd.DataFrame(data, columns=column)
+df2 = pd.DataFrame(data2, columns=column2)
+df_transposed = df.transpose()
+str_name = f"{1}_{1}"
+sheet_name = str_name.replace(' ', '_')  # Use a modified name as the sheet name
+df.to_excel(excel_writer, sheet_name=sheet_name, index=False, header=True)
+df2.to_excel(excel_writer, sheet_name="summary", index=False, header=True)
+# Save the Excel file
+excel_writer._save()

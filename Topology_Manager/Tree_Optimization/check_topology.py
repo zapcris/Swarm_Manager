@@ -70,10 +70,10 @@ def checkBusTopology(adj, V, E):
 
 	isBus = checkBusTopologyUtil(adj, V, E)
 	if (isBus):
-		print("The topology is a Bus")
+		print("The topology is a Line/Bus")
 
 	else:
-		print("The topology is not a Bus" )
+		print("The topology is not a Line/Bus" )
 
 
 # Python3 program to check if the given graph

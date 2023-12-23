@@ -5,10 +5,9 @@ from datetime import datetime
 from Reactive_10Robots.SM04_Task_Planning_agent import generate_task
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Waiting_time, Sink, Process_time
 
-
 #### Initialization data###############
 
-production_order = {}
+#production_order = {}
 
 null_product = Product(pv_Id=0, pi_Id=0, mission_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
@@ -28,17 +27,14 @@ test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, st
 test_product = [p1, p2, p3]
 
 
-
-
-
-# ##WOrking Production Order
+# # ## Test Production Order
 production_order = {
     "Name": "Test",
     "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "PV_priority": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     "sequence": [[11, 1, 5, 7, 8, 10, 50],  # [11, 1, 7, 5, 6, 8, 9, 12]
-                 [12, 1, 6, 50],  # [11, 2, 6, 6, 8, 12]
-                 [13, 1, 9, 50],
+                 [12, 2, 6, 50],  # [11, 2, 6, 6, 8, 12]
+                 [13, 3, 9, 50],
                  [14, 1, 8, 50],  # [11, 4, 8, 12, 9, 12]
                  [15, 10, 9, 50],
                  [16, 2, 5, 7, 3, 50],
@@ -81,32 +77,18 @@ def read_order(reconfig_doc):
     production_order["PI"] = reconfig_doc["Production_volume"]
     production_order["Wk_type"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     production_order["PV_priority"] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    production_order["WK_capabilities"] = [[1, 3],
-                                           [2, 4],
-                                           [3, 8],
-                                           [4, 9],
-                                           [5, 1],
-                                           [6, 3],
-                                           [7, 4],
-                                           [8, 2],
-                                           [9, 1],
-                                           [10, 5]
+    production_order["WK_capabilities"] = [[1],
+                                           [2],
+                                           [3],
+                                           [4],
+                                           [5],
+                                           [6],
+                                           [7],
+                                           [8],
+                                           [9],
+                                           [10]
                                            ]
     production_order["Process_times"] = reconfig_doc["Process_times"]
-    production_order["Process_times"] = [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],
-                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                                         [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],
-                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                                         [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],
-                                         # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
-                                         [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                                         [20, 30, 40, 10, 20, 10, 20, 10, 10, 10],
-                                         [20, 30, 40, 30, 20, 40, 80, 70, 30, 60],
-                                         [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
-                                         [20, 30, 40, 30, 20, 40, 10, 70, 30, 10],
-                                         [20, 30, 40, 50, 20, 40, 10, 70, 30, 10],
-                                         [20, 30, 40, 20, 20, 40, 10, 70, 30, 10]
-                                         ]
 
     print("Name", production_order["Name"])
     print("Products", production_order["PV"])
@@ -128,9 +110,20 @@ capabilities = [[1, 3],
                 [10, 5]
                 ]
 
+multi_capability = [[1, 3],
+                    [2, 4],
+                    [3, 8],
+                    [4, 9, 2],
+                    [5, 1],
+                    [6, 3, 1],
+                    [7, 4],
+                    [8, 2, 1],
+                    [9, 1],
+                    [10, 5]
+                    ]
+
+
 ################################# Taken from Robot_Agent###############################################################
-
-
 
 
 #################################### Robot agent code ################################################
@@ -170,6 +163,8 @@ class Transfer_robot:
         self.event_toopcua = False
         self.event_frommain = False
         self.anchor = False
+        self.waitTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=99, drop=99,
+                                     tr_no=self.id)
         # print("The values of workstation positions are", self.machine_pos)
 
     def __await__(self):
@@ -246,16 +241,6 @@ class Transfer_robot:
             f"Bid submitted by Robot {self.id} for task {auctioned_task} is {bid_value} with workstation position {start_pos}")
         return bid_value
 
-    # def task_assign(self, task):
-    #     self.assigned_task = True
-    #     self.task = task
-    #     self.free = False
-    #
-    # def product_assign(self, product):
-    #     self.assigned_task = True
-    #     self.product = product
-    #     self.free = False
-
     def trigger_task(self, task):
         self.task = task
         self.exec_cmd = True
@@ -296,7 +281,7 @@ class Transfer_robot:
                         self.path_clear = True
                         self.task.step = 2
                         Ax_station[pickup - 11].booked = True
-                        Ax_station[pickup - 11].wait_q.pop(0) ## clear queue entry
+                        Ax_station[pickup - 11].wait_q.pop(0)  ## clear queue entry
 
                     # elif 1 <= pickup <= 10 and W_robot[pickup - 1].robot_free == True:
                     #     self.task.step = 7
@@ -306,24 +291,6 @@ class Transfer_robot:
                 case 3:  ##Robot at source pickup and ready for drop to workstation
                     robot = (production_order["PV_priority"][self.product.pv_Id - 1], self.id)
                     queue_pos = 0
-                    # if self.id not in W_robot[drop - 1].pqueue and len(W_robot[drop - 1].pqueue) <= 2:
-                    #     W_robot[drop - 1].pqueue.append(self.id)
-                    #     print(f" Workstation {drop} Queue updated {W_robot[drop - 1].pqueue}")
-                    #     print(f"Robot Inserted in workstation {drop} queue")
-                    # else:
-                    #     W_robot[drop - 1].wait_q.append(self.id)
-                    #     print(f"Robot {self.id} not added in workstation {drop - 1} queue")
-                    #
-                    # ##Check for position of robot in the process queue###
-                    # if self.id in W_robot[drop - 1].pqueue:
-                    #     queue_pos = W_robot[drop - 1].pqueue.index(self.id) + 1
-                    # elif (self.id not in W_robot[drop - 1].pqueue) and W_robot[drop - 1].wait_q:
-                    #     if W_robot[drop - 1].wait_q[0] == self.id:
-                    #         self.q3 = True
-                    #         print(f"Robot {self.id} is 1st in waiting queue for workstation {drop}")
-                    #     else:
-                    #         print(f"Robot {self.id} is not in waiting queue for workstation {drop}")
-
                     ##Check for position of robot in the process queue###
                     if self.id not in W_robot[drop - 1].pqueue:
                         W_robot[drop - 1].pqueue.append(self.id)
@@ -393,7 +360,7 @@ class Transfer_robot:
                     print(f"Robot {self.id} is at workstation {self.wk_loc}")
                     print(f"Workstation {pickup} Robot Free status is {W_robot[pickup - 1].robot_free}")
                     if (self.wk_loc == pickup and self.base == True) or (
-                             self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True):
+                            self.wk_loc != pickup and W_robot[pickup - 1].robot_free == True):
                         W_robot[pickup - 1].booked = True
                         self.opcua_cmd = ["pick", str(pickup - 1)]
                         self.path_clear = True
@@ -428,8 +395,8 @@ class Transfer_robot:
                 self.path_clear = False
                 # await asyncio.sleep(0.2)
                 if self.wait == True:
-                    wTime.calc_time()
-                    self.product.tracking.append(wTime)
+                    self.waitTime.calc_time()
+                    self.product.tracking.append(self.waitTime)
                     self.wait = False
                 else:
                     pass
@@ -446,11 +413,15 @@ class Transfer_robot:
             else:
                 # print(
                 # f"Robot{self.id} at WK {self.wk_loc} awaiting for path to be cleared for task {self.task.command}")
-                self.wait = True
-                wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
-                                     tr_no=self.id)
+                if self.wait == False:
+                    # wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
+                    #                    tr_no=self.id)
+                    self.waitTime.start_timer()
+                    self.waitTime.drop = drop
+                    self.wait = True
+                else:
+                    pass
                 await asyncio.sleep(5)
-                wTime.stop_timer()
                 q_initiate_task.put_nowait(task_opcua)
 
     async def execution_timer(self, q_executing_task: asyncio.Queue, q_done_product: asyncio.Queue,
@@ -463,24 +434,26 @@ class Transfer_robot:
             self.executing = True
             ## Clearance of booking of current location ####
             if 1 <= self.wk_loc <= 10:
-                if self.base == True and self.opcua_cmd[0] != 'sink':
+                if self.base == True and self.task.command[1] != 50:
                     W_robot[self.wk_loc - 1].booked = False
                     ##indicate robot vacating the current wk location
                     W_robot[self.wk_loc - 1].robot_free = True
-                elif self.base == True and self.opcua_cmd[0] == 'sink':
+                    print(
+                        f"Robot{self.id} cleared wk location {self.wk_loc} with robot free {W_robot[self.wk_loc - 1].robot_free}")
+                elif self.base == True and self.task.command[1] == 50:
                     ## Adding sleep to compensate delay in simulation during move to sink operation###
-                    await asyncio.sleep(4)
                     W_robot[self.wk_loc - 1].booked = False
+                    await asyncio.sleep(4)
                     W_robot[self.wk_loc - 1].robot_free = True
             elif 11 <= self.wk_loc <= 20:
-                    Ax_station[self.wk_loc - 11].booked = False
-                # print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
+                Ax_station[self.wk_loc - 11].booked = False
+            # print(f" Source station {Ax_station[self.wk_loc - 11]} unbooked")
             elif self.wk_loc == 50:
                 Ax_station[10].booked = False
 
             ## Clear Workstation queue flags ####
             start_time = datetime.now()
-            tTime = Transfer_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=self.task.command[0],
+            tTime = Transfer_time(stime=start_time, etime=start_time, dtime=0, pickup=self.task.command[0],
                                   drop=self.task.command[1], tr_no=self.id)
             # print(f"Robot {self.id} started executing at {start_time}")
 
@@ -665,7 +638,6 @@ class Transfer_robot:
             q_executing_task.task_done()
 
 
-
 class Workstation_robot:
 
     def __init__(self, wk_no, order, product: Product):
@@ -684,8 +656,7 @@ class Workstation_robot:
         self.q2_empty = True
         self.processing = False
         self.pqueue = []
-        #self.wait_q = []
-
+        # self.wait_q = []
 
     def __await__(self):
         async def closure():
@@ -709,7 +680,11 @@ class Workstation_robot:
             # print("Received data from robot on Workstation", prod)
             # print(f" Workstation ID {self.id}")
             self.assingedProduct = rob_product
-            process_time = production_order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
+            ##process_time = production_order["Process_times"][self.assingedProduct.pv_Id - 1][self.id - 1]
+            ## New process time as per the process number ###
+            process_no = self.assingedProduct.current_mission[1]
+            print(f"Current Process to be performed on workstation {self.id} is {process_no}")
+            process_time = production_order["Process_times"][self.assingedProduct.pv_Id - 1][process_no - 1]
             # process_time = 20
             # print(f"Product received by Workstation{self.id} is {self.assingedProduct}")
             self.process_done = False
@@ -724,7 +699,7 @@ class Workstation_robot:
             self.processing = False
             print(f"Process task on workstation {self.id} finished")
             ### Decrement task inside product object after successful process execution###
-            #self.assingedProduct.mission_list.pop(0)
+            # self.assingedProduct.mission_list.pop(0)
             self.assingedProduct.process_done(wk_id=self.id)
             # print(f"Current process task removed from product {self.product.pv_Id,self.product.pi_Id}")
             # print(f"Done workstation {self.id}")
@@ -734,31 +709,37 @@ class Workstation_robot:
             pt.calc_time()
             self.assingedProduct.tracking.append(pt)
             self.assingedProduct.released = True
-            ### Remove current from product###
-            self.assingedProduct.released = True
-            self.done_product = self.assingedProduct
-            # a = [self.done_product]
-            if self.type == 1:
-                q_done_product.put_nowait(self.done_product)
-            # print(f"Product {self.done_product} added into done queue")
+            ##Check if the next mission for product is satisfied by the same Workstation####
+            next_process = self.assingedProduct.current_mission[1]
+            if next_process in self.capability and next_process != 50:
+                print(f"Next Process {next_process} found in self workstation {self.id}")
+                q_initiate_process.put_nowait(self.assingedProduct)
             else:
-                ## Assign the product and Task to the anchored robot
-                task, product = GreedyScheduler.normalized_production(new_product=self.assingedProduct, W_robot=None)
-                for robot in T_robot:
-                    ## check for workstation anchored on the workstations###
-                    if robot.wk_loc == self.id and robot.anchor == True and robot.base == True:
-                        T_robot[robot.id - 1].assigned_task = True
-                        T_robot[robot.id - 1].task = task
-                        T_robot[robot.id - 1].free = False
-                        print(f"Task {task} Allocated to robot {robot.id}")
-                        T_robot[robot.id - 1].product = product
-                        T_robot[robot.id - 1].trigger_task(task=task)
-                        q_initiate_task[robot.id - 1].put_nowait(task)
-                        T_robot[robot.id - 1].anchor = False
-                    else:
-                        print(f"Robot not found anchored or at workstation")
-            # event.clear()
-            q_initiate_process.task_done()
+                print(f"Next Process {next_process} for product at wk {self.id} sent for allocation")
+                self.done_product = self.assingedProduct
+                # a = [self.done_product]
+                if self.type == 1:
+                    q_done_product.put_nowait(self.done_product)
+                # print(f"Product {self.done_product} added into done queue")
+                else:
+                    ## Assign the product and Task to the anchored robot
+                    task, product = GreedyScheduler.normalized_production(new_product=self.assingedProduct,
+                                                                          W_robot=None)
+                    for robot in T_robot:
+                        ## check for workstation anchored on the workstations###
+                        if robot.wk_loc == self.id and robot.anchor == True and robot.base == True:
+                            T_robot[robot.id - 1].assigned_task = True
+                            T_robot[robot.id - 1].task = task
+                            T_robot[robot.id - 1].free = False
+                            print(f"Task {task} Allocated to robot {robot.id}")
+                            T_robot[robot.id - 1].product = product
+                            T_robot[robot.id - 1].trigger_task(task=task)
+                            q_initiate_task[robot.id - 1].put_nowait(task)
+                            T_robot[robot.id - 1].anchor = False
+                        else:
+                            print(f"Robot not found anchored or at workstation")
+                # event.clear()
+                q_initiate_process.task_done()
 
 
 class Auxillary_station:

@@ -6,7 +6,10 @@ import numpy as np
 import os
 import datetime as dt
 import matplotlib.pyplot as plt
+import pymongo
+
 from Reactive_10Robots.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
+from Reactive_10Robots.SM15_Charts import save_products_to_excel
 
 
 def production_time(Finished_products):
@@ -14,6 +17,8 @@ def production_time(Finished_products):
     product_times = []
     batch_stime = Finished_products[0].tracking[0].tstamp
     batch_etime = Finished_products[-1].tracking[-1].tstamp
+    print("Batch First product", Finished_products[0].pv_Id, Finished_products[0].pi_Id)
+    print("Batch Last product", Finished_products[-1].pv_Id, Finished_products[-1].pi_Id)
     b_time = (batch_etime - batch_stime).total_seconds()
     batch_time = timedelta(seconds=b_time)
     main_legend = []
@@ -26,9 +31,8 @@ def production_time(Finished_products):
     print("generated folder name", folder_name)
     ### Create folder for saving plots###
     # if not os.path.exists(folder_name):
-    #os.makedirs(folder_name)
+    # os.makedirs(folder_name)
     os.makedirs(folder_name, exist_ok=True)
-
 
     for i, product in enumerate(Finished_products):
         #### Evaluate labels for pie chart #######
@@ -66,6 +70,8 @@ def production_time(Finished_products):
         idle_time = tdiff - (travel_time + wait_time + process_time)
         prod_stat.append(idle_time)
     print(product_sts)
+    excel_file_path = f"{folder_name}/product_tracking.xlsx"
+    save_products_to_excel(Finished_products, excel_file_path, product_sts, labels, product_times)
 
     ## Create pie chart for production overview###
     for l, p in zip(labels, product_times):
@@ -143,7 +149,7 @@ def pie_chart(elements, f_name, folder, title):
 
 def func(pct, allvals):
     absolute = int(np.round(pct / 100. * np.sum(allvals)))
-    #return f"{pct:.1f}%\n({absolute:d} seconds)"
+    # return f"{pct:.1f}%\n({absolute:d} seconds)"
     return f"{pct:.1f}%"
 
 

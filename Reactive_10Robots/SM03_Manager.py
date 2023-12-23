@@ -14,19 +14,21 @@ from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_rob
 from Reactive_10Robots.SM13_statusUI import MainApp
 
 
-def reconfigure_topology(reconfig, default_postions):
+def reconfigure_topology(reconfig, default_postions, order):
     # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    mydb = myclient["Topology_Manager"]
+    mycol = mydb["Reconfigure_Topology"]
+    reconfig_doc = mycol.find_one()
+    reconfig_top = reconfig_doc["Topology_str"]
+    positions = reconfig_doc["Topology"]
 
-    #
-    if reconfig == True:
-        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-        mydb = myclient["Topology_Manager"]
-        mycol = mydb["Reconfigure_Topology"]
-        reconfig_doc = mycol.find_one()
-        reconfig_top = reconfig_doc["Topology_str"]
-        positions = reconfig_doc["Topology"]
+    if order == True:
         read_order(reconfig_doc)
+    else:
+        print("Production Order Selected", production_order)
 
+    if reconfig == True:
         print("Reconfiguration Started")
         # reconfig = "0,0d10000,6000d0,12000d0,18000d20000,24000d0,30000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
         print(reconfig_top)
@@ -59,12 +61,12 @@ async def release_products(q_done_product, q_task_waiting, q_mission_release):
         # for task, product in zip(alloted_normal_task[0], alloted_normal_task[1]):
         if alloted_normal_task[0].allocation == True:
             # print(f"tasks entered in the queue:", alloted_normal_task[0])
-            await q_mission_release.put(alloted_normal_task[0])
+            q_mission_release.put_nowait(alloted_normal_task[0])
             # print("Task released to Main Releaser")
         elif alloted_normal_task[0].allocation == False:
             # print("Task again queued in waiting list")
             await asyncio.sleep(10)
-            await q_task_waiting.put([alloted_normal_task[0], alloted_normal_task[1]])
+            q_task_waiting.put_nowait([alloted_normal_task[0], alloted_normal_task[1]])
             # print("Task queued in waiting list")
         q_done_product.task_done()
 
@@ -87,7 +89,7 @@ async def release_task_execution(q_mission_release, q_initiate_task):
         for i in range(len(T_robot)):
             # print(i, robot_id)
             if i == robot_id - 1 and T_robot[i].exec_cmd == True:
-                await q_initiate_task[i].put(task_opcua)
+                q_initiate_task[i].put_nowait(task_opcua)
                 # print(f"Task Initialized for Robot {robot_id}")
         Sim_step += 1
         # await asyncio.sleep(2)
@@ -105,13 +107,13 @@ async def task_wait_queue(q_task_waiting, q_mission_release):
         # for task, product in zip(wait_alloted_task[0], wait_alloted_task[1]):
         if wait_alloted_task[0].allocation == True:
             # print(f"task alloted while in the waiting queue:", wait_alloted_task[0])
-            await q_mission_release.put(wait_alloted_task[0])
+            q_mission_release.put_nowait(wait_alloted_task[0])
             # print("Task released to Main Releaser")
 
         elif wait_alloted_task[0].allocation == False:
             # print("Task again queued in waiting list")
             await asyncio.sleep(10)
-            await q_task_waiting.put([wait_alloted_task[0], wait_alloted_task[1]])
+            q_task_waiting.put_nowait([wait_alloted_task[0], wait_alloted_task[1]])
 
 
 ### OPCUA command to Visual Components Async Queue####
@@ -322,7 +324,7 @@ if __name__ == "__main__":
             break
 
     # # do reconfiguration based on chosen topology from UI
-    Wk_positions = reconfigure_topology(reconfig=True, default_postions=initial_wk_pos)
+    Wk_positions = reconfigure_topology(reconfig=False, default_postions=initial_wk_pos, order=False)
     print("Before Reconfiguration", Wk_positions)
     print("After Reconfiguration", data_opcua["machine_pos"])
 

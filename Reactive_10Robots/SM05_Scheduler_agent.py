@@ -1,7 +1,7 @@
 from Reactive_10Robots.SM10_Product_Task import Product, Task, Source
 from datetime import datetime
 from Reactive_10Robots.SM11_Dashboard import production_time
-
+from time import sleep
 
 class Scheduling_agent:
 
@@ -51,6 +51,7 @@ class Scheduling_agent:
                     self.active_products.pop(index)
                     # print(f"The product variant {fin_pv} deleted from the Scheduler Active product list")
                     new_product = self.add_new_variant(product_tList)
+                    break
                     #### added new product variant if product was last instance#####
                 elif product.pi_Id < product.last_instance and sum(self.remaining_instance) > 0:
                     print(
@@ -60,10 +61,11 @@ class Scheduling_agent:
                     self.active_products.pop(index)
                     # print(f"The product Instance {fin_pi} deleted from the Scheduler")
                     new_product = self.add_new_instance(fin_pv, fin_pi, product_tList)
+                    break
                     #### added new instance if product wasn't the last one#####
 
             else:
-                print("The product to be deleted not found in the active product list inside scheduler")
+                #print("The product to be deleted not found in the active product list inside scheduler")
                 new_product = None
 
         return new_product
@@ -131,14 +133,6 @@ class Scheduling_agent:
             self.active_products.append(new_prod_var)
             # print(f"New Product Variant {new_variant} and {new_prod_var}  added to active list")
             return new_prod_var
-        ## Old logic trunacated : Production end
-        # elif len(self.finished_product) == self.planned_batch:
-        #     print("Production completed")
-        #     for i, product in enumerate(self.finished_product):
-        #         print(f"Finished product {i} is {product}")
-        #         print(f"It's tracking details are {product.tracking}")
-        #     app_close.set()
-        #     production_time(self.finished_product)
 
     def production_end(self):
         # print("Production completed")
@@ -149,6 +143,7 @@ class Scheduling_agent:
         print("Total Finished products", len(self.finished_product))
         print("Total Planned Batch is", self.planned_batch)
         if len(self.finished_product) >= self.planned_batch:
+            sleep(2)
             production_time(self.finished_product)
         # print("Production Stats generating")
         # app_close.set()
@@ -196,11 +191,11 @@ class Scheduling_agent:
                     variant = self.remaining_variant.pop(0)
                     self.remaining_instance[variant - 1] -= 1
                     # print("Remaining instance list", self.remaining_instance)
-                    p = Product(pv_Id=variant, pi_Id=1, mission_list=self.product_missions[i], inProduction=True,
+                    p = Product(pv_Id=variant, pi_Id=1, mission_list=self.product_missions[variant-1], inProduction=True,
                                 finished=False,
                                 last_instance=self.order["PI"][i], robot=99, wk=variant+10, released=False,
                                 tracking=[], priority=self.order["PV_priority"][variant - 1],
-                                current_mission=self.product_missions[0], task=[99, 99])
+                                current_mission=self.product_missions[variant-1][0], task=[99, 99])
                     ct = Source(tstamp=datetime.now())
                     p.tracking.append(ct)
                     # print(f"First instance of product type {variant} and product {p} generated for production")
@@ -212,11 +207,11 @@ class Scheduling_agent:
                 variant = self.remaining_variant.pop(0)
                 self.remaining_instance[variant - 1] -= 1
                 # print("Remaining instance list", self.remaining_instance)
-                p = Product(pv_Id=variant, pi_Id=1, mission_list=self.product_missions[i], inProduction=True,
+                p = Product(pv_Id=variant, pi_Id=1, mission_list=self.product_missions[variant-1], inProduction=True,
                             finished=False,
                             last_instance=self.order["PI"][i], robot=99, wk=variant+10, released=False,
                             tracking=[], priority=self.order["PV_priority"][variant - 1],
-                            current_mission=self.product_missions[0], task=[99, 99])
+                            current_mission=self.product_missions[variant-1][0], task=[99, 99])
                 ct = Source(tstamp=datetime.now())
                 p.tracking.append(ct)
                 # print(f"First instance of product type {variant} and product {p} generated for production")
@@ -226,23 +221,14 @@ class Scheduling_agent:
         return initial_allocation, self.active_products
 
     def normalized_production(self, new_product, W_robot):
-        # task_for_allocation = []
-        # global task_for_allocation
-        # for new_product in product_list:
-        # for act_prod in self.active_products:
-        #     if act_prod.pi_Id == new_product.pi_Id and act_prod.pv_Id == new_product.pv_Id:
-        #         act_prod = new_product
-        #         ###print(f" product variant {act_prod.pi_Id} and {act_prod.pv_Id} changed in Scheduler active list")
-        #     else:
-        #         pass
 
         ## Old logic here
         print("Check this error", new_product)
         ## old logic -without capability
-        cmd = new_product.mission_list[0]
+        #cmd = new_product.mission_list[0]
 
         ## Generate Task command based on the capabilities of the Workstations
-        #cmd = self.generate_task(product=new_product, W_robot=W_robot)
+        cmd = self.generate_task(product=new_product, W_robot=W_robot)
 
         ###print(f"Current product task flow required for {new_product.pv_Id, new_product.pi_Id}", new_product.task_list)
         if 11 <= cmd[0] <= 20:
@@ -264,10 +250,10 @@ class Scheduling_agent:
         tasks_for_allocation = []
         ######### Initial Release ########################
         for i, product in enumerate(self.active_products):
-            cmd = product.mission_list[0]
+            #cmd = product.mission_list[0]
 
             ## New capability based task assignment
-            #cmd = self.generate_task(product=product, W_robot=W_robot)
+            cmd = self.generate_task(product=product, W_robot=W_robot)
 
             # print(f"Current product task flow required for {product.pv_Id, product.pi_Id}", product.task_list)
             if 11 <= cmd[0] <= 20:
@@ -279,47 +265,38 @@ class Scheduling_agent:
             TA = Task(id=i + 1, type=type, command=cmd, pV=product.pv_Id, pI=product.pi_Id, allocation=False,
                       status="Pending", robot=999, step=1)
             tasks_for_allocation.append(TA)
-        print("Check Takss", tasks_for_allocation)
+        print("Check Task", tasks_for_allocation)
 
         return tasks_for_allocation
 
     def generate_task(self, product, W_robot):
         cmd = [0, 0]
         self.mission_q = [99 for _ in range(3)]  ## 99 denoting empty mission
-        mission = product.mission_list[0]
+        mission = product.current_mission
+        print(f"Generated mission is {mission} for {product}")
         'Testing code for Capability based task assignment'
         cmd[0] = product.wk
-        # wk_id = (0, 0)
-        ## Check for process capability inside Workstation and free status#####
-        # if 1 <= mission[1] <= 10:
-        #     for wk in W_robot:
-        #         if mission[1] in wk.capability:
-        #             if wk.booked == False and wk.product_free == True and wk.robot_free == True:  ## Indicates not present or incoming robot
-        #                 self.mission_q.insert(0, wk.id)
-        #             elif wk.booked == False and wk.product_free == True and wk.robot_free == False:  ## Indicates robot is leaving with the product
-        #                 self.mission_q.insert(1, wk.id)
-        #             else:
-        #                 self.mission_q.insert(2, wk.id)
-        #         # else:
-        #         #     print(f"Error: capability {mission[1]} not found in workstation {wk.id}")
-        #         print(f"Task queue generated for mission {mission} is {self.mission_q}")
-        #     if self.mission_q[0] != 99:
-        #         cmd[1] = self.mission_q[0]
-        #     elif self.mission_q[0] == 99 and self.mission_q[1] != 99:
-        #         cmd[1] = self.mission_q[1]
-        #     elif self.mission_q[0] == 99 and self.mission_q[1]==99 and self.mission_q[2] != 99:
-        #         cmd[1] = self.mission_q[2]
-        #     else:
-        #         raise Exception(f"ERROR : TASK not generated for the mission {mission}")
-        # else:
-        #     ## No multi-capabilties for auxillary stations (source/sink)
-        #     cmd[1] = mission[1]
         if 1 <= mission[1] <= 10:
-            wk_options = []
+            wk_options = [99 for _ in W_robot]
+            print(wk_options)
             for wk in W_robot:
                 if mission[1] in wk.capability:
-                    wk_options.append(wk.pqueue)
-
+                    ## Check for length of process queue and store in list##
+                    wk_options.insert((wk.id-1), len(wk.pqueue))
+                    print(f"The queue size for {wk.id} is {len(wk.pqueue)}")
+            least_busy = min(wk_options)
+            best_fit = wk_options.index(least_busy)
+            ## Preference to same workstation and process number ####
+            if not W_robot[mission[1]-1].pqueue:
+                cmd[1] = mission[1]
+            elif least_busy != 99 and W_robot[mission[1]-1].pqueue:
+                cmd[1] = best_fit+1
+                print(f"Workstation {cmd[1]} has the least queue size {least_busy}")
+            else:
+                raise Exception(f"ERROR : TASK not generated for the mission {mission}")
+        else:
+            ## No multi-capabilties for auxillary stations (source/sink)
+            cmd[1] = mission[1]
 
         print(f"Task {cmd} generated for mission {mission}")
         product.current_mission = mission

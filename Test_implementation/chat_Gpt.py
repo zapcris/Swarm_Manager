@@ -6,10 +6,10 @@ import sys
 import tracemalloc
 from threading import Thread
 from time import sleep
-from Greedy_implementation.SM02_opcua_client import start_opcua, main_function
-from Greedy_implementation.SM04_Task_Planning_agent import order
-from Greedy_implementation.SM06_Task_allocation import Task_Allocator_agent
-from Greedy_implementation.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
+from Greedy_implementation_ISM2023.SM02_opcua_client import start_opcua, main_function
+from Greedy_implementation_ISM2023.SM04_Task_Planning_agent import order
+from Greedy_implementation_ISM2023.SM06_Task_allocation import Task_Allocator_agent
+from Greedy_implementation_ISM2023.SM07_Robot_agent import data_opcua, Workstation_robot, W_robot, null_product, Transfer_robot, \
     T_robot, Global_task, GreedyScheduler, Events, event1_exectime, event2_exectime, event3_exectime, event1_opcua, event2_opcua, event3_opcua, \
     wk_1, wk_2, wk_3, wk_4, wk_5, wk_6, wk_7, wk_8, wk_9, wk_10, event1_chk_exec, event2_chk_exec, event3_chk_exec, \
     q_robot_to_opcua, \
