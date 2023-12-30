@@ -68,8 +68,9 @@ def save_products_to_excel(products: List[Product], excel_file_path: str, produc
         #df_transposed = df.transpose()
         str_name = f"{product.pv_Id}_{product.pi_Id}"
         sheet_name = str_name.replace(' ', '_')  # Use a modified name as the sheet name
-        df.to_excel(excel_writer, sheet_name=sheet_name, index=False, header=True)
         df2.to_excel(excel_writer, sheet_name="summary", index=False, header=True)
+        df.to_excel(excel_writer, sheet_name=sheet_name, index=False, header=True)
+
     # Save the Excel file
     excel_writer._save()
     print(f'Data has been saved to {excel_file_path}')

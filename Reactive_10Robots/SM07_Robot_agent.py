@@ -7,7 +7,7 @@ from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Wa
 
 #### Initialization data###############
 
-#production_order = {}
+# production_order = {}
 
 null_product = Product(pv_Id=0, pi_Id=0, mission_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
@@ -25,7 +25,6 @@ p3 = Product(pv_Id=1, pi_Id=1, mission_list=[[11, 3], [3, 6]], inProduction=Fals
 test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, status="null", robot=1, step=0)
 
 test_product = [p1, p2, p3]
-
 
 # # ## Test Production Order
 production_order = {
@@ -45,7 +44,7 @@ production_order = {
                  ],
     "PI": [1, 2, 1, 2, 2, 1, 1, 1, 1, 1],
     "Wk_type": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    "WK_capabilities": [[1, 3], ##[[1, 3],
+    "WK_capabilities": [[1, 3],  ##[[1, 3],
                         [2, 4],  ##[2, 4],
                         [3, 8],  ##[3, 8],
                         [4, 9],  ##[4, 9],
@@ -55,7 +54,7 @@ production_order = {
                         [8, 2],  ##[8, 2],
                         [9, 1],  ##[9, 1],
                         [10, 5]  ##[10, 5]
-                        ],       ##],
+                        ],  ##],
     "Process_times": [[10, 10, 20, 10, 15, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
                       [10, 30, 20, 10, 45, 14, 15, 12, 10, 10],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60],
                       [15, 10, 20, 10, 15, 14, 15, 12, 10, 30],  # [20, 30, 40, 50, 20, 40, 80, 70, 30, 60]
@@ -163,8 +162,8 @@ class Transfer_robot:
         self.event_toopcua = False
         self.event_frommain = False
         self.anchor = False
-        self.waitTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=99, drop=99,
-                                     tr_no=self.id)
+        # self.waitTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=99, drop=99,
+        #                              tr_no=self.id)
         # print("The values of workstation positions are", self.machine_pos)
 
     def __await__(self):
@@ -395,8 +394,8 @@ class Transfer_robot:
                 self.path_clear = False
                 # await asyncio.sleep(0.2)
                 if self.wait == True:
-                    self.waitTime.calc_time()
-                    self.product.tracking.append(self.waitTime)
+                    wTime.calc_time()
+                    self.product.tracking.append(wTime)
                     self.wait = False
                 else:
                     pass
@@ -414,10 +413,8 @@ class Transfer_robot:
                 # print(
                 # f"Robot{self.id} at WK {self.wk_loc} awaiting for path to be cleared for task {self.task.command}")
                 if self.wait == False:
-                    # wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
-                    #                    tr_no=self.id)
-                    self.waitTime.start_timer()
-                    self.waitTime.drop = drop
+                    wTime = Waiting_time(stime=datetime.now(), etime=datetime.now(), dtime=0, pickup=pickup, drop=drop,
+                                         tr_no=self.id)
                     self.wait = True
                 else:
                     pass
