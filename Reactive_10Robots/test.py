@@ -7,7 +7,7 @@ data = [[] for i in range(100)]
 data2 = [[] for i in range(100)]
 product_stats = [[200, 100, 400, 500], [200, 100, 400, 500], [200, 100, 400, 500], [200, 100, 400, 500]]
 makespan = [1000, 2000, 3000, 5000]
-prod_name = ["Product 1", "Product 2", "Product 3", "Product 4"]
+prod_name = ["PV-3_PI-1", "PV-2_PI-1", "PV-2_PI-2", "PV-1_PI-1"]
 column = ["Station", "Position", "Start time", "Stop time", "Total_Time"]
 column2 = ["Product", "Makespan", "Transfer time", "Blockage time", "Process time", "Idle time"]
 print(data)
@@ -37,7 +37,7 @@ obj4 = {"sts": "Wait",
 
 obj5 = {"sts": "Process",
         "dtime": 45.23,
-        "wk_no" : 7
+        "wk_no": 7
         }
 
 obj6 = {"sts": "Sink",
@@ -72,7 +72,7 @@ for i, obj in enumerate(objects):
         data[i].append(None)
         data[i].append(None)
         data[i].append(int(obj["dtime"]))
-    elif obj["sts"]== "Process":
+    elif obj["sts"] == "Process":
         str = f"{obj["sts"]} "
         data[i].append(str)
         str2 = f"At workstation {obj["wk_no"]}  "
@@ -95,8 +95,13 @@ for i, (name, times, span) in enumerate(zip(prod_name, product_stats, makespan))
     data2[i].append(times[2])
     data2[i].append(times[3])
 
+prod_summary = [ele for ele in data2 if ele != []]
+print(prod_summary)
+sorted_list = sorted(prod_summary, key=lambda x: x[0])
+print(sorted_list)
+
 df = pd.DataFrame(data, columns=column)
-df2 = pd.DataFrame(data2, columns=column2)
+df2 = pd.DataFrame(sorted_list, columns=column2)
 df_transposed = df.transpose()
 str_name = f"{1}_{1}"
 sheet_name = str_name.replace(' ', '_')  # Use a modified name as the sheet name

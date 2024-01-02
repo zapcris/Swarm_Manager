@@ -7,7 +7,7 @@ from Reactive_10Robots.SM10_Product_Task import Product, Task, Transfer_time, Wa
 
 #### Initialization data###############
 
-# production_order = {}
+#production_order = {}
 
 null_product = Product(pv_Id=0, pi_Id=0, mission_list=[], inProduction=False, finished=False, last_instance=0, robot=99,
                        wk=0, released=False, tracking=[], priority=1, current_mission=[], task=[])
@@ -26,7 +26,8 @@ test_task = Task(id=1, type=1, command=[11, 1], pV=1, pI=1, allocation=False, st
 
 test_product = [p1, p2, p3]
 
-# # ## Test Production Order
+
+# ## Test Production Order
 production_order = {
     "Name": "Test",
     "PV": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

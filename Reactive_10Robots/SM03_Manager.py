@@ -16,12 +16,17 @@ from Reactive_10Robots.SM13_statusUI import MainApp
 
 def reconfigure_topology(reconfig, default_postions, order):
     # reconfig = "-5947.8017408,1345.07016512d-5891.42134789,3066.44623999d-5801.59637732,4823.26974015d"
-    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    mydb = myclient["Topology_Manager"]
-    mycol = mydb["Reconfigure_Topology"]
-    reconfig_doc = mycol.find_one()
-    reconfig_top = reconfig_doc["Topology_str"]
-    positions = reconfig_doc["Topology"]
+    if order == True or reconfig == True:
+        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        mydb = myclient["Topology_Manager"]
+        mycol = mydb["Reconfigure_Topology"]
+        reconfig_doc = mycol.find_one()
+        reconfig_top = reconfig_doc["Topology_str"]
+        positions = reconfig_doc["Topology"]
+
+    else:
+        print("MongoDB bypassed")
+        pass
 
     if order == True:
         read_order(reconfig_doc)

@@ -61,10 +61,15 @@ def save_products_to_excel(products: List[Product], excel_file_path: str, produc
             data2[i].append(int(times[2]))
             data2[i].append(int(times[3]))
 
+        prod_summary = [ele for ele in data2 if ele != []]
+        print(prod_summary)
+        sorted_list = sorted(prod_summary, key=lambda x: x[0])
+        print(sorted_list)
+
 
         #df = pd.DataFrame(data, columns=["Product Tracking"])
         df = pd.DataFrame(data, columns=column)
-        df2 = pd.DataFrame(data2, columns=column2)
+        df2 = pd.DataFrame(sorted_list, columns=column2)
         #df_transposed = df.transpose()
         str_name = f"{product.pv_Id}_{product.pi_Id}"
         sheet_name = str_name.replace(' ', '_')  # Use a modified name as the sheet name

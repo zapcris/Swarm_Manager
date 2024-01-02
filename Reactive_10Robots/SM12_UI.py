@@ -338,7 +338,7 @@ if __name__ == "__main__":
 
     # reconfig = "0,0d20000,6000d0,15000d0,14000d20000,24000d0,31000d30000,36000d0,42000d0,48000d0,54000d0,60000d"
 
-    combo = ttk.Combobox(values=["Spring_Topologies", "Tree_Topologies"])
+    combo = ttk.Combobox(values=["Spring_Topologies", "Tree_Topologies", "Ring_Topologies"])
     combo.bind("<<ComboboxSelected>>", selection_changed)
     combo.grid(column=1, row=5, padx=10, pady=25)
 
