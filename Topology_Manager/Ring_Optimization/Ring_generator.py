@@ -29,6 +29,8 @@ def read_db():
     global prod_volume
     global prod_active
     global process_times
+    global wk_type
+    global wk_capabilities
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
     mycol = mydb["Spring_Topologies"]
@@ -42,6 +44,8 @@ def read_db():
     Batch_sequence = read_doc["Process_Sequence"]
     Qty_order = read_doc["Product_volume"]
     spring_pos = read_doc["Optimized_Topology"]
+    wk_type = read_doc["WK_type"]
+    wk_capabilities = read_doc["WK_capabilities"]
     for index, value in enumerate(spring_pos):
         print(index, value)
         if value != None:
@@ -56,6 +60,8 @@ if __name__ == "__main__":
     prod_volume = []
     prod_active = []
     process_times = [[]]
+    wk_type = []
+    wk_capabilities = []
 
     read_db()
     print(Batch_sequence)
@@ -135,6 +141,8 @@ if __name__ == "__main__":
                  "Product_active": prod_active,
                  "Process_Sequence": Batch_sequence,
                  "Process_times": process_times,
+                 "WK_type": wk_type,
+                 "WK_capabilities": wk_capabilities,
                  "Statistical_Fitness": None,
                  "Estimated_Topologies": None,
                  "Optimized_Topology": optimized_top}

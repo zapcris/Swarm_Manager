@@ -74,4 +74,3 @@ class Task_Planning_agent:
                     # print(task_node)
 
         return product_task, global_task, task_queue
-

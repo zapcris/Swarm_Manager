@@ -19,8 +19,7 @@ process_times = []
 selection = ""
 choosen_doc = {}
 wk_type = []
-
-
+wk_capabilities = [[]]
 
 
 
@@ -89,6 +88,7 @@ def select_doc(top_type):
     global prod_name
     global process_times
     global wk_type
+    global wk_capabilities
     tree_stat_list = read_doc["Statistical_Fitness"]
     tree_top_list = read_doc["Estimated_Topologies"]
     print("selected_document", tree_stat_list)
@@ -98,6 +98,8 @@ def select_doc(top_type):
     prod_active = read_doc["Product_active"]
     prod_sequence = read_doc["Process_Sequence"]
     process_times = read_doc["Process_times"]
+    wk_type = read_doc["WK_type"]
+    wk_capabilities = read_doc["WK_capabilities"]
     choosen_doc = read_doc
     print(choosen_doc["Timestamp"])
 
@@ -185,6 +187,7 @@ def select_specific(Topology, Topology_str, top_type):
     global prod_sequence
     global process_times
     global wk_type
+    global wk_capabilities
     select_top = topology_visualcomponents(choosen_doc["Optimized_Topology"])
     "Connect to MongoDB"
     client = pymongo.MongoClient("mongodb://localhost:27017")
@@ -200,7 +203,8 @@ def select_specific(Topology, Topology_str, top_type):
                  "Product_active": prod_active,
                  "Production_Sequence": vc_sequence(prod_sequence),
                  "Process_times": process_times,
-                 "WK_type": wk_type}
+                 "WK_type": wk_type,
+                 "WK_capabilities": wk_capabilities}
     # coll_dict = {"Topologies": topologies}
 
     total_doc = collection.count_documents({})
@@ -216,7 +220,6 @@ def select_specific(Topology, Topology_str, top_type):
 
 def select_optimal(top_type):
     global choosen_doc
-    global wk_type
     optimal_top = topology_visualcomponents(choosen_doc["Optimized_Topology"])
     print("Optimal topology string generated", optimal_top)
     "Read write topology to MongoDB"
@@ -232,7 +235,8 @@ def select_optimal(top_type):
                   "Product_active": choosen_doc["Product_active"],
                   "Production_Sequence": vc_sequence(choosen_doc["Process_Sequence"]),
                   "Process_times": choosen_doc["Process_times"],
-                  "WK_type": wk_type}
+                  "WK_type": choosen_doc["WK_type"],
+                  "WK_capabilities": choosen_doc["WK_capabilities"]}
 
     total_doc = collection2.count_documents({})
     if total_doc == 0:

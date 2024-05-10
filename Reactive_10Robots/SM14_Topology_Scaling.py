@@ -22,10 +22,11 @@ def scale_graph_uniformly(coordinates, desired_x_min, desired_x_max, desired_y_m
     # Combine scaled x and y values back into coordinates
     scaled_coordinates = np.column_stack((scaled_x_values, scaled_y_values))
     list_scaled_coordinates = []
-    for x,y in zip(scaled_x_values, scaled_y_values):
-        cord = [x,y]
+    for x, y in zip(scaled_x_values, scaled_y_values):
+        cord = [x, y]
         list_scaled_coordinates.append(cord)
 
+    print("The Scaling factors are", scaling_factor_x, scaling_factor_y)
     print("list cordinates", list_scaled_coordinates)
     return list_scaled_coordinates, scaled_coordinates
 

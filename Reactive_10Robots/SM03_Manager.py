@@ -12,6 +12,7 @@ from Reactive_10Robots.SM07_Robot_agent import production_order, Workstation_rob
     Auxillary_station, read_order
 # from Reactive_10Robots.SM12_UI import read_tree, select_doc, select_top, save, optimize, Topology
 from Reactive_10Robots.SM13_statusUI import MainApp
+from Reactive_10Robots.SM11_Dashboard import throughput_gen
 
 
 def reconfigure_topology(reconfig, default_postions, order):
@@ -215,6 +216,27 @@ async def release_opcua_cmd(q_robot_cmd, q_exec_start):
         q_robot_cmd.task_done()
 
 
+async def collect_data(scheduler):
+    while True:
+        total_products = []
+        active_products = []
+        finished_products = []
+        for product in scheduler.active_products:
+            t_p = [product.pv_Id, product.pi_Id]
+            total_products.append(t_p)
+        for fin_prod in scheduler.finished_product:
+            f_p =[fin_prod.pv_Id, fin_prod.pi_Id]
+            finished_products.append(f_p)
+        for product in total_products:
+            if product not in finished_products:
+                active_products.append(product)
+        print("Active Product List", active_products)
+        for wk in W_robot:
+            print(f"Workstation {wk.id} Queue is {wk.pqueue}")
+        await throughput_gen(active_products)
+        await asyncio.sleep(10)
+
+
 async def async_main():
     task_queue = asyncio.create_task(release_task_execution(q_mission_release=q_main_to_releaser,
                                                             q_initiate_task=q_initiate_task))
@@ -222,6 +244,7 @@ async def async_main():
                                                          q_mission_release=q_main_to_releaser))
     wait_queue = asyncio.create_task(task_wait_queue(q_task_waiting=q_task_wait, q_mission_release=q_main_to_releaser))
     opcua_queue = asyncio.create_task(release_opcua_cmd(q_robot_cmd=q_robot_to_opcua, q_exec_start=q_exec_start))
+    data_capture = asyncio.create_task(collect_data(scheduler=GreedyScheduler))
 
     T_initiate = []
 
@@ -252,7 +275,7 @@ async def async_main():
                                                                           q_initiate_task=q_initiate_task)))
 
     # await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, T1, T2, T3, T4, T5, T6, *W_process)
-    await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, *T_initiate, *T_execution, *W_process)
+    await asyncio.gather(task_queue, product_queue, wait_queue, opcua_queue, data_capture, *T_initiate, *T_execution, *W_process)
 
 
 def run_simulation():
@@ -329,7 +352,7 @@ if __name__ == "__main__":
             break
 
     # # do reconfiguration based on chosen topology from UI
-    Wk_positions = reconfigure_topology(reconfig=False, default_postions=initial_wk_pos, order=False)
+    Wk_positions = reconfigure_topology(reconfig=True, default_postions=initial_wk_pos, order=False)
     print("Before Reconfiguration", Wk_positions)
     print("After Reconfiguration", data_opcua["machine_pos"])
 

@@ -37,6 +37,8 @@ prod_name = []
 prod_volume = []
 prod_active = []
 process_times = [[]]
+wk_type = []
+wk_capabilities = [[]]
 
 
 def read_db():
@@ -47,6 +49,8 @@ def read_db():
     global prod_volume
     global prod_active
     global process_times
+    global wk_type
+    global wk_capabilities
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["Topology_Manager"]
     mycol = mydb["Spring_Topologies"]
@@ -59,6 +63,8 @@ def read_db():
     process_times = read_doc["Process_times"]
     Batch_sequence = read_doc["Process_Sequence"]
     Qty_order = read_doc["Product_volume"]
+    wk_type = read_doc["WK_type"]
+    wk_capabilities = read_doc["WK_capabilities"]
     spring_pos = read_doc["Optimized_Topology"]
     for index, value in enumerate(spring_pos):
         print(index, value)
@@ -512,6 +518,8 @@ coll_dict = {"Timestamp": current_dateTime,
              "Product_active": prod_active,
              "Process_Sequence": Batch_sequence,
              "Process_times": process_times,
+             "WK_type": wk_type,
+             "WK_capabilities": wk_capabilities,
              "Statistical_Fitness": top_keys,
              "Estimated_Topologies": topologies, "Optimized_Topology": optimized_top}
 # coll_dict = {"Topologies": topologies}

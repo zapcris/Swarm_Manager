@@ -184,7 +184,7 @@ def prod_efficiency(Batch_sequence, pos, Qty, len_graph):
         #print("PT",PI_arr_pt[i])
         'Increase the production span if array dimension error occurs'
         #cumulative_throughput[offset:PI_arr_pt[i] + offset] = PI_arr_thr[i]  # [1:PI_arr_pt[i]]
-        plt.plot(prod_steps, cumulative_throughput, color=colors[i], label=f'P{i + 1} for qty-{Qty[i]} CT-{process_time[i]} time')
+        #plt.plot(prod_steps, cumulative_throughput, color=colors[i], label=f'P{i + 1} for qty-{Qty[i]} CT-{process_time[i]} time')
         plt.pause(2)
 
     # Naming the x-axis, y-axis and the whole graph

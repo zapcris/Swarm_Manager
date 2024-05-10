@@ -51,6 +51,7 @@ def run_GA():
     global open_filename
     global open_filename2
     global open_filename3
+    global open_filename4
 
     file = askopenfile(mode='r', filetypes=[
         ('Excel Files', '*.xlsx *.xlsm *.sxc *.ods *.csv *.tsv')])  # To open the file that you want.
@@ -64,9 +65,11 @@ def run_GA():
     sh1 = wb[sheets[0]]
     sh2 = wb[sheets[1]]
     sh3 = wb[sheets[2]]
+    sh4 = wb[sheets[3]]
     open_filename = sh1
     open_filename2 = sh2
     open_filename3 = sh3
+    open_filename4 = sh4
 
     # print(wb.sheetnames)
     # print(sheets)
@@ -79,6 +82,9 @@ def run_GA():
 
     row3 = sh3.max_row
     column3 = sh3.max_column
+
+    row4 = sh4.max_row
+    column4 = sh4.max_column
 
     batch_seq = [[] for i in range(column)]
 
@@ -103,20 +109,32 @@ def run_GA():
     prod_volume = [0 for i in range(row2 - 1)]
     prod_name = [None for i in range(row2 - 1)]
     prod_active = [False for i in range(row2 - 1)]
+    process_times = [[] for i in range(column3)]
+    wk_type = [0 for i in range(row4 - 1)]
+    wk_capabilities = [[] for i in range(row4 - 1)]
 
     for i in range(1, row2):
         prod_volume[i - 1] = sh2.cell(i + 1, 3).value  ##third column in sheet
         prod_name[i - 1] = sh2.cell(i + 1, 1).value  ##first column in sheet
         prod_active[i - 1] = sh2.cell(i + 1, 2).value  ##second column in sheet
 
-    process_times = [[] for i in range(column3)]
-
     for i in range(1, column3 + 1):
-
         for j in range(2, row3 + 1):
             # print(sh1.cell(i,1).value)
             if sh3.cell(j, i).value != None:
                 process_times[i - 1].append(sh3.cell(j, i).value)
+
+    for i in range(1, row4):
+        wk_type[i - 1] = sh4.cell(i + 1, 1).value
+        string_numbers = sh4.cell(i + 1, 2).value
+        print(isinstance(string_numbers, int))
+        if isinstance(string_numbers, int):
+            wk_capabilities[i - 1] = [string_numbers, 99]
+        else:
+            wk_capabilities[i - 1] = list(map(int, string_numbers.split(',')))
+
+    print("wk_capability", wk_capabilities)
+
 
     init_population = []
     start_k = 1.2
@@ -298,10 +316,11 @@ def run_GA():
     OptmialGraph.add_edges_from(e_list)
 
     ##### END of GA ######
-    if min(offspring_fitness) > 100:
+    if min(offspring_fitness) > 0:
         print("\n\nRecursion Started")
 
         final_fitness = (GA_recursion(20, 25, 1))
+
         print("the min fitness list:", min_fitness)
         print("The least possible fitness value:", final_fitness)
         print("The topology of the fittest value:", topology_htable[final_fitness])
@@ -311,7 +330,7 @@ def run_GA():
         plt.savefig("Optimized_Spring.pdf", format="pdf", bbox_inches="tight")
         plt.clf()
 
-    elif min(offspring_fitness) <= 100:
+    elif min(offspring_fitness) <= 10:
         print("Fitness value found below 500:", min(offspring_fitness))
         nx.draw(OptmialGraph, topology_htable[min(offspring_fitness)][0], with_labels=True)
         plt.savefig("Optimized_Spring.pdf", format="pdf", bbox_inches="tight")
@@ -375,6 +394,8 @@ def run_GA():
                  "Product_active": prod_active,
                  "Process_Sequence": batch_seq,
                  "Process_times": process_times,
+                 "WK_type": wk_type,
+                 "WK_capabilities" : wk_capabilities,
                  "Statistical_Fitness": top_keys,
                  "Estimated_Topologies": topologies, "Optimized_Topology": optimized_top}
     # coll_dict = {"Topologies": topologies}
@@ -392,7 +413,9 @@ def run_GA():
                      "Product_active": prod_active,
                      "Process_Sequence": batch_seq,
                      "Product_volume": prod_volume,
-                     "Process_times": process_times}
+                     "Process_times": process_times,
+                     "WK_type": wk_type,
+                     "WK_capabilities": wk_capabilities}
         # coll_dict = {"Topologies": topologies}
 
         total_doc = collection.count_documents({})

@@ -86,6 +86,7 @@ class Product:
         self.wk = wk_id
         if self.mission_list:
             self.mission_list.pop(0)
+            print(f"workstation {self.wk} mission list generated {self.mission_list}")
             self.current_mission = self.mission_list[0]
             print(f"Current mission updated for product {self.pv_Id} {self.current_mission}")
         else:

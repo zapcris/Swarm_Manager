@@ -11,7 +11,7 @@ import pymongo
 from Reactive_10Robots.SM10_Product_Task import Sink, Transfer_time, Process_time, Source, Product, Waiting_time
 from Reactive_10Robots.SM15_Charts import save_products_to_excel
 
-
+data_snapshot = []
 def production_time(Finished_products):
     labels = []
     product_times = []
@@ -71,7 +71,7 @@ def production_time(Finished_products):
         prod_stat.append(idle_time)
     print(product_sts)
     excel_file_path = f"{folder_name}/product_tracking.xlsx"
-    save_products_to_excel(Finished_products, excel_file_path, product_sts, labels, product_times)
+    save_products_to_excel(Finished_products, excel_file_path, product_sts, labels, product_times, data_snapshot)
 
     ## Create pie chart for production overview###
     for l, p in zip(labels, product_times):
@@ -153,9 +153,21 @@ def func(pct, allvals):
     return f"{pct:.1f}%"
 
 
+async def throughput_gen(active_products):
+    #active_products = []
+    now = dt.datetime.now()
+    # for product in active_products:
+    #     #d = [product.pv_Id, product.pi_Id]
+    #     active_products.append(product)
+    # #print(active_products)
+    data = [now, active_products]
+    data_snapshot.append(data)
+
+
 async def main():
     task = asyncio.create_task(production_time(finish_products))
     await asyncio.gather(task)
+
 
 
 ###### Dashboard Test ###############
